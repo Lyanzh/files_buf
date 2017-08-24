@@ -123,8 +123,11 @@ static void enter_measure_xy_mode(void)
 
 static void start_adc(void)
 {
+	unsigned long data;
+
 	//s3c_ts_regs->adccon |= (1<<0);
-	iowrite32(S3C2410_ADCCON_ENABLE_START, base_addr+S3C2410_ADCCON);
+	data = ioread32(base_addr+S3C2410_ADCCON);
+	iowrite32((data|S3C2410_ADCCON_ENABLE_START), base_addr+S3C2410_ADCCON);
 }
 
 static void touch_timer_fire(unsigned long data)
