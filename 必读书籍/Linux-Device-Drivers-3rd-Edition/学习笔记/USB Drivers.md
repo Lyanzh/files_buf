@@ -72,3 +72,50 @@ Some USB devices have multiple interfaces, such as a USB speaker that might cons
 
 a USB interface represents basic functionality, each USB driver controls an interface.
 
+described in the kernel with the struct `usb_interface` structure.
+
+This structure is what the USB core passes to USB drivers and is what the USB driver then is in charge of controlling.
+
+ important fields:
+
+- struct usb_host_interface *altsetting
+
+	containingall of the alternate settings that may be selected for this interface.
+
+	consists of a set of endpoint configurations as defined by the struct usb_host_endpoint structure.
+
+- unsigned num_altsetting
+
+	The number of alternate settings pointed to by the altsetting pointer.
+
+- struct usb_host_interface *cur_altsetting
+
+	A pointer into the array altsetting, denotingthe currently active settingfor this interface.
+
+- int minor
+
+	this variable contains the minor number assigned by the USB core to the interface. (valid only after a successful call to usb_register_dev, the USB driver can bound to this interface uses the USB major number).
+
+### Configurations ###
+
+A USB device can have multiple configurations and might switch between them in order to change the state of the device.
+
+A single configuration can be enabled only at one point in time.
+
+Linux describes USB configurations with the structure struct usb_host_config and
+entire USB devices with the structure struct usb_device.
+
+### USB and Sysfs ###
+
+Both the physical USB device (as represented by a struct usb_device) and the individual USB interfaces (as represented by a struct usb_interface) are shown in sysfs as individual devices.
+
+//to be continue...
+
+### USB Urbs ###
+
+A urb(USB request block) is used to send or receive data to or from a specific USB endpoint on a specific USB device in an asynchronous manner.
+
+described with the struct urb structure.
+
+Every endpoint in a device can handle a queue of urbs.
+
