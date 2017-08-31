@@ -111,6 +111,7 @@ static struct usb_driver myusbmouse_driver = {
 
 static int myusbmouse_init(void)
 {
+	/* register this driver with the USB subsystem */
 	int retval = usb_register(&myusbmouse_driver);
 	if (retval == 0)
 		info(DRIVER_VERSION ":" DRIVER_DESC);
@@ -119,6 +120,7 @@ static int myusbmouse_init(void)
 
 static void myusbmouse_exit(void)
 {
+	/* deregister this driver with the USB subsystem */
 	usb_deregister(&myusbmouse_driver);
 }
 
