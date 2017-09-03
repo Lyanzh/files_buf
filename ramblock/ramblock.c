@@ -77,16 +77,25 @@ static int __init ramblock_init(void)
 	ret = -EBUSY;
 	major = register_blkdev(0, DEVICE_NAME);
 	if (major < 0)
+	{
+		printk( KERN_ERR DEVICE_NAME ": register of device failed\n");
 		goto err;
+	}
 
 	ret = -ENOMEM;
 	ramblock_gendisk = alloc_disk(16);
 	if (!ramblock_gendisk)
+	{
+		printk( KERN_ERR DEVICE_NAME ": alloc_disk of ramblock_gendisk failed\n");
 		goto out_disk;
+	}
 
 	ramblock_queue = blk_init_queue(do_ramblock_request, &ramblock_lock);
 	if (!ramblock_queue)
+	{
+		printk( KERN_ERR DEVICE_NAME ": blk_init_queue failed\n");
 		goto out_queue;
+	}
 
 	ramblock_gendisk->major = major;
 	ramblock_gendisk->first_minor = 0;
