@@ -50,23 +50,23 @@
 		int __init dmfe_probe1(struct net_device *dev)
 		{
 			...
-				do {
-					...
-					/* driver system function */				
-					dev->base_addr 	= iobase;
-					dev->irq 		= irq;
-					dev->open 		= &dmfe_open;
-					dev->hard_start_xmit 	= &dmfe_start_xmit;
-					dev->watchdog_timeo	= 5*HZ;	
-					dev->tx_timeout		= dmfe_timeout;
-					dev->stop 			= &dmfe_stop;
-					dev->get_stats 		= &dmfe_get_stats;
-					dev->set_multicast_list = &dm9000_hash_table;
-					dev->do_ioctl 		= &dmfe_do_ioctl;
-					dev->ethtool_ops = &dmfe_ethtool_ops;
-					//dev->features |=  NETIF_F_IP_CSUM;
-					dev->features |=  NETIF_F_IP_CSUM|NETIF_F_SG;
-					...
+			do {
+				...
+				/* driver system function */				
+				dev->base_addr 	= iobase;
+				dev->irq 		= irq;
+				dev->open 		= &dmfe_open;
+				dev->hard_start_xmit 	= &dmfe_start_xmit;
+				dev->watchdog_timeo	= 5*HZ;	
+				dev->tx_timeout		= dmfe_timeout;
+				dev->stop 			= &dmfe_stop;
+				dev->get_stats 		= &dmfe_get_stats;
+				dev->set_multicast_list = &dm9000_hash_table;
+				dev->do_ioctl 		= &dmfe_do_ioctl;
+				dev->ethtool_ops = &dmfe_ethtool_ops;
+				//dev->features |=  NETIF_F_IP_CSUM;
+				dev->features   |=  NETIF_F_IP_CSUM|NETIF_F_SG;
+				...
 			}while(!dm9000_found && iobase <= DM9KS_MAX_IO);
 		
 			...
@@ -106,3 +106,94 @@
 
 	![](https://i.imgur.com/aZVojBj.png)
 
+## 移植示例 ##
+
+1. 注释掉  
+	![](https://i.imgur.com/FmFRrm7.png)
+	![](https://i.imgur.com/vRex7dl.png)
+
+2. 修改入口出口函数名称  
+	![](https://i.imgur.com/vGqPHVs.png)
+
+3. iobase需要设置，入口函数设置最好：  
+	![](https://i.imgur.com/zpOfcCV.png)
+
+4. 注释掉版本核对  
+	![](https://i.imgur.com/Fsuezv8.png)
+
+5. 查看中断号  
+	![](https://i.imgur.com/8gWNB42.png)
+	![](https://i.imgur.com/2AZVPLh.png)
+
+6. 入口函数设置中断号  
+	![](https://i.imgur.com/UMIuXzZ.png)
+
+	设置中断触发方式-上升沿触发  
+	![](https://i.imgur.com/euhIe2x.png)
+
+7. 编译  
+	![](https://i.imgur.com/vSuPdoh.png)
+	![](https://i.imgur.com/5hReC8l.png)
+
+8. 加入缺少的头文件  
+	![](https://i.imgur.com/xNlA0D4.png)
+	![](https://i.imgur.com/impOazH.png)
+
+9. 类型转换  
+	![](https://i.imgur.com/6Xdnxvo.png)
+	![](https://i.imgur.com/HO4lLgM.png)
+
+10. 基本移植好，但是时序没有和CPU进行匹配，不同硬件，涉及到文件收发，一定有时序要求。因此要设置内存控制器中关于网卡部分的寄存器以满足时间参数。
+
+	主要代码：
+	
+		/* 设置S3C2440的memory controller */
+		bwscon   = ioremap(0x48000000, 4);
+		bankcon4 = ioremap(0x48000014, 4);
+		
+		/* DW4[17:16]: 01-16bit
+		 * WS4[18]   : 0-WAIT disable
+		 * ST4[19]   : 0 = Not using UB/LB (The pins are dedicated nWBE[3:0])
+		*/
+		val = *bwscon;
+		val &= ~(0xf<<16);
+		val |= (1<<16);
+		*bwscon = val;
+		
+		/*
+		 * Tacs[14:13]: 发出片选信号之前,多长时间内要先发出地址信号
+		 *              DM9000C的片选信号和CMD信号可以同时发出,
+		 *              所以它设为0
+		 * Tcos[12:11]: 发出片选信号之后,多长时间才能发出读信号nOE
+		 *              DM9000C的T1>=0ns, 
+		 *              所以它设为0
+		 * Tacc[10:8] : 读写信号的脉冲长度, 
+		 *              DM9000C的T2>=10ns, 
+		 *              所以它设为1, 表示2个hclk周期,hclk=100MHz,就是20ns
+		 * Tcoh[7:6]  : 当读信号nOE变为高电平后,片选信号还要维持多长时间
+		 *              DM9000C进行写操作时, nWE变为高电平之后, 数据线上的数据还要维持最少3ns
+		 *              DM9000C进行读操作时, nOE变为高电平之后, 数据线上的数据在6ns之内会消失
+		 *              我们取一个宽松值: 让片选信号在nOE放为高电平后,再维持10ns, 
+		 *              所以设为01
+		 * Tcah[5:4]  : 当片选信号变为高电平后, 地址信号还要维持多长时间
+		 *              DM9000C的片选信号和CMD信号可以同时出现,同时消失
+		 *              所以设为0
+		 * PMC[1:0]   : 00-正常模式
+		 *
+		 */
+		*bankcon4 = (1<<8)|(1<<6);/* 对于DM9000C可以设Tacc为1, 对于DM9000E,Tacc要设大一点,比如最大值7  */
+		//*bankcon4 = (7<<8)|(1<<6);  /* MINI2440使用DM9000E,Tacc要设大一点 */
+		
+		iounmap(bwscon);
+		iounmap(bankcon4);
+
+11. 测试DM9000C驱动程序:  
+	（1）把dm9dev9000c.c放到内核的drivers/net目录下  
+	（2）修改drivers/net/Makefile  
+	把 `obj-$(CONFIG_DM9000) += dm9000.o`  
+	改为 `obj-$(CONFIG_DM9000) += dm9dev9000c.o`  
+	（3）make uImage  
+		使用新内核启动  
+	（4）使用NFS启动或  
+		`>>ifconfig eth0 192.168.1.17`  
+		`>>ping 192.168.1.1`
