@@ -17,6 +17,26 @@ static struct i2c_client_address_data addr_data = {
 	.ignore		= ignore,
 };
 
+static unsigned int major;
+static struct class * cls;
+
+static ssize_t at24cxx_read(struct file *filp, char __user *buf, size_t size, loff_t *offset)
+{
+	return 0;
+}
+
+static ssize_t at24cxx_write(struct file *filp, const char __user *buf, size_t size, loff_t *offset)
+{
+	return 0;
+}
+
+static struct file_operations at24cxx_fops =
+{
+	.owner = THIS_MODULE,
+	.read  = at24cxx_read,
+	.write = at24cxx_write,
+}
+
 /* This function is called by i2c_probe */
 static int at24cxx_detect(struct i2c_adapter *adapter, int address, int kind)
 {
@@ -50,6 +70,12 @@ static int at24cxx_detect(struct i2c_adapter *adapter, int address, int kind)
 	/* Tell the I2C layer a new client has arrived */
 	if ((err = i2c_attach_client(at24cxx_client)))
 		goto exit_detach;
+
+	major = register_chrdev(0, "at24cxx", &at24cxx_fops);
+
+	cls = class_create(THIS_MODULE, "at24cxx");
+
+	class_device_create(cls, NULL, MKDEV(major, 0), NULL, "at24cxx");
 
 	return 0;
 
