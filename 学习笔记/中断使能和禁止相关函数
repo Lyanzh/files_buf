@@ -1,0 +1,8 @@
+local_irq_disable()//禁止本 CPU 内的中断
+local_irq_enable()//使能本 CPU 内的中断
+
+local_irq_save(flags)//禁止中断，保存目前的 CPU 的中断位信息
+local_irq_restore(flags)//使能中断
+
+local_bh_disable()//禁止中断的底半部
+local_bh_enable()//使能中断的底半部
