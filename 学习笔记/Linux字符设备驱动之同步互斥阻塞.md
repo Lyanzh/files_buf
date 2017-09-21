@@ -8,7 +8,7 @@
 
 指执行的过程中不会被别的代码路径所中断的操作
 
- 1.1 其常使用的函数有：
+1.1 其常使用的函数有：
 
     atomic_t v = ATOMIC_INIT(0);	//定义原子变量v并初始化为0
     atomic_read(atomic_t *v);		//返回原子变量的值
@@ -16,7 +16,7 @@
     void atomic_dec(atomic_t *v);	//原子变量减少1
     int atomic_dec_and_test(atomic_t *v);	//自减操作后测试其是否为0，为0则返回true，否则返回false
 
- 1.2 使用过程
+1.2 使用过程
 
  （1）设置原子变量，用来标记设备是否被占用
 
@@ -61,11 +61,11 @@
     void sema_init (struct semaphore *sem, int val);
     void init_MUTEX(struct semaphore *sem); //初始化为0 
 
-可用使用DECLARE_MUTEX，实现信号量的定义并初始化，如：
+可用使用 DECLARE_MUTEX ，实现信号量的定义并初始化，如：
 
     DECLARE_MUTEX(name);  //定义一个信号量name，并初始化它的值为1
 
-注意init_MUTEX（），DECLARE_MUTEX 在linux2.6.38以后已被移除。其中DECLARE_MUTEX(name)被DEFINE_SEMAPHORE替代，为避免与DEFINE_MUTEX 互斥锁相近引起开发者误解。
+注意 init_MUTEX（），DECLARE_MUTEX 在 linux2.6.38 以后已被移除。其中 DECLARE_MUTEX(name) 被DEFINE_SEMAPHORE替代，为避免与DEFINE_MUTEX 互斥锁相近引起开发者误解。
 
 获得信号量：
 
@@ -95,11 +95,11 @@
 
 ### 阻塞、非阻塞的实现 ###
 
-1 阻塞操作：是指在执行设备操作时若不能获得资源则挂起进程，直到满足可操作的条件后再进行操作。被挂起的进程进入休眠状态，被从调度器的运行队列移走，直到等待的条件被满足。
+1、 阻塞操作：是指在执行设备操作时若不能获得资源则挂起进程，直到满足可操作的条件后再进行操作。**被挂起的进程进入休眠状态**，被从调度器的运行队列移走，直到等待的条件被满足。
 
-  非阻塞操作：进程在不能进行设备操作时并不挂起，它或者放弃，或者不停地查询，直至可以进行操作为止。
+非阻塞操作：进程在不能进行设备操作时并不挂起，它或者放弃，或者不停地查询，直至可以进行操作为止。
 
-2 通过判断函数带入的参数file的file->f_flags来判断是否为阻塞，以做相应的操作。
+2、 通过判断函数带入的参数 file 的 **file->f_flags** 来判断是否为阻塞，以做相应的操作。
 
     if (file->f_flags & O_NONBLOCK)
     {
@@ -110,7 +110,7 @@
 		//阻塞，实现休眠
 	}
 
-实现后，应用程序调用实现后的函数时，可以选择阻塞或非阻塞方式，阻塞时陷入休眠，非阻塞时立即返回信息。一般默认是阻塞，应用程序设置非阻塞方式打开使用O_NONBLOCK，如下：
+实现后，应用程序调用实现后的函数时，可以选择阻塞或非阻塞方式，阻塞时陷入休眠，非阻塞时立即返回信息。一般默认是阻塞，应用程序设置非阻塞方式打开使用 O_NONBLOCK ，如下：
 
     fd = open("...", O_RDWR | O_NONBLOCK);
 
@@ -134,7 +134,7 @@
 	#include <linux/poll.h>
 
     static struct class *fifthdrv_class;
-    static struct class_device*fifthdrv_class_dev;
+    static struct class_device *fifthdrv_class_dev;
     
     volatile unsigned long *gpfcon;
     volatile unsigned long *gpfdat;
