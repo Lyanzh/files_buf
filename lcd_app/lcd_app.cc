@@ -14,6 +14,8 @@ unsigned long screen_size = 0;
 unsigned int line_size;
 unsigned int pixel_size;
 
+char *hzkp;
+
 void lcd_put_pixel(int x, int y, unsigned int color)
 {
 	unsigned char *pen_8 = fbp + line_size * y + pixel_size * x;
@@ -32,10 +34,10 @@ void lcd_put_pixel(int x, int y, unsigned int color)
 		break;
 	case 16:
 		/* RGB565 */
-		red = (color >> 16) && 0xff;
-		green = (color >> 8) && 0xff;
-		blue = (color >> 8) && 0xff;
-		color = ((red >> 3) << 11) | ((green >> 2) << 5) | ((blue >> 3) << 0);
+		red = (color >> 16) & 0xff;
+		green = (color >> 8) & 0xff;
+		blue = (color >> 0) & 0xff;
+		color = ((red >> 3) << 11) | ((green >> 2) << 5) | ((blue >> 3));
 		
 		break;
 	case 32:
@@ -55,7 +57,7 @@ void lcd_put_ascii(int x, int y, unsigned char c)
 	for(i = 0; i < 16; i++)
 	{
 		byte = dots[i];
-		for(b = 7;,b >=0; b--)
+		for(b = 7; b >= 0; b--)
 		{
 			if(byte & (1<<b))
 			{
@@ -69,10 +71,44 @@ void lcd_put_ascii(int x, int y, unsigned char c)
 	}
 }
 
+void lcd_put_chinese(int x, int y, unsigned char *str)
+{
+	unsigned int area = str[0] - 0xA1;//汉字编码是从0xa0区开始的
+	unsigned int where = str[1] - 0xA1;
+	//HZK16字库里的16×16汉字一共需要256个点来显示，也就是说需要32个字节才能达到显示一个普通汉字的目的
+	unsigned char *dots = hzkp + (area * 94 + where) * 32;//每个区块有94个字符
+	unsigned char byte;
+
+	int i, j, b;
+
+	for(i = 0; i < 16; i++)
+	{
+		for(j = 0; j < 2; j++)
+		{
+			byte = dots[i*2 + j];
+			for(b = 7; b >= 0; b--)
+			{
+				if(byte & (1<<b))
+				{
+					lcd_put_pixel(x+j*8+7-b, y+i, 0xFF);//on
+				}
+				else
+				{
+					lcd_put_pixel(x+j*8+7-b, y+i, 0);//off
+				}
+			}
+		}
+	}
+	
+}
+
 int main(int argc, char **argv)
 {
 	int fbfd = 0;
 	struct fb_var_screeninfo vinfo;
+
+	int fd_hzk16;
+	struct stat hzk_stat;
 	
 	fbfd = open("/dev/fb0", O_RDWR);
 	if(!fbfd)
@@ -101,10 +137,34 @@ int main(int argc, char **argv)
 		printf("Error:fail to map framebuffer device to memory.\n");
 	}
 
+	fd_hzk16 = open("HZK16", O_RDONLY);
+	if(fd_hzk16 < 0)
+	{
+		printf("Error:cannot open HZK16.\n");
+		return -1;
+	}
+
+	//get HZK16 file information
+	if(fstat(fd_hzk16, &hzk_stat))
+	{
+		printf("Error:cannot get HZK16 stat.\n");
+		return -1;
+	}
+
+	//map the device to memory
+	hzkp = (char *)mmap(0, hzk_stat.st_size, PROT_READ, MAP_SHARED, fd_hzk16, 0);
+	if((int)hzkp == -1)
+	{
+		printf("Error:fail to map HZK16 to memory.\n");
+	}
+
 	memset(fbp, 0, screen_size);
 
-	lcd_put_ascii();
+	lcd_put_ascii(vinfo.xres/2, vinfo.yres/2, 'A');
+	lcd_put_chinese(vinfo.xres/2, vinfo.yres/2, "我");
 
+	munmap(hzkp, hzk_stat.st_size);
+	close(fd_hzk16);
 	munmap(fbp, screen_size);
 	close(fbfd);
 	return 0;
