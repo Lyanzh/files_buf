@@ -32,13 +32,14 @@ void lcd_put_pixel(int x, int y, unsigned int color)
 		break;
 	case 16:
 		/* RGB565 */
-		red = (color >> 16) && 0xff;
-		green = (color >> 8) && 0xff;
-		blue = (color >> 8) && 0xff;
-		color = ((red >> 3) << 11) | ((green >> 2) << 5) | ((blue >> 3) << 0);
-		
+		red = (color >> 16) & 0xff;
+		green = (color >> 8) & 0xff;
+		blue = (color >> 0) & 0xff;
+		color = ((red >> 3) << 11) | ((green >> 2) << 5) | ((blue >> 3));
+		*pen_16 = color;
 		break;
 	case 32:
+		*pen_32 = color;
 		break;
 	default:
 		printf("cannot surport %dbpp\n", screen_bits_per_pixel);
@@ -48,24 +49,38 @@ void lcd_put_pixel(int x, int y, unsigned int color)
 
 void lcd_put_ascii(int x, int y, unsigned char c)
 {
-	unsigned char *dots = &fontdata_8x16[c*16];
+	unsigned char *dots = (unsigned char *)&fontdata_8x16[c*16];
 	int i, b;
 	unsigned char byte;
 
 	for(i = 0; i < 16; i++)
 	{
 		byte = dots[i];
-		for(b = 7;,b >=0; b--)
+		for(b = 7; b >= 0; b--)
 		{
 			if(byte & (1<<b))
 			{
-				lcd_put_pixel(x+7-b, y+i, 0xFF);//on
+				lcd_put_pixel(x+7-b, y+i, 0xFFFFFF);//on
 			}
 			else
 			{
 				lcd_put_pixel(x+7-b, y+i, 0);//off
 			}
 		}
+	}
+}
+
+void lcd_put_str(int x, int y, const unsigned char *str)
+{
+	unsigned char *p = str;
+	int _x = x;
+	int _y = y;
+	while(*p != '\0')
+	{
+		lcd_put_ascii(_x, _y, *p);
+		p++;
+		_x += 8;
+		
 	}
 }
 
@@ -89,11 +104,16 @@ int main(int argc, char **argv)
 
 	screen_bits_per_pixel = vinfo.bits_per_pixel;
 	printf("screen_bits_per_pixel = %d\n", screen_bits_per_pixel);
+	printf("screen x size = %d\n", vinfo.xres);
+	printf("screen y size = %d\n", vinfo.yres);
 
 	pixel_size = screen_bits_per_pixel / 8;	//pixel size in bytes
 	line_size = vinfo.xres * pixel_size;	//line size in bytes
 	screen_size = line_size * vinfo.yres;	//screen size in bytes
-
+	printf("pixel_size = %d\n", pixel_size);
+	printf("line_size = %d\n", line_size);
+	printf("screen_size = %d\n", screen_size);
+	
 	//map the device to memory
 	fbp = (char *)mmap(0, screen_size, PROT_READ | PROT_WRITE, MAP_SHARED, fbfd, 0);
 	if((int)fbp == -1)
@@ -103,7 +123,9 @@ int main(int argc, char **argv)
 
 	memset(fbp, 0, screen_size);
 
-	lcd_put_ascii();
+	lcd_put_ascii(vinfo.xres / 2, vinfo.yres / 2, 'A');
+	lcd_put_str(472, 0, "abc");
+	//lcd_put_str(0, 16, "efg");
 
 	munmap(fbp, screen_size);
 	close(fbfd);
