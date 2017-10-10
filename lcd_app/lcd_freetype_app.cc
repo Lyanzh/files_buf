@@ -52,43 +52,6 @@ void lcd_put_pixel(int x, int y, unsigned int color)
 	}
 }
 
-void lcd_put_ascii(int x, int y, unsigned char c)
-{
-	unsigned char *dots = (unsigned char *)&fontdata_8x16[c*16];
-	int i, b;
-	unsigned char byte;
-
-	for(i = 0; i < 16; i++)
-	{
-		byte = dots[i];
-		for(b = 7; b >= 0; b--)
-		{
-			if(byte & (1<<b))
-			{
-				lcd_put_pixel(x+7-b, y+i, 0xFFFFFF);//on
-			}
-			else
-			{
-				lcd_put_pixel(x+7-b, y+i, 0);//off
-			}
-		}
-	}
-}
-
-void lcd_put_str(int x, int y, const unsigned char *str)
-{
-	unsigned char *p = str;
-	int _x = x;
-	int _y = y;
-	while(*p != '\0')
-	{
-		lcd_put_ascii(_x, _y, *p);
-		p++;
-		_x += 8;
-		
-	}
-}
-
 void draw_bitmap(FT_Bitmap* bitmap, FT_Int x, FT_Int y)
 {
 	FT_Int i, j, p, q;
@@ -103,7 +66,7 @@ void draw_bitmap(FT_Bitmap* bitmap, FT_Int x, FT_Int y)
 				continue;
 
 			//image[j][i] |= bitmap->buffer[q * bitmap->width + p];
-			lcd_put_ascii(i, j, bitmap->buffer[q * bitmap->width + p]);
+			lcd_put_pixel(i, j, bitmap->buffer[q * bitmap->width + p]);
 		}
 	}
 }
@@ -228,7 +191,6 @@ int main(int argc, char **argv)
 	return 0;
 }
 
-static const unsigned char fontdata_8x16[FONTDATAMAX] = {
 
 	/* 0 0x00 '^@' */
 	0x00, /* 00000000 */
