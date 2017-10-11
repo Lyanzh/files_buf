@@ -1,21 +1,27 @@
+#include <unistd.h>
+#include <stdlib.h>
+#include <stdio.h>
+#include <fcntl.h>
+#include <string.h>
+#include <sys/mman.h>
+#include <linux/fb.h>
 #include "include/fb_lcd.h"
 
-struct fb_device
+typedef struct FbDevice
 {
 	int fb_fd;
-	struct fb_var_screeninfo vinfo;
-	unsigned long screen_size;
-	unsigned int line_size;
-	unsigned int pixel_size;
-	char *fbp;
-};
+	struct fb_var_screeninfo tFbVarInfo;
+	unsigned int dwScreenSize;
+	unsigned int dwLineSize;
+	unsigned int dwPixelSize;
+	char *pFbMem;
+}T_FbDev, *PT_FbDev;
 
-static struct fb_device *fb_dev;
-struct fb_device_info fb_dev_info;
+static PT_FbDev g_ptFbDev;
 
-void lcd_put_pixel(int x, int y, unsigned int color)
+void Fb_Lcd_Put_Pixel(int x, int y, unsigned int color)
 {
-	unsigned char *pen_8 = fb_dev->fbp + fb_dev->line_size * y + fb_dev->pixel_size * x;
+	unsigned char *pen_8 = g_ptFbDev->pFbMem + g_ptFbDev->dwLineSize * y + g_ptFbDev->dwPixelSize * x;
 	unsigned short *pen_16;
 	unsigned int *pen_32;
 	
@@ -24,7 +30,7 @@ void lcd_put_pixel(int x, int y, unsigned int color)
 	
 	unsigned int red, green, blue;
 	
-	switch(fb_dev->vinfo.bits_per_pixel)
+	switch(g_ptFbDev->tFbVarInfo.bits_per_pixel)
 	{
 	case 8:
 		*pen_8 = color;
@@ -41,52 +47,46 @@ void lcd_put_pixel(int x, int y, unsigned int color)
 		*pen_32 = color;
 		break;
 	default:
-		printf("cannot surport %dbpp\n", fb_dev->vinfo.bits_per_pixel);
+		printf("cannot surport %dbpp\n", g_ptFbDev->tFbVarInfo.bits_per_pixel);
 		break;
 	}
 }
 
-int fb_init(void)
+int Fb_Init(void)
 {
-	fb_dev = (struct fb_device *)malloc(sizeof(struct fb_device));
-	if(!fb_dev)
+	g_ptFbDev = (PT_FbDev)malloc(sizeof(T_FbDev));
+	if(!g_ptFbDev)
 	{
 		printf("Error:cannot malloc device struct memery.\n");
 	}
 
-	fb_dev->fb_fd = open("/dev/fb0", O_RDWR);
-	if(!fb_dev->fb_fd)
+	g_ptFbDev->fb_fd = open("/dev/fb0", O_RDWR);
+	if(!g_ptFbDev->fb_fd)
 	{
 		printf("Error:cannot open framebuffer device.\n");
 		return -1;
 	}
 
-	if(ioctl(fb_dev->fb_fd, FBIOGET_VSCREENINFO, &fb_dev->vinfo))
+	if(ioctl(g_ptFbDev->fb_fd, FBIOGET_VSCREENINFO, &g_ptFbDev->tFbVarInfo))
 	{
 		printf("Error:get variable information error.\n");
 		return -1;
 	}
 
-	printf("screen_bits_per_pixel = %d\n", fb_dev->vinfo.bits_per_pixel);
-	printf("screen x size = %d\n", fb_dev->vinfo.xres);
-	printf("screen y size = %d\n", fb_dev->vinfo.yres);
+	printf("screen_bits_per_pixel = %d\n", g_ptFbDev->tFbVarInfo.bits_per_pixel);
+	printf("screen x size = %d\n", g_ptFbDev->tFbVarInfo.xres);
+	printf("screen y size = %d\n", g_ptFbDev->tFbVarInfo.yres);
 
-	fb_dev->pixel_size = fb_dev->vinfo.bits_per_pixel / 8;//pixel size in bytes
-	fb_dev->line_size = fb_dev->vinfo.xres * fb_dev->pixel_size;//line size in bytes
-	fb_dev->screen_size = fb_dev->line_size * fb_dev->vinfo.yres;//screen size in bytes
-	printf("pixel_size = %d\n", fb_dev->pixel_size);
-	printf("line_size = %d\n", fb_dev->line_size);
-	printf("screen_size = %d\n", fb_dev->screen_size);
-
-	fb_dev_info.line_size = fb_dev->line_size;
-	fb_dev_info.pixel_size = fb_dev->pixel_size;
-	fb_dev_info.screen_size = fb_dev->screen_size;
-	fb_dev_info.xres = fb_dev->vinfo.xres;
-	fb_dev_info.yres = fb_dev->vinfo.yres;
+	g_ptFbDev->dwPixelSize = g_ptFbDev->tFbVarInfo.bits_per_pixel / 8;//pixel size in bytes
+	g_ptFbDev->dwLineSize = g_ptFbDev->tFbVarInfo.xres * g_ptFbDev->dwPixelSize;//line size in bytes
+	g_ptFbDev->dwScreenSize = g_ptFbDev->dwLineSize * g_ptFbDev->tFbVarInfo.yres;//screen size in bytes
+	printf("pixel_size = %d\n", g_ptFbDev->dwPixelSize);
+	printf("line_size = %d\n", g_ptFbDev->dwLineSize);
+	printf("screen_size = %d\n", g_ptFbDev->dwScreenSize);
 	
 	//map the device to memory
-	fb_dev->fbp = (char *)mmap(0, fb_dev->screen_size, PROT_READ | PROT_WRITE, MAP_SHARED, fb_dev->fb_fd, 0);
-	if((int)fb_dev->fbp == -1)
+	g_ptFbDev->pFbMem = (char *)mmap(0, g_ptFbDev->dwScreenSize, PROT_READ | PROT_WRITE, MAP_SHARED, g_ptFbDev->fb_fd, 0);
+	if((int)g_ptFbDev->pFbMem == -1)
 	{
 		printf("Error:fail to map framebuffer device to memory.\n");
 	}
@@ -94,17 +94,32 @@ int fb_init(void)
 	return 0;
 }
 
-int fb_clean(void)
+int Fb_Clean(void)
 {
-	memset(fb_dev->fbp, 0, fb_dev->screen_size);
+	memset(g_ptFbDev->pFbMem, 0, g_ptFbDev->dwScreenSize);
 	return 0;
 }
 
-int fb_remove(void)
+int Fb_Remove(void)
 {
-	munmap(fb_dev->fbp, fb_dev->screen_size);
-	close(fb_dev->fb_fd);
-	free(fb_dev);
+	munmap(g_ptFbDev->pFbMem, g_ptFbDev->dwScreenSize);
+	close(g_ptFbDev->fb_fd);
+	free(g_ptFbDev);
 	return 0;
 }
 
+static T_DispDev g_tDispDev = {
+	.c_pDevName	  = "s3c2440-lcd",
+	.tDevAttr.dwXres  = g_ptFbDev->tFbVarInfo.xres,
+	.tDevAttr.dwYres  = g_ptFbDev->tFbVarInfo.yres,
+	.tDevAttr.dwBitsPerPixel = g_ptFbDev->tFbVarInfo.bits_per_pixel,
+	.Dev_Init     = Fb_Init,
+	.Clean_Screen = Fb_Clean,
+	.Put_Pixel    = Fb_Lcd_Put_Pixel,
+	.Dev_Remove   = Fb_Remove,
+};
+
+int Fb_Dev_Init(void)
+{
+	return Disp_Dev_Regisiter(&g_tDispDev);
+}

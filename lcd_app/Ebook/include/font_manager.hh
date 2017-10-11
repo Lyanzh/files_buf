@@ -1,14 +1,13 @@
 #ifndef __FONT_MANAGER__
 #define __FONT_MANAGER__
 
-struct font_device
+typedef struct Font_Operation
 {
-	const char * font_name;
-	int (*font_init)(char *font_filename, unsigned int font_size);
-	//int (*disp_device_clean)(void);
-	//void (*disp_device_put_pixel)(int, int, unsigned int);
-	//int (*disp_device_remove)(void);
-}
+	const char * c_pFontName;
+	int (*Font_Init)(char *font_filename, unsigned int font_size);
+	int (*Font_Exit)(void);
+	struct Font_Operation *ptNextFont;
+}T_Font_Opr, *PT_Font_Opr;
 
 #endif
 

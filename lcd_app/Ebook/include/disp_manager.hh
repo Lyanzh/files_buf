@@ -1,21 +1,22 @@
 #ifndef __DISP_MANAGER__
 #define __DISP_MANAGER__
 
-struct dev_attr
+typedef struct DevAttr
 {
-	unsigned int xres;			/* visible resolution		*/
-	unsigned int yres;
-	unsigned int bits_per_pixel;
-};
+	unsigned int dwXres;			/* visible resolution		*/
+	unsigned int dwYres;
+	unsigned int dwBitsPerPixel;
+}T_DevAttr, *PT_DevAttr;
 
-struct disp_device
+typedef struct DispDevice
 {
-	const char * dev_name;
-	struct dev_attr attr;
-	int (*dev_init)(void);
-	int (*clean_screen)(void);
-	void (*put_pixel)(int, int, unsigned int);
-	int (*dev_remove)(void);
-};
+	const char * c_pDevName;
+	T_DevAttr tDevAttr;
+	int (*Dev_Init)(void);
+	int (*Clean_Screen)(void);
+	void (*Put_Pixel)(int, int, unsigned int);
+	int (*Dev_Remove)(void);
+	struct DispDevice *ptNextDev;
+}T_DispDev, *PT_DispDev;
 
 #endif

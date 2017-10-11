@@ -9,16 +9,7 @@
 #include <sys/mman.h>
 #include <linux/fb.h>
 
-struct fb_device_info
-{
-	unsigned int xres;
-	unsigned int yres;
-	unsigned long screen_size;
-	unsigned int line_size;
-	unsigned int pixel_size;
-};
 
-extern struct fb_device_info fb_dev_info;
 extern int fb_init(void);
 extern int fb_clean(void);
 extern int fb_remove(void);

@@ -1,12 +1,27 @@
 #include "font_manager.h"
 #include <stdio.h>
 
-static struct font_device font_dev = {
-	.font_name = "freetype",
-	.font_init = freetype_init,
-};
+static PT_Font_Opr g_ptFontOprHead;
 
-int disp_init(void)
+int Font_Opr_Regisiter(PT_Font_Opr ptFontOpr)
 {
-	font_dev.font_init();
+	PT_Font_Opr ptFontOprTmp;
+	
+	if (!g_ptFontOprHead) {
+		g_ptFontOprHead = ptFontOpr;
+	} else {
+		ptFontOprTmp = g_ptFontOprHead;
+		while (ptFontOprTmp->ptNextFont) {
+			ptFontOprTmp = ptFontOprTmp->ptNextFont;
+		}
+		ptFontOprTmp->ptNextFont = ptFontOpr;
+		ptFontOpr->ptNextFont = NULL;
+	}
+
+	return 0;
+}
+
+int Font_Init(void)
+{
+	return Freetype_Opr_Init();
 }
