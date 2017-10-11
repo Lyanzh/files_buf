@@ -19,6 +19,10 @@ int Freetype_Get_Bitmap(unsigned int dwCode, PT_Font_Para ptFontPara)
 	FT_Vector	 tPen;		/* untransformed origin  */
 	
 	double dAngle;
+
+	/* 传入的需要绘制的起点 */
+	int iPenX = ptFontPara->iCurOriginX;
+	int iPenY = ptFontPara->iCurOriginY;
 	
 	tSlot = g_tFace->glyph;
 
@@ -30,30 +34,34 @@ int Freetype_Get_Bitmap(unsigned int dwCode, PT_Font_Para ptFontPara)
 	tMatrix.yx = (FT_Fixed)( sin( dAngle ) * 0x10000L );
 	tMatrix.yy = (FT_Fixed)( cos( dAngle ) * 0x10000L );
 	
-	/* the pen position in 26.6 cartesian space coordinates; */
-	/* start at (300,200) relative to the upper left corner  */
-	tPen.x = iX * 64;
-	tPen.y = (iTargetHeight - iY) * 64;
-
+	/* 以笛卡尔坐标原点为参照点 */
+	tPen.x = 0;
+	tPen.y = 0;
 	
-		/* set transformation */
-		FT_Set_Transform(g_tFace, &tMatrix, &tPen);
+	/* set transformation */
+	FT_Set_Transform(g_tFace, &tMatrix, &tPen);
 
-		/* load glyph image into the slot (erase previous one) */
-		error = FT_Load_Char(g_tFace, dwCode, FT_LOAD_RENDER);
-		if (error)
-			continue;				  /* ignore errors */
+	/* load glyph image into the slot (erase previous one) */
+	error = FT_Load_Char(g_tFace, dwCode, FT_LOAD_RENDER);
+	if (error)
+		continue;				  /* ignore errors */
 
-		/* now, draw to our target surface (convert position) */
-		draw_bitmap(&tSlot->bitmap, tSlot->bitmap_left, iTargetHeight - tSlot->bitmap_top);
+	/* now, draw to our target surface (convert position) */
+	//draw_bitmap(&tSlot->bitmap, tSlot->bitmap_left, iTargetHeight - tSlot->bitmap_top);
 
-		ptFontPara->iCurXres = tSlot->bitmap_left;
-		ptFontPara->iCurYres = 
-		
+	/* 根据传入的需要绘制的起点，计算实际绘制的起点以及绘制范围的大小 */
+	ptFontPara->iXLeft = iPenX + tSlot->bitmap_left;
+	ptFontPara->iYTop  = iPenY - tSlot->bitmap_top;
+	ptFontPara->iXmax  = ptFontPara->iXLeft + tSlot->bitmap.width;
+	ptFontPara->iYmax  = ptFontPara->iYTop + tSlot->bitmap.rows;
 
-		/* increment pen position */
-		tPen.x += tSlot->advance.x;
-		tPen.y += tSlot->advance.y;
+	/* increment pen position */
+	ptFontPara->iNextOriginX = iPenX + tSlot->advance.x / 64;
+	ptFontPara->iNextOriginY = iPenY;
+
+	ptFontPara->pucBuffer = tSlot->bitmap.buffer;
+
+	return 0;
 }
 
 int Freetype_Init(char *pcFileName, unsigned int font_size)

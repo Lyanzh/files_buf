@@ -3,13 +3,15 @@
 
 typedef struct FontParameter
 {
-	int iCurXres;
-	int iCurYres;
-	int iCurXmax;
-	int iCurYmax;
-	int iNextXres;
-	int iNextYres;
-	char *pcBuffer;
+	int iXLeft;
+	int iYTop;
+	int iXmax;
+	int iYmax;
+	int iCurOriginX;
+	int iCurOriginY;
+	int iNextOriginX;
+	int iNextOriginY;
+	unsigned char *pucBuffer;
 }T_Font_Para, *PT_Font_Para;
 
 typedef struct Font_Operation

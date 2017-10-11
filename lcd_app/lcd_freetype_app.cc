@@ -172,9 +172,7 @@ int main(int argc, char **argv)
 		continue;				  /* ignore errors */
 	
 	  /* now, draw to our target surface (convert position) */
-	  draw_bitmap(&slot->bitmap,
-				  slot->bitmap_left,
-				  target_height - slot->bitmap_top);
+	  draw_bitmap(&slot->bitmap, slot->bitmap_left, target_height - slot->bitmap_top);
 	
 	  /* increment pen position */
 	  pen.x += slot->advance.x;
