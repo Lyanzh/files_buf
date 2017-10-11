@@ -9,60 +9,64 @@
 #include <ft2build.h>
 #include FT_FREETYPE_H
 
-FT_Library g_ftLibrary;
-FT_Face    g_ftFace;
+FT_Library g_tLibrary;
+FT_Face    g_tFace;
 	
-int Freetype_Get_Bitmap(char text, int iTargetHeight, int iX, int iY)
+int Freetype_Get_Bitmap(unsigned int dwCode, PT_Font_Para ptFontPara)
 {
-	FT_GlyphSlot ftSlot;
-	FT_Matrix	 ftMatrix;	/* transformation matrix */
-	FT_Vector	 ftPen;		/* untransformed origin  */
+	FT_GlyphSlot tSlot;
+	FT_Matrix	 tMatrix;	/* transformation matrix */
+	FT_Vector	 tPen;		/* untransformed origin  */
 	
 	double dAngle;
 	
-	ftSlot = g_ftFace->glyph;
+	tSlot = g_tFace->glyph;
 
 	dAngle = (0 / 360) * 3.14159 * 2;	   /* use 0 degrees */
 
 	/* set up matrix */
-	ftMatrix.xx = (FT_Fixed)( cos( dAngle ) * 0x10000L );
-	ftMatrix.xy = (FT_Fixed)(-sin( dAngle ) * 0x10000L );
-	ftMatrix.yx = (FT_Fixed)( sin( dAngle ) * 0x10000L );
-	ftMatrix.yy = (FT_Fixed)( cos( dAngle ) * 0x10000L );
+	tMatrix.xx = (FT_Fixed)( cos( dAngle ) * 0x10000L );
+	tMatrix.xy = (FT_Fixed)(-sin( dAngle ) * 0x10000L );
+	tMatrix.yx = (FT_Fixed)( sin( dAngle ) * 0x10000L );
+	tMatrix.yy = (FT_Fixed)( cos( dAngle ) * 0x10000L );
 	
 	/* the pen position in 26.6 cartesian space coordinates; */
 	/* start at (300,200) relative to the upper left corner  */
-	ftPen.x = iX * 64;
-	ftPen.y = (iTargetHeight - iY) * 64;
+	tPen.x = iX * 64;
+	tPen.y = (iTargetHeight - iY) * 64;
 
 	
 		/* set transformation */
-		FT_Set_Transform(g_ftFace, &ftMatrix, &ftPen);
+		FT_Set_Transform(g_tFace, &tMatrix, &tPen);
 
 		/* load glyph image into the slot (erase previous one) */
-		error = FT_Load_Char(g_ftFace, text, FT_LOAD_RENDER);
+		error = FT_Load_Char(g_tFace, dwCode, FT_LOAD_RENDER);
 		if (error)
 			continue;				  /* ignore errors */
 
 		/* now, draw to our target surface (convert position) */
-		draw_bitmap(&ftSlot->bitmap, ftSlot->bitmap_left, iTargetHeight - ftSlot->bitmap_top);
+		draw_bitmap(&tSlot->bitmap, tSlot->bitmap_left, iTargetHeight - tSlot->bitmap_top);
+
+		ptFontPara->iCurXres = tSlot->bitmap_left;
+		ptFontPara->iCurYres = 
+		
 
 		/* increment pen position */
-		ftPen.x += ftSlot->advance.x;
-		ftPen.y += ftSlot->advance.y;
+		tPen.x += tSlot->advance.x;
+		tPen.y += tSlot->advance.y;
 }
 
-int Freetype_Init(char *filename, unsigned int font_size)
+int Freetype_Init(char *pcFileName, unsigned int font_size)
 {
 	FT_Error error;
 
 	/* Initialize a new FreeType library object */
-	error = FT_Init_FreeType(&g_ftLibrary);
+	error = FT_Init_FreeType(&g_tLibrary);
 	if(error)
 		return error;
 
 	/* open a font by its pathname */
-	error = FT_New_Face(g_ftLibrary, filename, 0, &g_ftFace);
+	error = FT_New_Face(g_tLibrary, pcFileName, 0, &g_tFace);
 	if(error)
 		return error;
 
@@ -71,7 +75,7 @@ int Freetype_Init(char *filename, unsigned int font_size)
 	error = FT_Set_Char_Size(face, 50 * 64, 0, 100, 0);/* set character size */
 	/* error handling omitted */
 #else
-	error = FT_Set_Pixel_Size(g_ftFace, font_size, 0);
+	error = FT_Set_Pixel_Size(g_tFace, font_size, 0);
 #endif
 
 	//show_image();
@@ -81,8 +85,8 @@ int Freetype_Init(char *filename, unsigned int font_size)
 
 void Freetype_Exit(void)
 {
-	FT_Done_Face(g_ftFace);
-	FT_Done_FreeType(g_ftLibrary);
+	FT_Done_Face(g_tFace);
+	FT_Done_FreeType(g_tLibrary);
 }
 
 static T_Font_Opr g_tFreetypeOpr = {
