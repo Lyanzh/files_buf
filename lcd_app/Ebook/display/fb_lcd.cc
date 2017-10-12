@@ -4,8 +4,11 @@
 #include <fcntl.h>
 #include <string.h>
 #include <sys/mman.h>
+#include <sys/ioctl.h>
 #include <linux/fb.h>
-#include "include/fb_lcd.h"
+#include "disp_manager.h"
+
+static T_DispDev g_tDispDev;
 
 typedef struct FbDevice
 {
@@ -83,6 +86,10 @@ int Fb_Init(void)
 	printf("pixel_size = %d\n", g_ptFbDev->dwPixelSize);
 	printf("line_size = %d\n", g_ptFbDev->dwLineSize);
 	printf("screen_size = %d\n", g_ptFbDev->dwScreenSize);
+
+	g_tDispDev.tDevAttr.dwXres  = g_ptFbDev->tFbVarInfo.xres;
+	g_tDispDev.tDevAttr.dwYres  = g_ptFbDev->tFbVarInfo.yres;
+	g_tDispDev.tDevAttr.dwBitsPerPixel = g_ptFbDev->tFbVarInfo.bits_per_pixel;
 	
 	//map the device to memory
 	g_ptFbDev->pFbMem = (char *)mmap(0, g_ptFbDev->dwScreenSize, PROT_READ | PROT_WRITE, MAP_SHARED, g_ptFbDev->fb_fd, 0);
@@ -110,9 +117,6 @@ int Fb_Remove(void)
 
 static T_DispDev g_tDispDev = {
 	.c_pDevName	  = "s3c2440-lcd",
-	.tDevAttr.dwXres  = g_ptFbDev->tFbVarInfo.xres,
-	.tDevAttr.dwYres  = g_ptFbDev->tFbVarInfo.yres,
-	.tDevAttr.dwBitsPerPixel = g_ptFbDev->tFbVarInfo.bits_per_pixel,
 	.Dev_Init     = Fb_Init,
 	.Clean_Screen = Fb_Clean,
 	.Put_Pixel    = Fb_Lcd_Put_Pixel,
@@ -123,3 +127,4 @@ int Fb_Dev_Init(void)
 {
 	return Disp_Dev_Regisiter(&g_tDispDev);
 }
+

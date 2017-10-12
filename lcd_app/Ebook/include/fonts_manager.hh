@@ -23,5 +23,8 @@ typedef struct Font_Operation
 	struct Font_Operation *ptNextFont;
 }T_Font_Opr, *PT_Font_Opr;
 
+extern int Font_Opr_Regisiter(PT_Font_Opr ptFontOpr);
+extern int Font_Init(void);
+
 #endif
 

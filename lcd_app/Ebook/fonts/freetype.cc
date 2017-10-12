@@ -6,6 +6,8 @@
 #include <string.h>
 #include <math.h>
 
+#include "fonts_manager.h"
+
 #include <ft2build.h>
 #include FT_FREETYPE_H
 
@@ -14,6 +16,8 @@ FT_Face    g_tFace;
 	
 int Freetype_Get_Bitmap(unsigned int dwCode, PT_Font_Para ptFontPara)
 {
+	int error;
+
 	FT_GlyphSlot tSlot;
 	FT_Matrix	 tMatrix;	/* transformation matrix */
 	FT_Vector	 tPen;		/* untransformed origin  */
@@ -44,14 +48,14 @@ int Freetype_Get_Bitmap(unsigned int dwCode, PT_Font_Para ptFontPara)
 	/* load glyph image into the slot (erase previous one) */
 	error = FT_Load_Char(g_tFace, dwCode, FT_LOAD_RENDER);
 	if (error)
-		continue;				  /* ignore errors */
+		;				  /* ignore errors */
 
 	/* now, draw to our target surface (convert position) */
 	//draw_bitmap(&tSlot->bitmap, tSlot->bitmap_left, iTargetHeight - tSlot->bitmap_top);
 
 	/* 根据传入的需要绘制的起点，计算实际绘制的起点以及绘制范围的大小 */
 	ptFontPara->iXLeft = iPenX + tSlot->bitmap_left;
-	ptFontPara->iYTop  = iPenY - tSlot->bitmap_top;
+	ptFontPara->iYTop  = iPenY - tSlot->bitmap_top;//?????
 	ptFontPara->iXmax  = ptFontPara->iXLeft + tSlot->bitmap.width;
 	ptFontPara->iYmax  = ptFontPara->iYTop + tSlot->bitmap.rows;
 
@@ -83,7 +87,7 @@ int Freetype_Init(char *pcFileName, unsigned int font_size)
 	error = FT_Set_Char_Size(face, 50 * 64, 0, 100, 0);/* set character size */
 	/* error handling omitted */
 #else
-	error = FT_Set_Pixel_Size(g_tFace, font_size, 0);
+	error = FT_Set_Pixel_Sizes(g_tFace, font_size, 0);
 #endif
 
 	//show_image();
@@ -99,11 +103,13 @@ void Freetype_Exit(void)
 
 static T_Font_Opr g_tFreetypeOpr = {
 	.c_pFontName = "freetype",
-	.Font_Init = Freetype_Init,
-	.Font_Exit = Freetype_Exit,
+	.Font_Init   = Freetype_Init,
+	.Get_Bitmap  = Freetype_Get_Bitmap,
+	.Font_Exit   = Freetype_Exit,
 };
 
 int Freetype_Opr_Init(void)
 {
 	return Font_Opr_Regisiter(&g_tFreetypeOpr);
 }
+

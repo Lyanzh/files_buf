@@ -19,4 +19,7 @@ typedef struct DispDevice
 	struct DispDevice *ptNextDev;
 }T_DispDev, *PT_DispDev;
 
+extern int Disp_Dev_Regisiter(PT_DispDev ptDispDev);
+extern int Disp_Init(void);
+
 #endif
