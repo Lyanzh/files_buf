@@ -43,6 +43,21 @@ PT_Encoding_Opr Select_Encoding_Opr(unsigned char *pucFileBufHead)
 	return NULL;
 }
 
+void Add_Font_Opr_For_Encoding(PT_Encoding_Opr ptEncodingOpr,
+		PT_Font_Opr ptFontOprSupported)
+{
+	PT_Font_Opr ptFontOprTmp = ptEncodingOpr->ptFontOprSupportedHead;
+	if (!ptFontOprTmp) {
+		ptFontOprTmp = ptFontOprSupported;
+	} else {
+		while (ptFontOprTmp->ptNextFont) {
+			ptFontOprTmp = ptFontOprTmp->ptNextFont;
+		}
+		ptFontOprTmp->ptNextFont = ptFontOprSupported;
+	}
+	ptFontOprSupported->ptNextFont = NULL;
+}
+
 int Encoding_Init(void)
 {
 	return Ascii_Encoding_Init();

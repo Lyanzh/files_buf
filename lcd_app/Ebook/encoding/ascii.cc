@@ -58,6 +58,7 @@ static T_Encoding_Opr g_tAsciiEncodingOpr = {
 
 int Ascii_Encoding_Init(void)
 {
+	Add_Font_Opr_For_Encoding(&g_tAsciiEncodingOpr, Get_Font_Opr("freetype"));
 	return Encoding_Opr_Regisiter(&g_tAsciiEncodingOpr);
 }
 

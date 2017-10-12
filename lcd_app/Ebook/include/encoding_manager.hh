@@ -1,10 +1,13 @@
 #ifndef __ENCODING_MANAGER__
 #define __ENCODING_MANAGER__
 
+#include "fonts_manager.h"
+
 typedef struct Encoding_Operation
 {
 	const char * c_pEncodingName;
 	int iHeadLen;
+	PT_Font_Opr ptFontOprSupportedHead;
 	int (*isSupport)(unsigned char *pucBufHead);
 	int (*Get_Code)();
 	struct Encoding_Operation *ptNextEncoding;
