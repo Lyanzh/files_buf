@@ -9,6 +9,7 @@ CC := $(CROSSCOMPILE)gcc
 LD := $(CROSSCOMPILE)ld
 
 OBJS := main.o \
+		draw.o \
 		display/disp_manager.o \
 		display/fb_lcd.o \
 		encoding/encoding_manager.o \
