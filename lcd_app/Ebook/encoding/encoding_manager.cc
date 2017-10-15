@@ -1,6 +1,8 @@
 #include "encoding_manager.h"
 #include <stdio.h>
 
+#include "memwatch.h"
+
 static PT_Encoding_Opr g_ptEncodingOprHead;
 
 int Encoding_Opr_Regisiter(PT_Encoding_Opr ptEncodingOpr)
@@ -15,8 +17,8 @@ int Encoding_Opr_Regisiter(PT_Encoding_Opr ptEncodingOpr)
 			ptEncodingOprTmp = ptEncodingOprTmp->ptNextEncoding;
 		}
 		ptEncodingOprTmp->ptNextEncoding = ptEncodingOpr;
-		ptEncodingOpr->ptNextEncoding = NULL;
 	}
+	ptEncodingOpr->ptNextEncoding = NULL;
 
 	return 0;
 }
@@ -26,7 +28,8 @@ void Show_Encoding_Opr(void)
 	int i = 0;
 	PT_Encoding_Opr ptEncodingOprTmp = g_ptEncodingOprHead;
 	while (ptEncodingOprTmp) {
-		printf("%d %s\n", i++, ptEncodingOprTmp->c_pEncodingName);
+		printf("%d: %s\n", i, ptEncodingOprTmp->c_pEncodingName);
+		printf("%d: %s\n", i++, ptEncodingOprTmp->ptFontOprSupportedHead->c_pFontName);
 		ptEncodingOprTmp = ptEncodingOprTmp->ptNextEncoding;
 	}
 }
@@ -55,10 +58,11 @@ void Add_Font_Opr_For_Encoding(PT_Encoding_Opr ptEncodingOpr,
 		}
 		ptFontOprTmp->ptNextFont = ptFontOprSupported;
 	}
+	printf("Add_Font_Opr_For_Encoding %s.\n", ptFontOprTmp->c_pFontName);
 	ptFontOprSupported->ptNextFont = NULL;
 }
 
-int Encoding_Init(void)
+int Encoding_Opr_Init(void)
 {
 	return Ascii_Encoding_Init();
 }

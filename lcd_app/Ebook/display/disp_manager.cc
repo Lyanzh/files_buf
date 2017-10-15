@@ -2,6 +2,8 @@
 #include <stdio.h>
 #include <string.h>
 
+#include "memwatch.h"
+
 static PT_DispDev g_ptDispDevHead;
 
 int Disp_Dev_Regisiter(PT_DispDev ptDispDev)
@@ -16,8 +18,8 @@ int Disp_Dev_Regisiter(PT_DispDev ptDispDev)
 			ptDispDevTmp = ptDispDevTmp->ptNextDev;
 		}
 		ptDispDevTmp->ptNextDev = ptDispDev;
-		ptDispDev->ptNextDev = NULL;
 	}
+	ptDispDev->ptNextDev = NULL;
 
 	return 0;
 }
@@ -27,7 +29,7 @@ void Show_Disp_Opr(void)
 	int i = 0;
 	PT_DispDev ptDispDevTmp = g_ptDispDevHead;
 	while (ptDispDevTmp) {
-		printf("%d %s\n", i++, ptDispDevTmp->c_pDevName);
+		printf("%d: %s\n", i++, ptDispDevTmp->c_pDevName);
 		ptDispDevTmp = ptDispDevTmp->ptNextDev;
 	}
 }
@@ -44,7 +46,7 @@ PT_DispDev Get_Disp_Opr(char *pcName)
 	return NULL;
 }
 
-int Disp_Init(void)
+int Disp_Opr_Init(void)
 {
 	return Fb_Dev_Init();
 }

@@ -1,5 +1,8 @@
 #include "fonts_manager.h"
 #include <stdio.h>
+#include <string.h>
+
+#include "memwatch.h"
 
 static PT_Font_Opr g_ptFontOprHead;
 
@@ -15,8 +18,8 @@ int Font_Opr_Regisiter(PT_Font_Opr ptFontOpr)
 			ptFontOprTmp = ptFontOprTmp->ptNextFont;
 		}
 		ptFontOprTmp->ptNextFont = ptFontOpr;
-		ptFontOpr->ptNextFont = NULL;
 	}
+	ptFontOpr->ptNextFont = NULL;
 
 	return 0;
 }
@@ -26,7 +29,7 @@ void Show_Font_Opr(void)
 	int i = 0;
 	PT_Font_Opr ptFontOprTmp = g_ptFontOprHead;
 	while (ptFontOprTmp) {
-		printf("%d %s\n", i++, ptFontOprTmp->c_pFontName);
+		printf("%d: %s\n", i++, ptFontOprTmp->c_pFontName);
 		ptFontOprTmp = ptFontOprTmp->ptNextFont;
 	}
 }
@@ -35,15 +38,19 @@ PT_Font_Opr Get_Font_Opr(char *pcName)
 {
 	PT_Font_Opr ptFontOprTmp = g_ptFontOprHead;
 	while (ptFontOprTmp) {
-		if (strcmp(ptFontOprTmp->c_pFontName, pcName) == 0)
+		if (strcmp(ptFontOprTmp->c_pFontName, pcName) == 0) {
+			printf("get font %s.\n", pcName);
 			return ptFontOprTmp;
-		else
+		}
+		else {
 			ptFontOprTmp = ptFontOprTmp->ptNextFont;
+		}
 	}
+	printf("Error:can't get font %s.\n", pcName);
 	return NULL;
 }
 
-int Font_Init(void)
+int Font_Opr_Init(void)
 {
 	return Freetype_Opr_Init();
 }

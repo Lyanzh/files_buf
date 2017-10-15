@@ -20,6 +20,8 @@ typedef struct DispDevice
 }T_DispDev, *PT_DispDev;
 
 extern int Disp_Dev_Regisiter(PT_DispDev ptDispDev);
-extern int Disp_Init(void);
+extern void Show_Disp_Opr(void);
+extern PT_DispDev Get_Disp_Opr(char *pcName);
+extern int Disp_Opr_Init(void);
 
 #endif

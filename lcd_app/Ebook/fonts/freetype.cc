@@ -8,6 +8,8 @@
 
 #include "fonts_manager.h"
 
+#include "memwatch.h"
+
 #include <ft2build.h>
 #include FT_FREETYPE_H
 

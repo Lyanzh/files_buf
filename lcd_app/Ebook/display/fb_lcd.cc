@@ -8,6 +8,8 @@
 #include <linux/fb.h>
 #include "disp_manager.h"
 
+#include "memwatch.h"
+
 static T_DispDev g_tDispDev;
 
 typedef struct FbDevice

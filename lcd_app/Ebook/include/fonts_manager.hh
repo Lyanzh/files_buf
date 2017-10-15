@@ -19,12 +19,14 @@ typedef struct Font_Operation
 	const char * c_pFontName;
 	int (*Font_Init)(char *pcFileName, unsigned int font_size);
 	int (*Get_Bitmap)(unsigned int dwCode, PT_Font_Para ptFontPara);
-	int (*Font_Exit)(void);
+	void (*Font_Exit)(void);
 	struct Font_Operation *ptNextFont;
 }T_Font_Opr, *PT_Font_Opr;
 
 extern int Font_Opr_Regisiter(PT_Font_Opr ptFontOpr);
-extern int Font_Init(void);
+extern void Show_Font_Opr(void);
+extern PT_Font_Opr Get_Font_Opr(char *pcName);
+extern int Font_Opr_Init(void);
 
 #endif
 

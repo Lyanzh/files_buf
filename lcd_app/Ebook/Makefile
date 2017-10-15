@@ -1,7 +1,9 @@
 CROSSCOMPILE := arm-linux-
 
-CFLAGS := -Wall -O2 -c
+#CFLAGS := -Wall -O2 -c
+CFLAGS := -Wall -g -c
 CFLAGS += -I $(PWD)/include
+CFLAGS += -DMEMWATCH -DMEMWATCH_STDIO
 
 LDFLAGS := -lm -lfreetype
 
@@ -15,7 +17,8 @@ OBJS := main.o \
 		encoding/encoding_manager.o \
 		encoding/ascii.o \
 		fonts/fonts_manager.o \
-		fonts/freetype.o
+		fonts/freetype.o \
+		memwatch.o
 
 all: $(OBJS)
 	$(CC) $(LDFLAGS) -o show_file $^
