@@ -16,7 +16,12 @@ OBJS := main.o \
 		display/fb_lcd.o \
 		encoding/encoding_manager.o \
 		encoding/ascii.o \
+		encoding/utf-8.o \
+		encoding/utf-16le.o \
+		encoding/utf-16be.o \
 		fonts/fonts_manager.o \
+		fonts/ascii.o \
+		fonts/gbk.o \
 		fonts/freetype.o \
 		memwatch.o
 

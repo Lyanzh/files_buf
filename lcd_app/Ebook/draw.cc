@@ -44,7 +44,7 @@ int Open_Text_File(char *pcPathName)
 		return -1;
 	}
 
-	g_pucFileMemEnd = g_pucFileMemStart + tFileStat.st_size;
+	g_pucFileMemEnd = g_pucFileMemStart + tFileStat.st_size - 1;
 
 	g_ptEncodingOprForFile = Select_Encoding_Opr(g_pucFileMemStart);
 

@@ -52,6 +52,26 @@ PT_Font_Opr Get_Font_Opr(char *pcName)
 
 int Font_Opr_Init(void)
 {
-	return Freetype_Opr_Init();
+	int iError;
+	
+	iError = Ascii_Opr_Init();
+	if (iError) {
+		printf("Error:ASCII init error.\n");
+		return -1;
+	}
+
+	iError = Gbk_Opr_Init();
+	if (iError) {
+		printf("Error:GBK init error.\n");
+		return -1;
+	}
+	
+	iError = Freetype_Opr_Init();
+	if (iError) {
+		printf("Error:Freetype init error.\n");
+		return -1;
+	}
+	
+	return 0;
 }
 

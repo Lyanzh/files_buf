@@ -64,6 +64,31 @@ void Add_Font_Opr_For_Encoding(PT_Encoding_Opr ptEncodingOpr,
 
 int Encoding_Opr_Init(void)
 {
-	return Ascii_Encoding_Init();
+	int iError;
+	iError =  Ascii_Encoding_Init();
+	if (iError) {
+		printf("Error:ASCII encoding init fail.\n");
+		return -1;
+	}
+
+	iError =  Utf8_Encoding_Init();
+	if (iError) {
+		printf("Error:UTF-8 encoding init fail.\n");
+		return -1;
+	}
+	
+	iError =  Utf16le_Encoding_Init();
+	if (iError) {
+		printf("Error:UTF-16LE encoding init fail.\n");
+		return -1;
+	}
+
+	iError =  Utf16be_Encoding_Init();
+	if (iError) {
+		printf("Error:UTF-16BE encoding init fail.\n");
+		return -1;
+	}
+	
+	return 0;
 }
 

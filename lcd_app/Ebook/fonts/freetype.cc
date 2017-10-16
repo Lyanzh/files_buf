@@ -16,7 +16,7 @@
 FT_Library g_tLibrary;
 FT_Face    g_tFace;
 	
-int Freetype_Get_Bitmap(unsigned int dwCode, PT_Font_Para ptFontPara)
+static int Freetype_Get_Bitmap(unsigned int dwCode, PT_Font_Para ptFontPara)
 {
 	int error;
 
@@ -61,16 +61,16 @@ int Freetype_Get_Bitmap(unsigned int dwCode, PT_Font_Para ptFontPara)
 	ptFontPara->iXmax  = ptFontPara->iXLeft + tSlot->bitmap.width;
 	ptFontPara->iYmax  = ptFontPara->iYTop + tSlot->bitmap.rows;
 
+	ptFontPara->pucBuffer = tSlot->bitmap.buffer;
+	
 	/* increment pen position */
 	ptFontPara->iNextOriginX = iPenX + tSlot->advance.x / 64;
 	ptFontPara->iNextOriginY = iPenY;
 
-	ptFontPara->pucBuffer = tSlot->bitmap.buffer;
-
 	return 0;
 }
 
-int Freetype_Init(char *pcFileName, unsigned int font_size)
+static int Freetype_Init(char *pcFileName, unsigned int dwFontSize)
 {
 	FT_Error error;
 
@@ -89,7 +89,7 @@ int Freetype_Init(char *pcFileName, unsigned int font_size)
 	error = FT_Set_Char_Size(face, 50 * 64, 0, 100, 0);/* set character size */
 	/* error handling omitted */
 #else
-	error = FT_Set_Pixel_Sizes(g_tFace, font_size, 0);
+	error = FT_Set_Pixel_Sizes(g_tFace, dwFontSize, 0);
 #endif
 
 	//show_image();
@@ -97,7 +97,7 @@ int Freetype_Init(char *pcFileName, unsigned int font_size)
 	return 0;
 }
 
-void Freetype_Exit(void)
+static void Freetype_Exit(void)
 {
 	FT_Done_Face(g_tFace);
 	FT_Done_FreeType(g_tLibrary);

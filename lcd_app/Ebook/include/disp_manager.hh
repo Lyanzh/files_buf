@@ -19,6 +19,8 @@ typedef struct DispDevice
 	struct DispDevice *ptNextDev;
 }T_DispDev, *PT_DispDev;
 
+int Fb_Dev_Init(void);
+
 extern int Disp_Dev_Regisiter(PT_DispDev ptDispDev);
 extern void Show_Disp_Opr(void);
 extern PT_DispDev Get_Disp_Opr(char *pcName);

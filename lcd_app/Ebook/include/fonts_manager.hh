@@ -17,11 +17,15 @@ typedef struct FontParameter
 typedef struct Font_Operation
 {
 	const char * c_pFontName;
-	int (*Font_Init)(char *pcFileName, unsigned int font_size);
+	int (*Font_Init)(char *pcFileName, unsigned int dwFontSize);
 	int (*Get_Bitmap)(unsigned int dwCode, PT_Font_Para ptFontPara);
 	void (*Font_Exit)(void);
 	struct Font_Operation *ptNextFont;
 }T_Font_Opr, *PT_Font_Opr;
+
+int Ascii_Opr_Init(void);
+int Gbk_Opr_Init(void);
+int Freetype_Opr_Init(void);
 
 extern int Font_Opr_Regisiter(PT_Font_Opr ptFontOpr);
 extern void Show_Font_Opr(void);

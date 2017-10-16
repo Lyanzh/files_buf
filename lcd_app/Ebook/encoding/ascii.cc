@@ -24,6 +24,7 @@ static int isAsciiCoding(unsigned char *pucBufHead)
 	}
 }
 
+/* return get code byte num */
 static int AsciiGetCodeFrmBuf(unsigned char *pucBufStart,
 		unsigned char *pucBufEnd, unsigned int *pdwCode)
 {
@@ -37,8 +38,9 @@ static int AsciiGetCodeFrmBuf(unsigned char *pucBufStart,
 	}
 
 	if (((pucBuf + 1) < pucBufEnd) && (c >= (unsigned char)0x80)) {
-		/* GBK code */
-		*pdwCode = pucBuf[0] + (pucBuf[1]<<8);
+		/* GBK code, big endian */
+		//*pdwCode = pucBuf[0] + (pucBuf[1]<<8);//´óÐ¡¶Ë????
+		*pdwCode =  (pucBuf[0]<<8) + pucBuf[1];
 		return 2;
 	}
 	
@@ -59,22 +61,7 @@ static T_Encoding_Opr g_tAsciiEncodingOpr = {
 
 int Ascii_Encoding_Init(void)
 {
-	int iError;
-
-	PT_Font_Opr ptFontOprTmp = Get_Font_Opr("freetype");
-
-	PT_Encoding_Opr ptEncodingOprTmp = &g_tAsciiEncodingOpr;
-
-	ptEncodingOprTmp->ptFontOprSupportedHead = ptFontOprTmp;
-	
-	printf("Get_Font_Opr %s.\n", ptFontOprTmp->c_pFontName);
-
-	
-
-	//Add_Font_Opr_For_Encoding(&g_tAsciiEncodingOpr, ptFontOprTmp);
-	printf("Ascii_Encoding_Init %s.\n", g_tAsciiEncodingOpr.ptFontOprSupportedHead->c_pFontName);
-
-	iError = Encoding_Opr_Regisiter(&g_tAsciiEncodingOpr);
-	return iError;
+	Add_Font_Opr_For_Encoding(&g_tAsciiEncodingOpr, Get_Font_Opr("gbk"));
+	return Encoding_Opr_Regisiter(&g_tAsciiEncodingOpr);
 }
 
