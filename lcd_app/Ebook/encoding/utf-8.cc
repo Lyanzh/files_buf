@@ -16,7 +16,7 @@ static int isUtf8Coding(unsigned char *pucBufHead)
 	}
 }
 
-static unsigned int Utf8_Get_Byte_Num(unsigned char pucBuf)
+static unsigned int Get_Pre_One_Bits(unsigned char pucBuf)
 {
 	unsigned int i;
 	unsigned int j = 0;
@@ -33,17 +33,39 @@ static unsigned int Utf8_Get_Byte_Num(unsigned char pucBuf)
 static int Utf8_Get_Code(unsigned char *pucBufStart,
 		unsigned char *pucBufEnd, unsigned int *pdwCode)
 {
-	unsigned char *pucBuf = pucBufStart;
-	unsigned char c = *pucBuf;
-
+	int i;
+	unsigned char pucBuf;
 	unsigned int dwByteNum;
+	unsigned int dwVal = 0;
 
-	dwByteNum = Utf8_Get_Byte_Num(c);
+	if (pucBufStart > pucBufEnd) {
+		/* file end */
+		return 0;
+	}
 
-	//......
+	pucBuf = pucBufStart[0];
+	dwByteNum = Get_Pre_One_Bits(pucBuf);
 
-	return dwByteNum;
-	
+	if (dwByteNum == 0) {
+		/* ASCII */
+		*pdwCode = pucBufStart[0];
+		return 1;
+	} else {
+		if ((pucBufStart + dwByteNum - 1) > pucBufEnd) {
+			/* file end */
+			return 0;
+		}
+		pucBuf = pucBuf << dwByteNum;
+		pucBuf = pucBuf >> dwByteNum;
+		dwVal += pucBuf;
+		for (i = 1; i < dwByteNum; i++) {
+			pucBuf =  pucBufStart[i] & 0x3f;
+			dwVal = dwVal << 6;
+			dwVal += pucBuf;
+		}
+		*pdwCode = dwVal;
+		return dwByteNum;
+	}
 }
 
 static T_Encoding_Opr g_tUtf8EncodingOpr = {

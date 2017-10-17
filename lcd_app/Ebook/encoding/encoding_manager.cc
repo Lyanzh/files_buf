@@ -49,16 +49,16 @@ PT_Encoding_Opr Select_Encoding_Opr(unsigned char *pucFileBufHead)
 void Add_Font_Opr_For_Encoding(PT_Encoding_Opr ptEncodingOpr,
 		PT_Font_Opr ptFontOprSupported)
 {
-	PT_Font_Opr ptFontOprTmp = ptEncodingOpr->ptFontOprSupportedHead;
-	if (!ptFontOprTmp) {
-		ptFontOprTmp = ptFontOprSupported;
+	PT_Font_Opr ptFontOprTmp;
+	if (!ptEncodingOpr->ptFontOprSupportedHead) {
+		ptEncodingOpr->ptFontOprSupportedHead = ptFontOprSupported;
 	} else {
+		ptFontOprTmp = ptEncodingOpr->ptFontOprSupportedHead;
 		while (ptFontOprTmp->ptNextFont) {
 			ptFontOprTmp = ptFontOprTmp->ptNextFont;
 		}
 		ptFontOprTmp->ptNextFont = ptFontOprSupported;
 	}
-	printf("Add_Font_Opr_For_Encoding %s.\n", ptFontOprTmp->c_pFontName);
 	ptFontOprSupported->ptNextFont = NULL;
 }
 

@@ -25,7 +25,6 @@ int main(int argc, char **argv)
 	g_ptDispOpr->Clean_Screen();
 
 	Open_Text_File("text_ansi.txt");
-	printf("open text file success.\n");
 	g_ptEncodingOprForFile->Get_Code(g_pucLcdFirstPosAtFile, g_pucFileMemEnd, &pdwCode);
 	printf("0x%x\n", pdwCode);
 
@@ -33,7 +32,7 @@ int main(int argc, char **argv)
 	printf("%d\n", g_ptEncodingOprForFile->iHeadLen);
 	printf("%s\n", g_ptEncodingOprForFile->ptFontOprSupportedHead->c_pFontName);
 
-	g_ptEncodingOprForFile->ptFontOprSupportedHead->Font_Init("simsun.ttc", 24);
+	g_ptEncodingOprForFile->ptFontOprSupportedHead->Font_Init(NULL, 16);
 
 	tFontPara.iCurOriginX = 0;
 	tFontPara.iCurOriginY = 24;
