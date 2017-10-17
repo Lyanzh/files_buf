@@ -35,7 +35,7 @@ int main(int argc, char **argv)
 	g_ptEncodingOprForFile->ptFontOprSupportedHead->Font_Init(NULL, 16);
 
 	tFontPara.iCurOriginX = 0;
-	tFontPara.iCurOriginY = 24;
+	tFontPara.iCurOriginY = 0;
 	g_ptEncodingOprForFile->ptFontOprSupportedHead->Get_Bitmap(pdwCode, &tFontPara);
 	printf("iXLeft = %d\n", tFontPara.iXLeft);
 	printf("iYTop = %d\n", tFontPara.iYTop);

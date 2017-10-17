@@ -69,7 +69,7 @@ static int Utf8_Get_Code(unsigned char *pucBufStart,
 }
 
 static T_Encoding_Opr g_tUtf8EncodingOpr = {
-	.c_pEncodingName = "UTF-8",
+	.c_pEncodingName = "utf-8",
 	.iHeadLen  = 3,
 	.isSupport = isUtf8Coding,
 	.Get_Code  = Utf8_Get_Code,

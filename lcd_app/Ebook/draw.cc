@@ -75,10 +75,11 @@ int Select_And_Init_Display(char *pcName)
 
 void Draw_Bitmap(PT_Font_Para ptFontPara)
 {
-	int i, j, p, q;
+	//int i, j, p, q;
 
-	int iBitmapWidth = ptFontPara->iXmax - ptFontPara->iXLeft;
+	//int iBitmapWidth = ptFontPara->iXmax - ptFontPara->iXLeft;
 
+#if 0
 	for (i = ptFontPara->iCurOriginX, p = 0; i < ptFontPara->iXmax; i++, p++)
 	{
 		for (j = ptFontPara->iCurOriginY, q = 0; j < ptFontPara->iYmax; j++, q++)
@@ -87,6 +88,28 @@ void Draw_Bitmap(PT_Font_Para ptFontPara)
 				continue;
 
 			g_ptDispOpr->Put_Pixel(i, j, ptFontPara->pucBuffer[q * iBitmapWidth + p]);
+		}
+	}
+#endif
+	int i, b;
+	unsigned char byte;
+
+	int x = ptFontPara->iCurOriginX;
+	int y = ptFontPara->iCurOriginY;
+
+	for(i = 0; i < 16; i++)
+	{
+		byte = ptFontPara->pucBuffer[i];
+		for(b = 7; b >= 0; b--)
+		{
+			if(byte & (1<<b))
+			{
+				g_ptDispOpr->Put_Pixel(x+7-b, y+i, 0xFFFF);//on
+			}
+			else
+			{
+				g_ptDispOpr->Put_Pixel(x+7-b, y+i, 0);//off
+			}
 		}
 	}
 }

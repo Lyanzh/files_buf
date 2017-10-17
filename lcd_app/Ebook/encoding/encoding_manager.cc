@@ -71,6 +71,7 @@ int Encoding_Opr_Init(void)
 		return -1;
 	}
 
+#if 0
 	iError =  Utf8_Encoding_Init();
 	if (iError) {
 		printf("Error:UTF-8 encoding init fail.\n");
@@ -88,6 +89,7 @@ int Encoding_Opr_Init(void)
 		printf("Error:UTF-16BE encoding init fail.\n");
 		return -1;
 	}
+#endif
 	
 	return 0;
 }
