@@ -1,6 +1,7 @@
 #include "draw.h"
 
 #include <stdio.h>
+#include <string.h>
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <fcntl.h>
@@ -19,6 +20,19 @@ unsigned char *g_pucFileMemEnd;
 static unsigned char *g_pucLcdNextPosAtFile;
 
 unsigned int g_dwFontSize;
+
+int Select_And_Init_Display(char *pcName)
+{
+	int iError;
+	g_ptDispOpr = Get_Disp_Opr(pcName);
+	if (!g_ptDispOpr) {
+		printf("Error:can not get display operation for %s.", pcName);
+		return -1;
+	}
+
+	iError = g_ptDispOpr->Dev_Init();
+	return 0;
+}
 
 int Open_Text_File(char *pcPathName)
 {
@@ -63,24 +77,35 @@ int Open_Text_File(char *pcPathName)
 	return 0;
 }
 
-static void Del_Font_Opr_from_Encoding(PT_Encoding_Opr ptEncodingOprForFile,
+static int Del_Font_Opr_from_Encoding(PT_Encoding_Opr ptEncodingOprForFile,
 		PT_Font_Opr ptFontOpr)
 {
-	PT_Font_Opr ptFontOprTmp;
+	PT_Font_Opr ptFontOprPre;
+	PT_Font_Opr ptFontOprCur;
 	
 	if (!ptEncodingOprForFile->ptFontOprSupportedHead) {
-		return;
+		return -1;
 	}
-
-	ptFontOprTmp = ptEncodingOprForFile->ptFontOprSupportedHead;
-	while (ptFontOprTmp) {
-		if (strcmp(ptFontOprTmp->c_pFontName, ptFontOpr->c_pFontName) == 0) {
-			/* delete */
-			
-		} else {
-			ptFontOprTmp = ptFontOprTmp->ptNextFont;
+	
+	if (strcmp(ptEncodingOprForFile->ptFontOprSupportedHead->c_pFontName, ptFontOpr->c_pFontName) == 0) {
+		/* delete head */
+		ptEncodingOprForFile->ptFontOprSupportedHead = ptEncodingOprForFile->ptFontOprSupportedHead->ptNextFont;
+		return 0;
+	} else {
+		ptFontOprPre = ptEncodingOprForFile->ptFontOprSupportedHead;
+		ptFontOprCur = ptFontOprPre->ptNextFont;
+		while (ptFontOprCur) {
+			if (strcmp(ptFontOprCur->c_pFontName, ptFontOpr->c_pFontName) == 0) {
+				/* delete */
+				ptFontOprPre->ptNextFont = ptFontOprCur->ptNextFont;
+				return 0;
+			} else {
+				ptFontOprPre = ptFontOprCur;
+				ptFontOprCur = ptFontOprCur->ptNextFont;
+			}
 		}
 	}
+	return -1;
 }
 
 int Set_Text_Detail(char *pcHZKFile, char *pcFreetypeFile, unsigned int dwFontSize)
@@ -107,24 +132,11 @@ int Set_Text_Detail(char *pcHZKFile, char *pcFreetypeFile, unsigned int dwFontSi
 		if (iError == 0) {
 			iRet = 0;
 		} else {
-			Del_Font_Opr_from_Encoding();
+			Del_Font_Opr_from_Encoding(g_ptEncodingOprForFile, ptFontOpr);
 		}
 		ptFontOpr = ptFontOprTmp;
 	}
 	return iRet;
-}
-
-int Select_And_Init_Display(char *pcName)
-{
-	int iError;
-	g_ptDispOpr = Get_Disp_Opr(pcName);
-	if (!g_ptDispOpr) {
-		printf("Error:can not get display operation for %s.", pcName);
-		return -1;
-	}
-
-	iError = g_ptDispOpr->Dev_Init();
-	return 0;
 }
 
 static int Inc_LcdY(int iY)
@@ -137,6 +149,7 @@ static int Inc_LcdY(int iY)
 	}
 }
 
+/* 处理有可能的行满或页满的情况 */
 static int Relocate_Font_Pos(PT_Font_Para ptFontPara)
 {
 	int iLcdY;
@@ -149,18 +162,36 @@ static int Relocate_Font_Pos(PT_Font_Para ptFontPara)
 	}
 
 	if (ptFontPara->iXmax > g_ptDispOpr->tDevAttr.dwXres) {
-		/* pos to next line */
+		/* try to relocate to next line */
 		iLcdY = Inc_LcdY(ptFontPara->iCurOriginY);
 		if (0 == iLcdY) {
 			/* page full */
 			return -1;
 		} else {
-			/* page not full */
+			/* page not full, relocate to next line */
+			iDeltaX = 0 - ptFontPara->iCurOriginX;
+			iDeltaY = iLcdY - ptFontPara->iCurOriginY;
+
+			ptFontPara->iCurOriginX += iDeltaX;
+			ptFontPara->iCurOriginY += iDeltaY;
+			
+			ptFontPara->iXLeft += iDeltaX;
+			ptFontPara->iYTop += iDeltaY;
+
+			ptFontPara->iXmax += iDeltaX;
+			ptFontPara->iYmax += iDeltaY;
+
+			ptFontPara->iNextOriginX += iDeltaX;
+			ptFontPara->iNextOriginY += iDeltaY;
+
+			return 0;
 		}
 	}
+
+	return 0;
 }
 
-int Show_One_Font(PT_Font_Para ptFontPara)
+static int Show_One_Font(PT_Font_Para ptFontPara)
 {
 	int x;
 	int y;
@@ -216,7 +247,7 @@ int Show_One_Page(unsigned char *pucTextFileMemCurPos)
 
 	int iError;
 
-	unsigned char bHasNotClrScreen = 1;
+	unsigned char bHasClrScreen = 0;
 	unsigned char bHasGetCode = 0;
 
 	tFontPara.iCurOriginX = 0;
@@ -247,9 +278,11 @@ int Show_One_Page(unsigned char *pucTextFileMemCurPos)
 				/* Current page has over */
 				return 0;
 			} else {
+				/* show next code */
 				continue;
 			}
 		} else if (dwCode == '\r') {
+			/* show next code */
 			continue;
 		} else if (dwCode == '\t') {
 			dwCode = ' ';
@@ -260,14 +293,14 @@ int Show_One_Page(unsigned char *pucTextFileMemCurPos)
 			iError = ptFontOprTmp->Get_Bitmap(dwCode, &tFontPara);
 			if (0 == iError) {
 				if (Relocate_Font_Pos(&tFontPara)) {
-					/* cannot show this code on this page */
+					/* no more space to show this code on this page */
 					return 0;
 				}
 
-				if (bHasNotClrScreen) {
+				if (!bHasClrScreen) {
 					/* clear screen first */
 					g_ptDispOpr->Clean_Screen();
-					bHasNotClrScreen = 0;
+					bHasClrScreen = 1;
 				}
 
 				if (Show_One_Font(&tFontPara)) {
@@ -288,6 +321,7 @@ int Show_One_Page(unsigned char *pucTextFileMemCurPos)
 	return 0;
 }
 
+#if 0
 void Draw_Bitmap(PT_Font_Para ptFontPara)
 {
 	//int i, j, p, q;
@@ -328,4 +362,5 @@ void Draw_Bitmap(PT_Font_Para ptFontPara)
 		}
 	}
 }
+#endif
 

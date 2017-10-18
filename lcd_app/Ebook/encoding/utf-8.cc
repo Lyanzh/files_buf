@@ -80,3 +80,4 @@ int Utf8_Encoding_Init(void)
 	Add_Font_Opr_For_Encoding(&g_tUtf8EncodingOpr, Get_Font_Opr("freetype"));
 	return Encoding_Opr_Regisiter(&g_tUtf8EncodingOpr);
 }
+

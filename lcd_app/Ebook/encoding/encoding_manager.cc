@@ -71,7 +71,7 @@ int Encoding_Opr_Init(void)
 		return -1;
 	}
 
-#if 0
+#if 1
 	iError =  Utf8_Encoding_Init();
 	if (iError) {
 		printf("Error:UTF-8 encoding init fail.\n");
