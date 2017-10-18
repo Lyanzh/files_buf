@@ -41,8 +41,7 @@ PT_Font_Opr Get_Font_Opr(char *pcName)
 		if (strcmp(ptFontOprTmp->c_pFontName, pcName) == 0) {
 			printf("get font %s.\n", pcName);
 			return ptFontOprTmp;
-		}
-		else {
+		} else {
 			ptFontOprTmp = ptFontOprTmp->ptNextFont;
 		}
 	}

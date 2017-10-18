@@ -11,6 +11,8 @@ typedef struct FontParameter
 	int iCurOriginY;
 	int iNextOriginX;
 	int iNextOriginY;
+	int iPitch;
+	int iBpp;
 	unsigned char *pucBuffer;
 }T_Font_Para, *PT_Font_Para;
 

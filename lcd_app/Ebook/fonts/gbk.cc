@@ -29,6 +29,9 @@ static int Gbk_Get_Bitmap(unsigned int dwCode, PT_Font_Para ptFontPara)
 	ptFontPara->iXmax  = ptFontPara->iXLeft + g_dwFontSize;
 	ptFontPara->iYmax  = iPenY;
 
+	ptFontPara->iPitch = 2;
+	ptFontPara->iBpp = 1;
+
 	ptFontPara->pucBuffer = (unsigned char *)(g_pcGbkMem + (dwArea * 94 + dwWhere) * 32);
 	
 	/* increment pen position */

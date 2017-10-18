@@ -4,7 +4,7 @@
 #include "memwatch.h"
 
 #define FONTDATAMAX 4096
-static const unsigned char fontdata_8x16[FONTDATAMAX];
+static const unsigned char gc_ucFontData8x16[FONTDATAMAX];
 
 static int Ascii_Get_Bitmap(unsigned int dwCode, PT_Font_Para ptFontPara)
 {
@@ -18,7 +18,14 @@ static int Ascii_Get_Bitmap(unsigned int dwCode, PT_Font_Para ptFontPara)
 	ptFontPara->iXmax  = ptFontPara->iXLeft + 8;
 	ptFontPara->iYmax  = iPenY;
 
-	ptFontPara->pucBuffer = (unsigned char *)&fontdata_8x16[dwCode*16];
+	/* The pitch's absolute value is the number of bytes taken by one bitmap row,
+	 * including padding.
+	 */
+	ptFontPara->iPitch = 1;
+
+	ptFontPara->iBpp = 1;
+
+	ptFontPara->pucBuffer = (unsigned char *)&gc_ucFontData8x16[dwCode*16];
 	
 	/* increment pen position */
 	ptFontPara->iNextOriginX = iPenX + 8;
@@ -52,7 +59,7 @@ int Ascii_Opr_Init(void)
 	return Font_Opr_Regisiter(&g_tAsciiOpr);
 }
 
-static const unsigned char fontdata_8x16[FONTDATAMAX] = {
+static const unsigned char gc_ucFontData8x16[FONTDATAMAX] = {
 
 	/* 0 0x00 '^@' */
 	0x00, /* 00000000 */

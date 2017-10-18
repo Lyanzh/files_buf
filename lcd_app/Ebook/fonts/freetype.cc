@@ -61,6 +61,16 @@ static int Freetype_Get_Bitmap(unsigned int dwCode, PT_Font_Para ptFontPara)
 	ptFontPara->iXmax  = ptFontPara->iXLeft + tSlot->bitmap.width;
 	ptFontPara->iYmax  = ptFontPara->iYTop + tSlot->bitmap.rows;
 
+	/*
+	 * The pitch's absolute value is the number of bytes taken by one bitmap row,
+	 * including padding. However, the pitch is positive when the bitmap has a 
+	 * ¡®down¡¯ flow, and negative when it has an ¡®up¡¯ flow. In all cases, 
+	 * the pitch is an offset to add to a bitmap pointer in order to go down one row.
+	 */
+	ptFontPara->iPitch = tSlot->bitmap.pitch;
+
+	ptFontPara->iBpp = 1;
+
 	ptFontPara->pucBuffer = tSlot->bitmap.buffer;
 	
 	/* increment pen position */
