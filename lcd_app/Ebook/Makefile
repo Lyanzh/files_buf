@@ -23,6 +23,8 @@ OBJS := main.o \
 		fonts/ascii.o \
 		fonts/gbk.o \
 		fonts/freetype.o \
+		input/input_manager.o \
+		input/stdin.o \
 		memwatch.o
 
 all: $(OBJS)

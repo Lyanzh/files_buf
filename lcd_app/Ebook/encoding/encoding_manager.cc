@@ -1,5 +1,6 @@
 #include "encoding_manager.h"
 #include <stdio.h>
+#include <string.h>
 
 #include "memwatch.h"
 
@@ -46,20 +47,35 @@ PT_Encoding_Opr Select_Encoding_Opr(unsigned char *pucFileBufHead)
 	return NULL;
 }
 
-void Add_Font_Opr_For_Encoding(PT_Encoding_Opr ptEncodingOpr,
+int Add_Font_Opr_For_Encoding(PT_Encoding_Opr ptEncodingOpr,
 		PT_Font_Opr ptFontOprSupported)
 {
 	PT_Font_Opr ptFontOprTmp;
+	PT_Font_Opr ptFontOprCpy;
+	
+	if (!ptEncodingOpr || !ptFontOprSupported)
+		return -1;
+	
+	ptFontOprCpy = (PT_Font_Opr)malloc(sizeof(T_Font_Opr));
+	if (!ptFontOprCpy) {
+		printf("Error:cannot malloc ptFontOprCpy.\n");
+		return -1;
+	}
+	
+	memcpy(ptFontOprCpy, ptFontOprSupported, sizeof(T_Font_Opr));
+	
 	if (!ptEncodingOpr->ptFontOprSupportedHead) {
-		ptEncodingOpr->ptFontOprSupportedHead = ptFontOprSupported;
+		ptEncodingOpr->ptFontOprSupportedHead = ptFontOprCpy;
 	} else {
 		ptFontOprTmp = ptEncodingOpr->ptFontOprSupportedHead;
 		while (ptFontOprTmp->ptNextFont) {
 			ptFontOprTmp = ptFontOprTmp->ptNextFont;
 		}
-		ptFontOprTmp->ptNextFont = ptFontOprSupported;
+		ptFontOprTmp->ptNextFont = ptFontOprCpy;
 	}
-	ptFontOprSupported->ptNextFont = NULL;
+	ptFontOprCpy->ptNextFont = NULL;
+	return 0;
+	//printf("Add_Font_Opr_For_Encoding %s.\n", ptFontOprTmp->c_pFontName);
 }
 
 int Encoding_Opr_Init(void)

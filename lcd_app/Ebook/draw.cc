@@ -13,13 +13,24 @@
 PT_Encoding_Opr g_ptEncodingOprForFile;
 PT_DispDev g_ptDispOpr;
 
-unsigned char *g_pucFileMemStart;
-unsigned char *g_pucFileMemEnd;
+typedef struct PageDesc {
+	int iPage;
+	unsigned char *pucLcdFirstPosAtFile;
+	unsigned char *pucLcdNextPageFirstPosAtFile;
+	struct PageDesc *ptPrePage;
+	struct PageDesc *ptNextPage;
+} T_PageDesc, *PT_PageDesc;
 
-/*static*/ unsigned char *g_pucLcdFirstPosAtFile;
+static PT_PageDesc g_ptPagesHead = NULL;
+static PT_PageDesc g_ptCurPage = NULL;
+
+static unsigned char *g_pucFileMemStart;
+static unsigned char *g_pucFileMemEnd;
+
+static unsigned char *g_pucLcdFirstPosAtFile;
 static unsigned char *g_pucLcdNextPosAtFile;
 
-unsigned int g_dwFontSize;
+static unsigned int g_dwFontSize;
 
 int Select_And_Init_Display(char *pcName)
 {
@@ -236,7 +247,7 @@ static int Show_One_Font(PT_Font_Para ptFontPara)
 	return 0;
 }
 
-int Show_One_Page(unsigned char *pucTextFileMemCurPos)
+static int Show_One_Page(unsigned char *pucTextFileMemCurPos)
 {
 	int iLen;
 	unsigned int dwCode;
@@ -252,6 +263,7 @@ int Show_One_Page(unsigned char *pucTextFileMemCurPos)
 
 	tFontPara.iCurOriginX = 0;
 	tFontPara.iCurOriginY = g_dwFontSize;
+	
 	pucBufStart = pucTextFileMemCurPos;
 	
 	while (1) {
@@ -319,6 +331,73 @@ int Show_One_Page(unsigned char *pucTextFileMemCurPos)
 	}
 
 	return 0;
+}
+
+static void Record_Page(PT_PageDesc ptPageNew)
+{
+	PT_PageDesc ptPageTmp;
+	
+	if (!g_ptPagesHead) {
+		g_ptPagesHead = ptPageNew;
+	} else {
+		ptPageTmp = g_ptPagesHead;
+		while (ptPageTmp->ptNextPage) {
+			ptPageTmp = ptPageTmp->ptNextPage;
+		}
+
+		ptPageTmp->ptNextPage = ptPageNew;
+		ptPageNew->ptPrePage = ptPageTmp;
+	}
+}
+
+int Show_Next_Page(void)
+{
+	int iError;
+	PT_PageDesc ptPage;
+	unsigned char *pucTextFileMemCurPos;
+
+	if (g_ptCurPage) {
+		pucTextFileMemCurPos = g_ptCurPage->pucLcdNextPageFirstPosAtFile;
+	} else {
+		pucTextFileMemCurPos = g_pucLcdFirstPosAtFile;
+	}
+
+	iError = Show_One_Page(pucTextFileMemCurPos);
+	if (0 == iError) {
+		if (g_ptCurPage && g_ptCurPage->ptNextPage) {
+			g_ptCurPage = g_ptCurPage->ptNextPage;
+		}
+
+		ptPage = (PT_PageDesc)malloc(sizeof(T_PageDesc));
+		if (ptPage) {
+			ptPage->pucLcdFirstPosAtFile = pucTextFileMemCurPos;
+			ptPage->pucLcdNextPageFirstPosAtFile = g_pucLcdNextPosAtFile;
+			ptPage->ptPrePage = NULL;
+			ptPage->ptNextPage = NULL;
+			
+			g_ptCurPage = ptPage;
+			Record_Page(ptPage);
+			return 0;
+		} else {
+			return -1;
+		}
+	}
+
+	return iError;
+}
+
+int Show_Pre_Page(void)
+{
+	int iError;
+
+	if (!g_ptCurPage || g_ptCurPage->ptPrePage)
+		return -1;
+
+	iError = Show_One_Page(g_ptCurPage->ptPrePage->pucLcdFirstPosAtFile);
+	if (0 == iError) {
+		g_ptCurPage = g_ptCurPage->ptNextPage;
+	}
+	return iError;
 }
 
 #if 0

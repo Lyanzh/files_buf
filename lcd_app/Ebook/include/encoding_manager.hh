@@ -23,7 +23,7 @@ int Utf16be_Encoding_Init(void);
 extern int Encoding_Opr_Regisiter(PT_Encoding_Opr ptEncodingOpr);
 extern void Show_Encoding_Opr(void);
 extern PT_Encoding_Opr Select_Encoding_Opr(unsigned char *pucFileBufHead);
-extern void Add_Font_Opr_For_Encoding(PT_Encoding_Opr ptEncodingOpr,
+extern int Add_Font_Opr_For_Encoding(PT_Encoding_Opr ptEncodingOpr,
 		PT_Font_Opr ptFontOprSupported);
 extern int Encoding_Opr_Init(void);
 
