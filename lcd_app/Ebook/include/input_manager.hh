@@ -31,5 +31,7 @@ extern void Show_Input_Opr(void);
 extern PT_Input_Opr Get_Input_Opr(char *pcName);
 extern int Input_Opr_Init(void);
 
+extern int Stdin_Input_Init(void);
+
 #endif
 

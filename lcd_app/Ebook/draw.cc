@@ -302,7 +302,9 @@ static int Show_One_Page(unsigned char *pucTextFileMemCurPos)
 
 		ptFontOprTmp = g_ptEncodingOprForFile->ptFontOprSupportedHead;
 		while (ptFontOprTmp) {
+			printf("Get_Bitmap.\n");
 			iError = ptFontOprTmp->Get_Bitmap(dwCode, &tFontPara);
+			printf("Get_Bitmap over.\n");
 			if (0 == iError) {
 				if (Relocate_Font_Pos(&tFontPara)) {
 					/* no more space to show this code on this page */
@@ -390,7 +392,7 @@ int Show_Pre_Page(void)
 {
 	int iError;
 
-	if (!g_ptCurPage || g_ptCurPage->ptPrePage)
+	if (!g_ptCurPage || !g_ptCurPage->ptPrePage)
 		return -1;
 
 	iError = Show_One_Page(g_ptCurPage->ptPrePage->pucLcdFirstPosAtFile);

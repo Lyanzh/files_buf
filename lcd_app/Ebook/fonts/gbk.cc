@@ -35,7 +35,7 @@ static int Gbk_Get_Bitmap(unsigned int dwCode, PT_Font_Para ptFontPara)
 	ptFontPara->pucBuffer = (unsigned char *)(g_pcGbkMem + (dwArea * 94 + dwWhere) * 32);
 	
 	/* increment pen position */
-	ptFontPara->iNextOriginX = iPenX + 8;
+	ptFontPara->iNextOriginX = iPenX + g_dwFontSize;
 	ptFontPara->iNextOriginY = iPenY;
 
 	return 0;

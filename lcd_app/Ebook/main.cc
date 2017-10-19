@@ -2,6 +2,7 @@
 #include "encoding_manager.h"
 #include "fonts_manager.h"
 #include "disp_manager.h"
+#include "input_manager.h"
 
 #include "memwatch.h"
 
@@ -26,9 +27,15 @@ int main(int argc, char **argv)
 
 	Open_Text_File("text_ansi.txt");
 
+	printf("Open_Text_File.\n");
+
 	Set_Text_Detail("HZK16", "simsun.ttc", 16);
+
+	printf("Set_Text_Detail.\n");
 	
 	Show_Next_Page();
+
+	printf("Show_Next_Page.\n");
 
 	while (1) {
 		printf("Enter 'n' to show next page, 'u' to show previous page, 'q' to exit: ");
