@@ -55,7 +55,7 @@ static void Stdin_Exit(void)
 	nonblock(NB_DISABLE);
 }
 
-static int Stdin_Get_Key(unsigned int *pdwKey)
+static int Stdin_Get_Key(PT_Input_Event ptInputEvent)
 {
 	char cGetChar;
 	int iRet = 0;
@@ -64,8 +64,19 @@ static int Stdin_Get_Key(unsigned int *pdwKey)
 	iRet = kbhit();
 	if (iRet != 0) {
 		cGetChar = fgetc(stdin);
-		printf("you hit %c.\n", cGetChar);
-		*pdwKey = cGetChar;
+		//printf("you hit %c.\n", cGetChar);
+		
+		gettimeofday(&ptInputEvent->tTime, NULL);
+		
+		ptInputEvent->iType = INPUT_TYPE_STDIN;
+		
+		if (cGetChar == 'u') {
+			ptInputEvent->iVal = INPUT_VALUE_UP;
+		} else if (cGetChar == 'd') {
+			ptInputEvent->iVal = INPUT_VALUE_DOWN;
+		} else {
+			ptInputEvent->iVal = INPUT_VALUE_UNKNOWN;
+		}
 		return 1;
 	}
 

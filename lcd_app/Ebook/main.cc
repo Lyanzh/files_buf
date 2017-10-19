@@ -20,6 +20,7 @@ int main(int argc, char **argv)
 	Show_Disp_Opr();
 	Show_Font_Opr();
 	Show_Encoding_Opr();
+	Show_Input_Opr();
 
 	Select_And_Init_Display("s3c2440-lcd");
 
