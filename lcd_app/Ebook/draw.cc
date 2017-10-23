@@ -15,8 +15,8 @@ PT_DispDev g_ptDispOpr;
 
 typedef struct PageDesc {
 	int iPage;
-	unsigned char *pucLcdFirstPosAtFile;
-	unsigned char *pucLcdNextPageFirstPosAtFile;
+	unsigned char *pucPageFirstPosAtFileMem;
+	unsigned char *pucPageEndPosAtFileMem;
 	struct PageDesc *ptPrePage;
 	struct PageDesc *ptNextPage;
 } T_PageDesc, *PT_PageDesc;
@@ -27,8 +27,8 @@ static PT_PageDesc g_ptCurPage = NULL;
 static unsigned char *g_pucFileMemStart;
 static unsigned char *g_pucFileMemEnd;
 
-static unsigned char *g_pucLcdFirstPosAtFile;
-static unsigned char *g_pucLcdNextPosAtFile;
+static unsigned char *g_pucTextFirstPosAtFileMem;
+static unsigned char *g_pucCurPageTextEndPosAtFileMem;
 
 static unsigned int g_dwFontSize;
 
@@ -73,11 +73,12 @@ int Open_Text_File(char *pcPathName)
 	}
 
 	g_pucFileMemEnd = g_pucFileMemStart + tFileStat.st_size - 1;
+	printf("FileMemStart = %x, FileMemEnd = %x.\n", g_pucFileMemStart, g_pucFileMemEnd);
 
 	g_ptEncodingOprForFile = Select_Encoding_Opr(g_pucFileMemStart);
 
 	if (g_ptEncodingOprForFile) {
-		g_pucLcdFirstPosAtFile = g_pucFileMemStart + g_ptEncodingOprForFile->iHeadLen;
+		g_pucTextFirstPosAtFileMem = g_pucFileMemStart + g_ptEncodingOprForFile->iHeadLen;
 	} else {
 		printf("Error:get encoding operation for file error.\n");
 		close(iFd);
@@ -247,7 +248,7 @@ static int Show_One_Font(PT_Font_Para ptFontPara)
 	return 0;
 }
 
-static int Show_One_Page(unsigned char *pucTextFileMemCurPos)
+static int Show_One_Page(unsigned char *pucPageFirstPosAtFileMem)
 {
 	int iLen;
 	unsigned int dwCode;
@@ -264,16 +265,16 @@ static int Show_One_Page(unsigned char *pucTextFileMemCurPos)
 	tFontPara.iCurOriginX = 0;
 	tFontPara.iCurOriginY = g_dwFontSize;
 	
-	pucBufStart = pucTextFileMemCurPos;
+	pucBufStart = pucPageFirstPosAtFileMem;
 	
 	while (1) {
 		iLen = g_ptEncodingOprForFile->Get_Code(pucBufStart, g_pucFileMemEnd, &dwCode);
 		if (iLen == 0) {
 			/* file end */
-			if (!bHasGetCode) {
-				return -1;
-			} else {
+			if (bHasGetCode) {
 				return 0;
+			} else {
+				return -1;
 			}
 		}
 
@@ -281,7 +282,7 @@ static int Show_One_Page(unsigned char *pucTextFileMemCurPos)
 		pucBufStart += iLen;
 
 		if (dwCode == '\n') {
-			g_pucLcdNextPosAtFile = pucBufStart;
+			g_pucCurPageTextEndPosAtFileMem = pucBufStart - 1;
 
 			/* next line */
 			tFontPara.iCurOriginX = 0;
@@ -302,9 +303,7 @@ static int Show_One_Page(unsigned char *pucTextFileMemCurPos)
 
 		ptFontOprTmp = g_ptEncodingOprForFile->ptFontOprSupportedHead;
 		while (ptFontOprTmp) {
-			printf("Get_Bitmap.\n");
 			iError = ptFontOprTmp->Get_Bitmap(dwCode, &tFontPara);
-			printf("Get_Bitmap over.\n");
 			if (0 == iError) {
 				if (Relocate_Font_Pos(&tFontPara)) {
 					/* no more space to show this code on this page */
@@ -323,7 +322,7 @@ static int Show_One_Page(unsigned char *pucTextFileMemCurPos)
 
 				tFontPara.iCurOriginX = tFontPara.iNextOriginX;
 				tFontPara.iCurOriginY = tFontPara.iNextOriginY;
-				g_pucLcdNextPosAtFile = pucBufStart;
+				g_pucCurPageTextEndPosAtFileMem = pucBufStart - 1;
 
 				/* show current code over, get next code to show */
 				break;
@@ -338,6 +337,9 @@ static int Show_One_Page(unsigned char *pucTextFileMemCurPos)
 static void Record_Page(PT_PageDesc ptPageNew)
 {
 	PT_PageDesc ptPageTmp;
+	static int i = 0;
+
+	ptPageNew->iPage = i++;
 	
 	if (!g_ptPagesHead) {
 		g_ptPagesHead = ptPageNew;
@@ -356,36 +358,36 @@ int Show_Next_Page(void)
 {
 	int iError;
 	PT_PageDesc ptPage;
-	unsigned char *pucTextFileMemCurPos;
+	unsigned char *pucNextPageFirstPosAtFileMem;
 
 	if (g_ptCurPage) {
-		pucTextFileMemCurPos = g_ptCurPage->pucLcdNextPageFirstPosAtFile;
+		pucNextPageFirstPosAtFileMem = g_ptCurPage->pucPageEndPosAtFileMem + 1;
 	} else {
-		pucTextFileMemCurPos = g_pucLcdFirstPosAtFile;
+		pucNextPageFirstPosAtFileMem = g_pucTextFirstPosAtFileMem;
 	}
 
-	iError = Show_One_Page(pucTextFileMemCurPos);
+	iError = Show_One_Page(pucNextPageFirstPosAtFileMem);
 	if (0 == iError) {
 		if (g_ptCurPage && g_ptCurPage->ptNextPage) {
 			g_ptCurPage = g_ptCurPage->ptNextPage;
-		}
-
-		ptPage = (PT_PageDesc)malloc(sizeof(T_PageDesc));
-		if (ptPage) {
-			ptPage->pucLcdFirstPosAtFile = pucTextFileMemCurPos;
-			ptPage->pucLcdNextPageFirstPosAtFile = g_pucLcdNextPosAtFile;
-			ptPage->ptPrePage = NULL;
-			ptPage->ptNextPage = NULL;
-			
-			g_ptCurPage = ptPage;
-			Record_Page(ptPage);
-			return 0;
 		} else {
-			return -1;
+			ptPage = (PT_PageDesc)malloc(sizeof(T_PageDesc));
+			if (ptPage) {
+				ptPage->pucPageFirstPosAtFileMem = pucNextPageFirstPosAtFileMem;
+				ptPage->pucPageEndPosAtFileMem = g_pucCurPageTextEndPosAtFileMem;
+				ptPage->ptPrePage = NULL;
+				ptPage->ptNextPage = NULL;
+				
+				Record_Page(ptPage);
+				g_ptCurPage = ptPage;
+			} else {
+				return -1;
+			}
 		}
+		return 0;
+	} else {
+		return -1;
 	}
-
-	return iError;
 }
 
 int Show_Pre_Page(void)
@@ -395,10 +397,21 @@ int Show_Pre_Page(void)
 	if (!g_ptCurPage || !g_ptCurPage->ptPrePage)
 		return -1;
 
-	iError = Show_One_Page(g_ptCurPage->ptPrePage->pucLcdFirstPosAtFile);
+	iError = Show_One_Page(g_ptCurPage->ptPrePage->pucPageFirstPosAtFileMem);
 	if (0 == iError) {
-		g_ptCurPage = g_ptCurPage->ptNextPage;
+		g_ptCurPage = g_ptCurPage->ptPrePage;
 	}
 	return iError;
+}
+
+void Show_Pages(void)
+{
+	PT_PageDesc ptPagesTmp = g_ptPagesHead;
+	printf("Show pages:\n");
+	while (ptPagesTmp) {
+		printf("%d\n", ptPagesTmp->iPage);
+		ptPagesTmp = ptPagesTmp->ptNextPage;
+	}
+	printf("Show pages end\n");
 }
 

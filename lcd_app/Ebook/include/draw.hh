@@ -17,5 +17,7 @@ extern int Select_And_Init_Display(char *pcName);
 extern int Set_Text_Detail(char *pcHZKFile, char *pcFreetypeFile, unsigned int dwFontSize);
 extern int Show_Pre_Page(void);
 extern int Show_Next_Page(void);
+
+extern void Show_Pages(void);
 #endif
 

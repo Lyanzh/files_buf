@@ -8,6 +8,10 @@ static const unsigned char gc_ucFontData8x16[FONTDATAMAX];
 
 static int Ascii_Get_Bitmap(unsigned int dwCode, PT_Font_Para ptFontPara)
 {
+	if (((dwCode + 1) * 16) > FONTDATAMAX) {
+		return -1;
+	}
+
 	/* 传入的需要绘制的起点 */
 	int iPenX = ptFontPara->iCurOriginX;
 	int iPenY = ptFontPara->iCurOriginY;

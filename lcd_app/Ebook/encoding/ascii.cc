@@ -31,20 +31,20 @@ static int AsciiGetCodeFrmBuf(unsigned char *pucBufStart,
 	unsigned char *pucBuf = pucBufStart;
 	unsigned char c = *pucBuf;
 
-	if ((pucBuf < pucBufEnd) && (c < (unsigned char)0x80)) {
+	if ((pucBuf <= pucBufEnd) && (c < (unsigned char)0x80)) {
 		/* ASCII code */
 		*pdwCode = (unsigned int)c;
 		return 1;
 	}
 
-	if (((pucBuf + 1) < pucBufEnd) && (c >= (unsigned char)0x80)) {
+	if (((pucBuf + 1) <= pucBufEnd) && (c >= (unsigned char)0x80)) {
 		/* GBK code, big endian */
 		//*pdwCode = pucBuf[0] + (pucBuf[1]<<8);//´óÐ¡¶Ë????
 		*pdwCode =  (pucBuf[0]<<8) + pucBuf[1];
 		return 2;
 	}
 	
-	if (pucBuf < pucBufEnd) {
+	if (pucBuf <= pucBufEnd) {
 		*pdwCode = (unsigned int)c;
 		return 1;
 	} else {
@@ -62,6 +62,7 @@ static T_Encoding_Opr g_tAsciiEncodingOpr = {
 int Ascii_Encoding_Init(void)
 {
 	Add_Font_Opr_For_Encoding(&g_tAsciiEncodingOpr, Get_Font_Opr("ascii"));
+	Add_Font_Opr_For_Encoding(&g_tAsciiEncodingOpr, Get_Font_Opr("gbk"));
 	return Encoding_Opr_Regisiter(&g_tAsciiEncodingOpr);
 }
 

@@ -1,6 +1,5 @@
 #include "input_manager.h"
 #include <stdio.h>
-#include <sys/time.h>
 #include <sys/select.h>
 #include <sys/types.h>
 #include <unistd.h>
@@ -8,7 +7,7 @@
 
 #include "memwatch.h"
 
-#define NB_ENABLE 1
+#define NB_ENABLE  1
 #define NB_DISABLE 0
 
 static int kbhit()
@@ -55,28 +54,17 @@ static void Stdin_Exit(void)
 	nonblock(NB_DISABLE);
 }
 
-static int Stdin_Get_Key(PT_Input_Event ptInputEvent)
+static int Stdin_Get_Data(PT_Input_Data ptInputData)
 {
 	char cGetChar;
 	int iRet = 0;
- 
-	usleep(100);
+	
 	iRet = kbhit();
 	if (iRet != 0) {
 		cGetChar = fgetc(stdin);
 		//printf("you hit %c.\n", cGetChar);
-		
-		gettimeofday(&ptInputEvent->tTime, NULL);
-		
-		ptInputEvent->iType = INPUT_TYPE_STDIN;
-		
-		if (cGetChar == 'u') {
-			ptInputEvent->iVal = INPUT_VALUE_UP;
-		} else if (cGetChar == 'd') {
-			ptInputEvent->iVal = INPUT_VALUE_DOWN;
-		} else {
-			ptInputEvent->iVal = INPUT_VALUE_UNKNOWN;
-		}
+		ptInputData->iType = INPUT_TYPE_STDIN;
+		ptInputData->cCode = cGetChar;
 		return 1;
 	}
 
@@ -85,9 +73,10 @@ static int Stdin_Get_Key(PT_Input_Event ptInputEvent)
 
 static T_Input_Opr g_tInputOpr = {
 	.c_pcName   = "stdin",
+	.iFd        = STDIN_FILENO,
 	.Input_Init = Stdin_Init,
 	.Input_Exit = Stdin_Exit,
-	.Input_Get_Key = Stdin_Get_Key,
+	.Input_Get_Data = Stdin_Get_Data,
 };
 
 int Stdin_Input_Init(void)

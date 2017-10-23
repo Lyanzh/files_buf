@@ -10,7 +10,8 @@
 
 int main(int argc, char **argv)
 {
-	char cOpr;
+	int iError;
+	T_Input_Event tInputEvent;
 
 	Disp_Opr_Init();
 	Font_Opr_Init();
@@ -27,31 +28,29 @@ int main(int argc, char **argv)
 
 	Open_Text_File("text_ansi.txt");
 
-	printf("Open_Text_File.\n");
-
 	Set_Text_Detail("HZK16", "simsun.ttc", 16);
-
-	printf("Set_Text_Detail.\n");
 	
 	Show_Next_Page();
 
-	printf("Show_Next_Page.\n");
+	printf("Show_Next_Page over.\n");
+
+	iError = All_Input_Device_Init();
+
+	printf("Enter 'n' to show next page, 'u' to show previous page, 'q' to exit:");
+	fflush(stdout);//刷新输出缓冲区，否则以上打印(末尾没有\n)不输出
 
 	while (1) {
-		printf("Enter 'n' to show next page, 'u' to show previous page, 'q' to exit: ");
-		do {
-			cOpr = getchar();
-		} while (cOpr != 'n' && cOpr != 'u' &&cOpr != 'q');
-
-		if (cOpr == 'n') {
-			printf("show next page.\n");
-			Show_Next_Page();
-		} else if (cOpr == 'u') {
-			printf("show pre page.\n");
-			Show_Pre_Page();
-		} else if (cOpr == 'q') {
-			printf("quit.\n");
-			return 0;
+		if (Input_Get_Key(&tInputEvent)) {
+			if (tInputEvent.iVal == INPUT_VALUE_DOWN) {
+				printf("show next page.\n");
+				Show_Next_Page();
+			} else if (tInputEvent.iVal == INPUT_VALUE_UP) {
+				printf("show pre page.\n");
+				Show_Pre_Page();
+			} else if (tInputEvent.iVal == INPUT_VALUE_EXIT) {
+				printf("quit.\n");
+				return 0;
+			}
 		}
 	}
 

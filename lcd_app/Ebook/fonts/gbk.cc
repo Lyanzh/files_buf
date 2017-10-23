@@ -16,8 +16,8 @@ static unsigned int g_dwFontSize;
 
 static int Gbk_Get_Bitmap(unsigned int dwCode, PT_Font_Para ptFontPara)
 {
-	unsigned int dwArea = (dwCode & 0xFF) - 0xA1;
-	unsigned int dwWhere = ((dwCode >> 8) & 0xFF) - 0xA1;
+	unsigned int dwArea = ((dwCode >> 8) & 0xFF) - 0xA1;
+	unsigned int dwWhere = (dwCode & 0xFF) - 0xA1;
 
 	/* 传入的需要绘制的起点 */
 	int iPenX = ptFontPara->iCurOriginX;
