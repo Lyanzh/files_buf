@@ -57,7 +57,7 @@ static int Freetype_Get_Bitmap(unsigned int dwCode, PT_Font_Para ptFontPara)
 
 	/* 根据传入的需要绘制的起点，计算实际绘制的起点以及绘制范围的大小 */
 	ptFontPara->iXLeft = iPenX + tSlot->bitmap_left;
-	ptFontPara->iYTop  = iPenY - tSlot->bitmap_top;//?????
+	ptFontPara->iYTop  = iPenY - tSlot->bitmap_top;
 	ptFontPara->iXmax  = ptFontPara->iXLeft + tSlot->bitmap.width;
 	ptFontPara->iYmax  = ptFontPara->iYTop + tSlot->bitmap.rows;
 
