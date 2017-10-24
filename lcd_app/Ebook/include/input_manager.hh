@@ -14,6 +14,7 @@ typedef struct Input_Data {
 	int iType;
 	int iX;
 	int iY;
+	unsigned int dwPressure;
 	char cCode;
 } T_Input_Data, *PT_Input_Data;
 

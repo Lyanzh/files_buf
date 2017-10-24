@@ -71,7 +71,7 @@ static int Stdin_Get_Data(PT_Input_Data ptInputData)
 	return 0;
 }
 
-static T_Input_Opr g_tInputOpr = {
+static T_Input_Opr g_tStdioOpr = {
 	.c_pcName   = "stdin",
 	.iFd        = STDIN_FILENO,
 	.Input_Init = Stdin_Init,
@@ -81,6 +81,6 @@ static T_Input_Opr g_tInputOpr = {
 
 int Stdin_Input_Init(void)
 {
-	return Input_Opr_Regisiter(&g_tInputOpr);
+	return Input_Opr_Regisiter(&g_tStdioOpr);
 }
 
