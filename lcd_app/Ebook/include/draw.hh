@@ -6,7 +6,6 @@
 #include "disp_manager.h"
 
 extern PT_Encoding_Opr g_ptEncodingOprForFile;
-extern PT_DispDev g_ptDispOpr;
 
 extern unsigned char *g_pucFileMemStart;
 extern unsigned char *g_pucFileMemEnd;

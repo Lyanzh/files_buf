@@ -56,6 +56,23 @@ PT_Input_Opr Get_Input_Opr(char *pcName)
 	return NULL;
 }
 
+int Input_Opr_Init(void)
+{
+	int iError;
+	iError = Stdin_Input_Init();
+	if (iError) {
+		printf("Error:Stdin init fail.\n");
+		return -1;
+	}
+
+	iError = Touchscreen_Input_Init();
+	if (iError) {
+		printf("Error:Stdin init fail.\n");
+		return -1;
+	}
+	return 0;
+}
+
 int All_Input_Device_Init(void)
 {
 	int iError = -1;
@@ -156,17 +173,6 @@ int Input_Get_Key(PT_Input_Event ptInputEvent)
 		}
 	}
 
-	return 0;
-}
-
-int Input_Opr_Init(void)
-{
-	int iError;
-	iError =  Stdin_Input_Init();
-	if (iError) {
-		printf("Error:Stdin init fail.\n");
-		return -1;
-	}
 	return 0;
 }
 

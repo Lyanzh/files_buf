@@ -78,6 +78,37 @@ int Add_Font_Opr_For_Encoding(PT_Encoding_Opr ptEncodingOpr,
 	//printf("Add_Font_Opr_For_Encoding %s.\n", ptFontOprTmp->c_pFontName);
 }
 
+int Del_Font_Opr_from_Encoding(PT_Encoding_Opr ptEncodingOprForFile,
+		PT_Font_Opr ptFontOpr)
+{
+	PT_Font_Opr ptFontOprPre;
+	PT_Font_Opr ptFontOprCur;
+	
+	if (!ptEncodingOprForFile->ptFontOprSupportedHead) {
+		return -1;
+	}
+	
+	if (strcmp(ptEncodingOprForFile->ptFontOprSupportedHead->c_pFontName, ptFontOpr->c_pFontName) == 0) {
+		/* delete head */
+		ptEncodingOprForFile->ptFontOprSupportedHead = ptEncodingOprForFile->ptFontOprSupportedHead->ptNextFont;
+		return 0;
+	} else {
+		ptFontOprPre = ptEncodingOprForFile->ptFontOprSupportedHead;
+		ptFontOprCur = ptFontOprPre->ptNextFont;
+		while (ptFontOprCur) {
+			if (strcmp(ptFontOprCur->c_pFontName, ptFontOpr->c_pFontName) == 0) {
+				/* delete */
+				ptFontOprPre->ptNextFont = ptFontOprCur->ptNextFont;
+				return 0;
+			} else {
+				ptFontOprPre = ptFontOprCur;
+				ptFontOprCur = ptFontOprCur->ptNextFont;
+			}
+		}
+	}
+	return -1;
+}
+
 int Encoding_Opr_Init(void)
 {
 	int iError;

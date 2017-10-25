@@ -25,6 +25,8 @@ extern void Show_Encoding_Opr(void);
 extern PT_Encoding_Opr Select_Encoding_Opr(unsigned char *pucFileBufHead);
 extern int Add_Font_Opr_For_Encoding(PT_Encoding_Opr ptEncodingOpr,
 		PT_Font_Opr ptFontOprSupported);
+extern int Del_Font_Opr_from_Encoding(PT_Encoding_Opr ptEncodingOprForFile,
+		PT_Font_Opr ptFontOpr);
 extern int Encoding_Opr_Init(void);
 
 #endif

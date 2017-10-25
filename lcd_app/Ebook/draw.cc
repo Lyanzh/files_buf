@@ -11,7 +11,6 @@
 #include "memwatch.h"
 
 PT_Encoding_Opr g_ptEncodingOprForFile;
-PT_DispDev g_ptDispOpr;
 
 typedef struct PageDesc {
 	int iPage;
@@ -31,19 +30,6 @@ static unsigned char *g_pucTextFirstPosAtFileMem;
 static unsigned char *g_pucCurPageTextEndPosAtFileMem;
 
 static unsigned int g_dwFontSize;
-
-int Select_And_Init_Display(char *pcName)
-{
-	int iError;
-	g_ptDispOpr = Get_Disp_Opr(pcName);
-	if (!g_ptDispOpr) {
-		printf("Error:can not get display operation for %s.", pcName);
-		return -1;
-	}
-
-	iError = g_ptDispOpr->Dev_Init();
-	return 0;
-}
 
 int Open_Text_File(char *pcPathName)
 {
@@ -89,37 +75,6 @@ int Open_Text_File(char *pcPathName)
 	return 0;
 }
 
-static int Del_Font_Opr_from_Encoding(PT_Encoding_Opr ptEncodingOprForFile,
-		PT_Font_Opr ptFontOpr)
-{
-	PT_Font_Opr ptFontOprPre;
-	PT_Font_Opr ptFontOprCur;
-	
-	if (!ptEncodingOprForFile->ptFontOprSupportedHead) {
-		return -1;
-	}
-	
-	if (strcmp(ptEncodingOprForFile->ptFontOprSupportedHead->c_pFontName, ptFontOpr->c_pFontName) == 0) {
-		/* delete head */
-		ptEncodingOprForFile->ptFontOprSupportedHead = ptEncodingOprForFile->ptFontOprSupportedHead->ptNextFont;
-		return 0;
-	} else {
-		ptFontOprPre = ptEncodingOprForFile->ptFontOprSupportedHead;
-		ptFontOprCur = ptFontOprPre->ptNextFont;
-		while (ptFontOprCur) {
-			if (strcmp(ptFontOprCur->c_pFontName, ptFontOpr->c_pFontName) == 0) {
-				/* delete */
-				ptFontOprPre->ptNextFont = ptFontOprCur->ptNextFont;
-				return 0;
-			} else {
-				ptFontOprPre = ptFontOprCur;
-				ptFontOprCur = ptFontOprCur->ptNextFont;
-			}
-		}
-	}
-	return -1;
-}
-
 int Set_Text_Detail(char *pcHZKFile, char *pcFreetypeFile, unsigned int dwFontSize)
 {
 	int iError;
@@ -153,7 +108,7 @@ int Set_Text_Detail(char *pcHZKFile, char *pcFreetypeFile, unsigned int dwFontSi
 
 static int Inc_LcdY(int iY)
 {
-	if (iY + g_dwFontSize < g_ptDispOpr->tDevAttr.dwYres) {
+	if (iY + g_dwFontSize < g_ptDispOprSelected->tDevAttr.dwYres) {
 		return (iY + g_dwFontSize);
 	} else {
 		/* page full */
@@ -168,12 +123,12 @@ static int Relocate_Font_Pos(PT_Font_Para ptFontPara)
 	int iDeltaX;
 	int iDeltaY;
 
-	if (ptFontPara->iYmax > g_ptDispOpr->tDevAttr.dwYres) {
+	if (ptFontPara->iYmax > g_ptDispOprSelected->tDevAttr.dwYres) {
 		/* page full */
 		return -1;
 	}
 
-	if (ptFontPara->iXmax > g_ptDispOpr->tDevAttr.dwXres) {
+	if (ptFontPara->iXmax > g_ptDispOprSelected->tDevAttr.dwXres) {
 		/* try to relocate to next line */
 		iLcdY = Inc_LcdY(ptFontPara->iCurOriginY);
 		if (0 == iLcdY) {
@@ -221,9 +176,9 @@ static int Show_One_Font(PT_Font_Para ptFontPara)
 				}
 
 				if (ucByte & (1<<bit)) {
-					g_ptDispOpr->Put_Pixel(x, y, 0xFFFFFF);
+					g_ptDispOprSelected->Put_Pixel(x, y, 0xFFFFFF);
 				} else {
-					g_ptDispOpr->Put_Pixel(x, y, 0);
+					g_ptDispOprSelected->Put_Pixel(x, y, 0);
 				}
 
 				bit--;
@@ -238,7 +193,7 @@ static int Show_One_Font(PT_Font_Para ptFontPara)
 		for (y = ptFontPara->iYTop; y < ptFontPara->iYmax; y++) {
 			for (x = ptFontPara->iXLeft; x < ptFontPara->iXmax; x++) {
 				if (ptFontPara->pucBuffer[iIndex++])
-					g_ptDispOpr->Put_Pixel(x, y, 0xFFFFFF);
+					g_ptDispOprSelected->Put_Pixel(x, y, 0xFFFFFF);
 			}
 		}
 	} else {
@@ -312,7 +267,7 @@ static int Show_One_Page(unsigned char *pucPageFirstPosAtFileMem)
 
 				if (!bHasClrScreen) {
 					/* clear screen first */
-					g_ptDispOpr->Clean_Screen();
+					g_ptDispOprSelected->Clean_Screen();
 					bHasClrScreen = 1;
 				}
 

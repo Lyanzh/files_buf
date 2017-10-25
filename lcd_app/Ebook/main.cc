@@ -1,3 +1,4 @@
+#include "config.h"
 #include "draw.h"
 #include "encoding_manager.h"
 #include "fonts_manager.h"
@@ -10,13 +11,11 @@
 
 int main(int argc, char **argv)
 {
-	int iError;
 	T_Input_Event tInputEvent;
 
 	Disp_Opr_Init();
 	Font_Opr_Init();
 	Encoding_Opr_Init();
-
 	Input_Opr_Init();
 
 	Show_Disp_Opr();
@@ -24,7 +23,7 @@ int main(int argc, char **argv)
 	Show_Encoding_Opr();
 	Show_Input_Opr();
 
-	Select_And_Init_Display("s3c2440-lcd");
+	Select_And_Init_Display(DISPLAY_LCD);
 
 	Open_Text_File("text_ansi.txt");
 
@@ -34,7 +33,7 @@ int main(int argc, char **argv)
 
 	printf("Show_Next_Page over.\n");
 
-	iError = All_Input_Device_Init();
+	All_Input_Device_Init();
 
 	printf("Enter 'n' to show next page, 'u' to show previous page, 'q' to exit:");
 	fflush(stdout);//刷新输出缓冲区，否则以上打印(末尾没有\n)不输出

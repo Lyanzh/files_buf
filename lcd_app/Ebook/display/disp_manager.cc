@@ -5,6 +5,7 @@
 #include "memwatch.h"
 
 static PT_DispDev g_ptDispDevHead;
+PT_DispDev g_ptDispOprSelected;
 
 int Disp_Dev_Regisiter(PT_DispDev ptDispDev)
 {
@@ -51,8 +52,16 @@ int Disp_Opr_Init(void)
 	return Fb_Dev_Init();
 }
 
-int Disp_Draw_Bitmap(void)
+int Select_And_Init_Display(char *pcName)
 {
+	int iError;
+	g_ptDispOprSelected = Get_Disp_Opr(pcName);
+	if (!g_ptDispOprSelected) {
+		printf("Error:can not get display operation for %s.", pcName);
+		return -1;
+	}
+
+	iError = g_ptDispOprSelected->Dev_Init();
 	return 0;
 }
 

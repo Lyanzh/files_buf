@@ -21,9 +21,12 @@ typedef struct DispDevice
 
 int Fb_Dev_Init(void);
 
+extern PT_DispDev g_ptDispOprSelected;
+
 extern int Disp_Dev_Regisiter(PT_DispDev ptDispDev);
 extern void Show_Disp_Opr(void);
 extern PT_DispDev Get_Disp_Opr(char *pcName);
 extern int Disp_Opr_Init(void);
+extern int Select_And_Init_Display(char *pcName);
 
 #endif
