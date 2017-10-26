@@ -40,9 +40,8 @@ extern int Touchscreen_Input_Init(void);
 extern int Input_Opr_Regisiter(PT_Input_Opr ptFontOpr);
 extern void Show_Input_Opr(void);
 extern PT_Input_Opr Get_Input_Opr(char *pcName);
+extern int Input_Opr_Init(void);
 extern int All_Input_Device_Init(void);
 extern int Input_Get_Key(PT_Input_Event ptInputEvent);
-extern int Input_Opr_Init(void);
-
 #endif
 

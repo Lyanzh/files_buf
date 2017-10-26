@@ -39,7 +39,6 @@ int main(int argc, char **argv)
 	fflush(stdout);//刷新输出缓冲区，否则以上打印(末尾没有\n)不输出
 
 	while (1) {
-	#if 1
 		if (Input_Get_Key(&tInputEvent)) {
 			if (tInputEvent.iVal == INPUT_VALUE_DOWN) {
 				printf("show next page.\n");
@@ -52,7 +51,6 @@ int main(int argc, char **argv)
 				return 0;
 			}
 		}
-	#endif
 	}
 
 	return 0;
