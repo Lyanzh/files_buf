@@ -1,10 +1,12 @@
+#include "input_manager.h"
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <fcntl.h>
 #include <stdio.h>
+#include <unistd.h>
 
 static T_Input_Opr g_tButtonOpr;
-int g_iFd;
+static int g_iFd;
 
 static int Button_Init(void)
 {
@@ -15,7 +17,7 @@ static int Button_Init(void)
         return -1;
     }
 
-    g_tButtonOpr.iFd = g_iFd;
+    //g_tButtonOpr.iFd = g_iFd;
     
 	return 0;
 }
@@ -29,7 +31,7 @@ static int Button_Get_Data(PT_Input_Data ptInputData)
 {
 	char cGetKey;
 	
-	read(fd, &cGetKey, 1);
+	read(g_iFd, &cGetKey, 1);
 	if (cGetKey) {
 		ptInputData->iType = INPUT_TYPE_BUTTON;
 		ptInputData->cCode = cGetKey;
@@ -42,7 +44,7 @@ static int Button_Get_Data(PT_Input_Data ptInputData)
 static T_Input_Opr g_tButtonOpr = {
 	.c_pcName   = "button",
 	.Input_Init = Button_Init,
-	.Input_Exit = Stdin_Exit,
+	.Input_Exit = Button_Exit,
 	.Input_Get_Data = Button_Get_Data,
 };
 

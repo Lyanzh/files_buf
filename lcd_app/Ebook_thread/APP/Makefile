@@ -5,7 +5,7 @@ CFLAGS := -Wall -g -c
 CFLAGS += -I $(PWD)/include
 CFLAGS += -DMEMWATCH -DMEMWATCH_STDIO
 
-LDFLAGS := -lm -lfreetype -lts
+LDFLAGS := -lm -lfreetype -lts -lpthread
 
 CC := $(CROSSCOMPILE)gcc
 LD := $(CROSSCOMPILE)ld
@@ -26,6 +26,7 @@ OBJS := main.o \
 		input/input_manager.o \
 		input/stdin.o \
 		input/touchscreen.o \
+		input/button.o \
 		memwatch.o
 
 all: $(OBJS)

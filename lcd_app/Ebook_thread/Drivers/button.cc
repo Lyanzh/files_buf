@@ -4,6 +4,8 @@
 #include <linux/init.h>
 #include <linux/delay.h>
 #include <linux/irq.h>
+#include <linux/cdev.h>
+#include <linux/interrupt.h>
 #include <asm/uaccess.h>
 #include <asm/irq.h>
 #include <asm/io.h>
@@ -13,7 +15,7 @@
 
 #define DEVICE_NAME     "buttons"  /* 加载模式后，执行”cat /proc/devices”命令看到的设备名称 */
 
-
+static struct cdev buttons_cdev;
 static struct class *buttons_class;
 static struct class_device	*buttons_class_devs;
 
@@ -21,7 +23,6 @@ int major;
 
 static char buttons_status = 0x0;
 
-//static int minor;
 static unsigned long gpio_va;
 
 #define GPIO_OFT(x) ((x) - 0x56000000)
@@ -67,9 +68,6 @@ static irqreturn_t button_irq_handler(int this_irq, void *dev_id)
 	return IRQ_HANDLED;
 }
 
-/* 应用程序对设备文件/dev/buttons执行open(...)时，
- * 就会调用s3c24xx_buttons_open函数
- */
 static int s3c24xx_buttons_open(struct inode *inode, struct file *file)
 {
 #if 0
@@ -87,10 +85,14 @@ static int s3c24xx_buttons_open(struct inode *inode, struct file *file)
     GPGCON &= ~(0x3<<(11*2));
 #endif
 
-	request_irq(IRQ_EINT0,  button_irq_handler, IRQT_BOTHEDGE, "S2", &pins_desc[0]);
-	request_irq(IRQ_EINT2,  button_irq_handler, IRQT_BOTHEDGE, "S3", &pins_desc[1]);
-	request_irq(IRQ_EINT11, button_irq_handler, IRQT_BOTHEDGE, "S4", &pins_desc[2]);
-	request_irq(IRQ_EINT19, button_irq_handler, IRQT_BOTHEDGE, "S5", &pins_desc[3]);
+	if (request_irq(IRQ_EINT0,  button_irq_handler, IRQT_BOTHEDGE, "S2", &pins_desc[0]))
+		return -EAGAIN;
+	if (request_irq(IRQ_EINT2,  button_irq_handler, IRQT_BOTHEDGE, "S3", &pins_desc[1]))
+		return -EAGAIN;
+	if (request_irq(IRQ_EINT11, button_irq_handler, IRQT_BOTHEDGE, "S4", &pins_desc[2]))
+		return -EAGAIN;
+	if (request_irq(IRQ_EINT19, button_irq_handler, IRQT_BOTHEDGE, "S5", &pins_desc[3]))
+		return -EAGAIN;
 	
     return 0;
 }
@@ -98,13 +100,15 @@ static int s3c24xx_buttons_open(struct inode *inode, struct file *file)
 static int s3c24xx_buttons_read(struct file *filp, char __user *buff, 
                                          size_t count, loff_t *offp)
 {
+	int ret = 1;
     wait_event_interruptible(button_waitq, button_pressed);
 
-	copy_to_user(buff, (const void *)&buttons_status, 1);
+	if (copy_to_user(buff, (const void *)&buttons_status, 1))
+		ret = -EFAULT;
 
 	button_pressed = 0;
    
-    return 1;
+    return ret;
 }
 
 static ssize_t s3c24xx_buttons_write(struct file *file, const char __user *buf, size_t count, loff_t * ppos)
@@ -122,79 +126,90 @@ static int s3c24xx_buttons_release(struct inode * inode, struct file * file)
     return 0;
 }
 
-/* 这个结构是字符设备驱动程序的核心
- * 当应用程序操作设备文件时所调用的open、read、write等函数，
- * 最终会调用这个结构中指定的对应函数
- */
 static struct file_operations s3c24xx_buttons_fops = {
-    .owner   = THIS_MODULE,    /* 这是一个宏，推向编译模块时自动创建的__this_module变量 */
+    .owner   = THIS_MODULE,
     .open    = s3c24xx_buttons_open,
 	.read    = s3c24xx_buttons_read,
 	.write   = s3c24xx_buttons_write,
 	.release = s3c24xx_buttons_release,
 };
 
-/*
- * 执行insmod命令时就会调用这个函数 
- */
 static int __init s3c24xx_buttons_init(void)
 {
-	int minor = 0;
+	int ret;
+	dev_t devid;
 
-    gpio_va = ioremap(0x56000000, 0x100000);
+    gpio_va = (unsigned long)ioremap(0x56000000, 0x100000);
 	if (!gpio_va) {
 		return -EIO;
 	}
 
-    /* 注册字符设备
-     * 参数为主设备号、设备名字、file_operations结构；
-     * 这样，主设备号就和具体的file_operations结构联系起来了，
-     * 操作主设备为LED_MAJOR的设备文件时，就会调用s3c24xx_leds_fops中的相关成员函数
-     * LED_MAJOR可以设为0，表示由内核自动分配主设备号
-     */
+#if 0
     major = register_chrdev(0, DEVICE_NAME, &s3c24xx_buttons_fops);
     if (major < 0) {
       printk(DEVICE_NAME " can't register major number\n");
       return major;
     }
+#endif
+
+	if (major) {
+		devid = MKDEV(major, 0);
+		ret = register_chrdev_region(devid, 1, "buttons");
+	} else {
+		ret = alloc_chrdev_region(&devid, 0, 1, "buttons");
+		major = MAJOR(devid);
+	}
+	if (ret < 0) {
+		printk(KERN_ERR "buttons: couldn't register device number\n");
+		goto out;
+	}
+
+	cdev_init(&buttons_cdev, &s3c24xx_buttons_fops);
+	cdev_add(&buttons_cdev, devid, 1);
 
 	buttons_class = class_create(THIS_MODULE, "buttons");
-	if (IS_ERR(buttons_class))
-		return PTR_ERR(buttons_class);
-    
+	if (IS_ERR(buttons_class)) {
+		ret = PTR_ERR(buttons_class);
+		printk(KERN_ERR "buttons: couldn't create class\n");
+		goto out_chrdev;
+	}
 
-
-	buttons_class_devs = class_device_create(buttons_class, NULL, MKDEV(major, 0), NULL, "buttons");
-	
-	if (unlikely(IS_ERR(buttons_class_devs)))
-		return PTR_ERR(buttons_class_devs);
+	buttons_class_devs = class_device_create(buttons_class, NULL, MKDEV(major, 0), NULL, DEVICE_NAME);
+	if (unlikely(IS_ERR(buttons_class_devs))) {
+		ret = PTR_ERR(buttons_class_devs);
+		printk(KERN_ERR "buttons: couldn't create class devices\n");
+		goto out_class;
+	}
         
     printk(DEVICE_NAME " initialized\n");
     return 0;
+
+out_class:
+	class_destroy(buttons_class);
+
+out_chrdev:
+	unregister_chrdev_region(MKDEV(major, 0), 1);
+
+out:
+	return ret;
 }
 
-/*
- * 执行rmmod命令时就会调用这个函数 
- */
 static void __exit s3c24xx_buttons_exit(void)
 {
-    /* 卸载驱动程序 */
-    unregister_chrdev(major, DEVICE_NAME);
-
-	class_device_unregister(buttons_class_devs);
+	class_device_destroy(buttons_class, MKDEV(major, 0));
 	class_destroy(buttons_class);
-    iounmap(gpio_va);
+
+	cdev_del(&buttons_cdev);
+	unregister_chrdev_region(MKDEV(major, 0), 1);
+
+    iounmap((void *)gpio_va);
 }
 
-/* 这两行指定驱动程序的初始化函数和卸载函数 */
 module_init(s3c24xx_buttons_init);
 module_exit(s3c24xx_buttons_exit);
 
-/* 描述驱动程序的一些信息，不是必须的 */
-MODULE_AUTHOR("http://www.100ask.net");
+MODULE_AUTHOR("Lin Yanzhou");
 MODULE_VERSION("0.1.0");
-MODULE_DESCRIPTION("S3C2410/S3C2440 LED Driver");
+MODULE_DESCRIPTION("S3C2410/S3C2440 BUTTON Driver");
 MODULE_LICENSE("GPL");
-
-
 

@@ -72,7 +72,7 @@ static int Stdin_Get_Data(PT_Input_Data ptInputData)
 
 static T_Input_Opr g_tStdioOpr = {
 	.c_pcName   = "stdin",
-	.iFd        = STDIN_FILENO,
+	//.iFd        = STDIN_FILENO,
 	.Input_Init = Stdin_Init,
 	.Input_Exit = Stdin_Exit,
 	.Input_Get_Data = Stdin_Get_Data,

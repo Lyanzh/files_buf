@@ -5,7 +5,6 @@
 #include <sys/time.h>
 #include <sys/types.h>
 #include <unistd.h>
-#include <pthread.h>
 
 #include "memwatch.h"
 
@@ -13,9 +12,7 @@ static PT_Input_Opr g_ptInputOprHead;
 T_Input_Event g_tInputEvent;
 
 pthread_mutex_t g_tMutex; /* 互斥体lock 用于对缓冲区的互斥操作 */
-pthread_cond_t g_tInputEvent; /* 缓冲区非空的条件变量 */
-
-void *Input_Get_Key(void *arg);
+pthread_cond_t g_tInputCond; /* 缓冲区非空的条件变量 */
 
 int Input_Opr_Regisiter(PT_Input_Opr ptInputOpr)
 {
@@ -77,36 +74,6 @@ int Input_Opr_Init(void)
 	return 0;
 }
 
-int All_Input_Device_Init(void)
-{
-	int iError = -1;
-	int iRet;
-	PT_Input_Opr ptInputOprTmp;
-
-	pthread_t thread;
-
-    pthread_mutex_init(&g_Mutex, NULL);
-    pthread_cond_init(&notempty, NULL);
-
-	if (!g_ptInputOprHead) {
-		iError = -1;
-	} else {
-		ptInputOprTmp = g_ptInputOprHead;
-		while (ptInputOprTmp) {
-			iRet = ptInputOprTmp->Input_Init();
-			if (0 == iRet) {
-				pthread_create(&thread, NULL, thread_function, (void *)ptInputOprTmp);
-				iError = 0;
-			}
-			ptInputOprTmp = ptInputOprTmp->ptNext;
-		}
-	}
-
-	printf("All_Input_Device_Init over.\n");
-
-	return iError;
-}
-
 static int Input_Get_InputEvent(PT_Input_Event ptInputEvent, PT_Input_Data ptInputData)
 {
 	if (!ptInputEvent || !ptInputData)
@@ -131,30 +98,7 @@ static int Input_Get_InputEvent(PT_Input_Event ptInputEvent, PT_Input_Data ptInp
 	return 0;
 }
 
-#if 0
-int Input_Get_Key(PT_Input_Event ptInputEvent)
-{
-   
-	PT_Input_Opr ptInputOprTmp;
-	T_Input_Data tInputData;
-	
-	ptInputOprTmp = g_ptInputOprHead;
-
-
-	if (ptInputOprTmp->Input_Get_Data(&tInputData)) {
-		if (0 == Input_Get_InputEvent(ptInputEvent, &tInputData))
-			return 1;
-		else
-			return -1;
-	} else {
-		return 0;
-	}
-
-	return 0;
-}
-#endif
-
-void *Input_Get_Key(void *arg)
+static void *Input_Thread_Function(void *arg)
 {
 	PT_Input_Opr ptInputOprTmp;
 	T_Input_Data tInputData;
@@ -167,9 +111,48 @@ void *Input_Get_Key(void *arg)
 			if (Input_Get_InputEvent(&g_tInputEvent, &tInputData)) {
 				printf("Error:get input event error.\n");
 			}
-			pthread_cond_signal(&g_tInputEvent);
+			pthread_cond_signal(&g_tInputCond);
 			pthread_mutex_unlock(&g_tMutex);
 		}
 	}
+}
+
+int All_Input_Device_Init(void)
+{
+	int iError = -1;
+	int iRet;
+	PT_Input_Opr ptInputOprTmp;
+
+    pthread_mutex_init(&g_tMutex, NULL);
+    pthread_cond_init(&g_tInputCond, NULL);
+
+	if (!g_ptInputOprHead) {
+		iError = -1;
+	} else {
+		ptInputOprTmp = g_ptInputOprHead;
+		while (ptInputOprTmp) {
+			iRet = ptInputOprTmp->Input_Init();
+			if (0 == iRet) {
+				pthread_create(&ptInputOprTmp->tTreadID, NULL, Input_Thread_Function, (void *)ptInputOprTmp);
+				iError = 0;
+			}
+			ptInputOprTmp = ptInputOprTmp->ptNext;
+		}
+	}
+
+	printf("All_Input_Device_Init over.\n");
+
+	return iError;
+}
+
+int Input_Get_Key(PT_Input_Event ptInputEvent)
+{
+	pthread_mutex_lock(&g_tMutex);
+	pthread_cond_wait(&g_tInputCond, &g_tMutex);
+	
+	*ptInputEvent = g_tInputEvent;
+	pthread_mutex_unlock(&g_tMutex);
+
+	return 0;
 }
 

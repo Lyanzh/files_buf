@@ -1,6 +1,7 @@
 #ifndef __INPUT_MANAGER__
 #define __INPUT_MANAGER__
 #include <sys/time.h>
+#include <pthread.h>
 
 #define INPUT_TYPE_STDIN		0
 #define INPUT_TYPE_TOUCHSCREEN	1
@@ -28,7 +29,7 @@ typedef struct Input_Event {
 typedef struct Input_Operation
 {
 	const char * c_pcName;
-	int iFd;
+	pthread_t tTreadID;
 	int (*Input_Init)(void);
 	void (*Input_Exit)(void);
 	int (*Input_Get_Data)(PT_Input_Data ptInputData);
@@ -41,9 +42,8 @@ extern int Touchscreen_Input_Init(void);
 extern int Input_Opr_Regisiter(PT_Input_Opr ptFontOpr);
 extern void Show_Input_Opr(void);
 extern PT_Input_Opr Get_Input_Opr(char *pcName);
+extern int Input_Opr_Init(void);
 extern int All_Input_Device_Init(void);
 extern int Input_Get_Key(PT_Input_Event ptInputEvent);
-extern int Input_Opr_Init(void);
-
 #endif
 

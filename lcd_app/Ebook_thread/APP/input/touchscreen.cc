@@ -30,12 +30,14 @@ static int Touchscreen_Init(void)
 		return -1;
 	}
 
+#if 0
 	g_tTouchscreenOpr.iFd = ts_fd(g_ptTsDev);
 	if (g_tTouchscreenOpr.iFd < 0) {
 		perror("ts_fd");
 		ts_close(g_ptTsDev);
 		return -1;
 	}
+#endif
 	return 0;
 }
 
