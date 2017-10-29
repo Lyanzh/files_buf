@@ -68,7 +68,7 @@ int Input_Opr_Init(void)
 
 	iError = Touchscreen_Input_Init();
 	if (iError) {
-		printf("Error:Stdin init fail.\n");
+		printf("Error:Touchscreen init fail.\n");
 		return -1;
 	}
 	return 0;
@@ -76,6 +76,8 @@ int Input_Opr_Init(void)
 
 static int Input_Get_InputEvent(PT_Input_Event ptInputEvent, PT_Input_Data ptInputData)
 {
+	static unsigned int dwPressure = 0;
+
 	if (!ptInputEvent || !ptInputData)
 		return -1;
 
@@ -92,7 +94,13 @@ static int Input_Get_InputEvent(PT_Input_Event ptInputEvent, PT_Input_Data ptInp
 			ptInputEvent->iVal = INPUT_VALUE_UNKNOWN;
 		}
 	} else if (ptInputEvent->iType == INPUT_TYPE_TOUCHSCREEN) {
-		//...
+		printf("pressure = %d\n", ptInputData->dwPressure);
+		if (ptInputData->dwPressure == 1 && ptInputData->dwPressure != dwPressure) {
+			ptInputEvent->iVal = INPUT_VALUE_DOWN;
+			dwPressure = ptInputData->dwPressure;
+		} else {
+			ptInputEvent->iVal = INPUT_VALUE_UNKNOWN;
+		}
 	}
 
 	return 0;
@@ -133,6 +141,7 @@ int All_Input_Device_Init(void)
 		while (ptInputOprTmp) {
 			iRet = ptInputOprTmp->Input_Init();
 			if (0 == iRet) {
+				printf("pthread_create: %s\n", ptInputOprTmp->c_pcName);
 				pthread_create(&ptInputOprTmp->tTreadID, NULL, Input_Thread_Function, (void *)ptInputOprTmp);
 				iError = 0;
 			}
@@ -151,6 +160,7 @@ int Input_Get_Key(PT_Input_Event ptInputEvent)
 	pthread_cond_wait(&g_tInputCond, &g_tMutex);
 	
 	*ptInputEvent = g_tInputEvent;
+
 	pthread_mutex_unlock(&g_tMutex);
 
 	return 0;

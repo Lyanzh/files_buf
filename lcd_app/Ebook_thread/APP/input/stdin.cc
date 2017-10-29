@@ -9,6 +9,7 @@
 #define NB_ENABLE  1
 #define NB_DISABLE 0
 
+#if 0
 static int kbhit()
 {
 	struct timeval tv;
@@ -20,6 +21,7 @@ static int kbhit()
 	select(STDIN_FILENO+1, &fds, NULL, NULL, &tv);
 	return FD_ISSET(STDIN_FILENO, &fds);
 }
+#endif
 
 static void nonblock(int state)
 {
@@ -56,18 +58,18 @@ static void Stdin_Exit(void)
 static int Stdin_Get_Data(PT_Input_Data ptInputData)
 {
 	char cGetChar;
-	int iRet = 0;
+	//int iRet = 0;
 	
-	iRet = kbhit();
-	if (iRet != 0) {
-		cGetChar = fgetc(stdin);
+	//iRet = kbhit();
+	//if (iRet != 0) {
+		cGetChar = fgetc(stdin);/* fgetc»á×èÈû */
 		//printf("you hit %c.\n", cGetChar);
 		ptInputData->iType = INPUT_TYPE_STDIN;
 		ptInputData->cCode = cGetChar;
 		return 1;
-	}
+	//}
 
-	return 0;
+	//return 0;
 }
 
 static T_Input_Opr g_tStdioOpr = {

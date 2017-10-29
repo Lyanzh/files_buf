@@ -13,10 +13,10 @@ static int Touchscreen_Init(void)
 {
 	char *pcTsDevice = NULL;
 	
-	if ((pcTsDevice = getenv("TSLIB_TSDEVICE")) == NULL) {
+	if ((pcTsDevice = getenv("TSLIB_TSDEVICE")) != NULL) {
 		g_ptTsDev = ts_open(pcTsDevice, 0);
 	} else {
-		g_ptTsDev = ts_open("/dev/input/event0", 0);
+		g_ptTsDev = ts_open("/dev/event0", 0);
 	}
 
 	if (!g_ptTsDev) {

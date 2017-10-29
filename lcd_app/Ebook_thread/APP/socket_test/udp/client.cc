@@ -13,6 +13,7 @@ int main(int argc, char **argv)
 {
 	int iClientSocketFd;
 	struct sockaddr_in tServerAddr;
+	socklen_t peer_addr_size;
 
 	int iRecvLen;
 	char cDataSend[DATA_MAX_LEN];
@@ -23,7 +24,7 @@ int main(int argc, char **argv)
 		return -1;
 	}
 	
-	iClientSocketFd = socket(AF_INET, SOCK_STREAM, 0);
+	iClientSocketFd = socket(AF_INET, SOCK_DGRAM, 0);
 	if (iClientSocketFd == -1) {
 		perror("Create socket error");
 		return -1;
@@ -34,31 +35,28 @@ int main(int argc, char **argv)
 	tServerAddr.sin_port = htons(DEFAULT_PORT);
 	tServerAddr.sin_addr.s_addr = inet_addr(argv[1]);
 
-	if (connect(iClientSocketFd, (struct sockaddr *)&tServerAddr,
-		sizeof(struct sockaddr_in)) == -1) {
-		perror("socket connect error");
-		close(iClientSocketFd);
-		return -1;
-	}
-
 	while (1) {
 		printf("send msg to server %s:", argv[1]);
 		fgets(cDataSend, DATA_MAX_LEN, stdin);
-		if (send(iClientSocketFd, cDataSend, strlen(cDataSend), 0) < 0) {
-			printf("socket send error\n");
-			continue;
+
+		if (sendto(iClientSocketFd, cDataSend, strlen(cDataSend), 0,
+        		(struct sockaddr *)&tServerAddr, sizeof(struct sockaddr_in)) < 0) {
+			perror("socket send error");
+			//continue;
 		}
 
-	#if 1
-		iRecvLen = recv(iClientSocketFd, cDataRecv, DATA_MAX_LEN, 0);
+		peer_addr_size = sizeof(struct sockaddr_in);
+		iRecvLen = recvfrom(iClientSocketFd, cDataRecv, DATA_MAX_LEN, 0,
+				(struct sockaddr *)&tServerAddr, &peer_addr_size);
 		if (iRecvLen < 0) {
-			printf("socket recv error\n");
-			continue;
+			perror("socket recv error");
+			//continue;
 		}
+
 		cDataRecv[iRecvLen] = '\0';
 		printf("recv data:%s\n", cDataRecv);
-	#endif
 	}
 	close(iClientSocketFd);
 	return 0;
 }
+
