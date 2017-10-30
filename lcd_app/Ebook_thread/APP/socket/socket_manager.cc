@@ -8,56 +8,55 @@
 
 #include "memwatch.h"
 
-static PT_Input_Opr g_ptInputOprHead;
-T_Input_Event g_tInputEvent;
+static PT_Socket_Opr g_ptSocketOprHead;
 
-static pthread_mutex_t g_tMutex; /* 互斥体lock 用于对缓冲区的互斥操作 */
-static pthread_cond_t g_tInputCond; /* 缓冲区非空的条件变量 */
+pthread_mutex_t g_tMutex; /* 互斥体lock 用于对缓冲区的互斥操作 */
+pthread_cond_t g_tInputCond; /* 缓冲区非空的条件变量 */
 
-int Input_Opr_Regisiter(PT_Input_Opr ptInputOpr)
+int Socket_Opr_Regisiter(PT_Socket_Opr ptSocketOpr)
 {
-	PT_Input_Opr ptInputOprTmp;
+	PT_Socket_Opr ptSocketOprTmp;
 	
-	if (!g_ptInputOprHead) {
-		g_ptInputOprHead = ptInputOpr;
+	if (!g_ptSocketOprHead) {
+		g_ptSocketOprHead = ptSocketOpr;
 	} else {
-		ptInputOprTmp = g_ptInputOprHead;
-		while (ptInputOprTmp->ptNext) {
-			ptInputOprTmp = ptInputOprTmp->ptNext;
+		ptSocketOprTmp = g_ptSocketOprHead;
+		while (ptSocketOprTmp->ptNext) {
+			ptSocketOprTmp = ptSocketOprTmp->ptNext;
 		}
-		ptInputOprTmp->ptNext = ptInputOpr;
+		ptSocketOprTmp->ptNext = ptSocketOpr;
 	}
-	ptInputOpr->ptNext = NULL;
+	ptSocketOpr->ptNext = NULL;
 
 	return 0;
 }
 
-void Show_Input_Opr(void)
+void Show_Socket_Opr(void)
 {
 	int i = 0;
-	PT_Input_Opr ptInputOprTmp = g_ptInputOprHead;
-	while (ptInputOprTmp) {
-		printf("%d: %s\n", i++, ptInputOprTmp->c_pcName);
-		ptInputOprTmp = ptInputOprTmp->ptNext;
+	PT_Socket_Opr ptSocketOprTmp = g_ptSocketOprHead;
+	while (ptSocketOprTmp) {
+		printf("%d: %s\n", i++, ptSocketOprTmp->c_pcName);
+		ptSocketOprTmp = ptSocketOprTmp->ptNext;
 	}
 }
 
-PT_Input_Opr Get_Input_Opr(char *pcName)
+PT_Socket_Opr Get_Socket_Opr(char *pcName)
 {
-	PT_Input_Opr ptInputOprTmp = g_ptInputOprHead;
-	while (ptInputOprTmp) {
-		if (strcmp(ptInputOprTmp->c_pcName, pcName) == 0) {
-			printf("get input %s.\n", pcName);
-			return ptInputOprTmp;
+	PT_Socket_Opr ptSocketOprTmp = g_ptSocketOprHead;
+	while (ptSocketOprTmp) {
+		if (strcmp(ptSocketOprTmp->c_pcName, pcName) == 0) {
+			printf("get Socket %s.\n", pcName);
+			return ptSocketOprTmp;
 		} else {
-			ptInputOprTmp = ptInputOprTmp->ptNext;
+			ptSocketOprTmp = ptSocketOprTmp->ptNext;
 		}
 	}
-	printf("Error:can't get input %s.\n", pcName);
+	printf("Error:can't get Socket %s.\n", pcName);
 	return NULL;
 }
 
-int Input_Opr_Init(void)
+int Socket_Opr_Init(void)
 {
 	int iError;
 	iError = Stdin_Input_Init();
@@ -66,17 +65,6 @@ int Input_Opr_Init(void)
 		return -1;
 	}
 
-	iError = Touchscreen_Input_Init();
-	if (iError) {
-		printf("Error:Touchscreen init fail.\n");
-		return -1;
-	}
-
-	iError = Button_Input_Init();
-	if (iError) {
-		printf("Error:Button init fail.\n");
-		return -1;
-	}
 	return 0;
 }
 
@@ -170,15 +158,4 @@ int All_Input_Device_Init(void)
 	return iError;
 }
 
-int Input_Get_Key(PT_Input_Event ptInputEvent)
-{
-	pthread_mutex_lock(&g_tMutex);
-	pthread_cond_wait(&g_tInputCond, &g_tMutex);
-	
-	*ptInputEvent = g_tInputEvent;
-
-	pthread_mutex_unlock(&g_tMutex);
-
-	return 0;
-}
 
