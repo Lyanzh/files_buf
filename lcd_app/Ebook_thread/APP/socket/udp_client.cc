@@ -8,7 +8,6 @@
 #include <unistd.h>
 
 #define DEFAULT_PORT	8000
-#define DATA_MAX_LEN	4096
 
 static int g_iClientSocketFd;
 static struct sockaddr_in g_tServerAddr;
@@ -56,7 +55,7 @@ static int UDP_Recv_Data(char *pcDataRecv)
 	int iRecvLen;
 	socklen_t iServerAddrSize;
 	
-	peer_addr_size = sizeof(struct sockaddr_in);
+	iServerAddrSize = sizeof(struct sockaddr_in);
 	iRecvLen = recvfrom(g_iClientSocketFd, pcDataRecv, DATA_MAX_LEN, 0,
 			(struct sockaddr *)&g_tServerAddr, &iServerAddrSize);
 	if (iRecvLen < 0) {

@@ -14,10 +14,14 @@ typedef struct Socket_Operation
 	struct Socket_Operation *ptNext;
 } T_Socket_Opr, *PT_Socket_Opr;
 
+#define DATA_MAX_LEN	4096
 
-extern int Socket_Opr_Regisiter(PT_Input_Opr ptFontOpr);
+int UDP_Socket_Init(void);
+int TCP_Socket_Init(void);
+
+extern int Socket_Opr_Regisiter(PT_Socket_Opr ptSocketOpr);
 extern void Show_Socket_Opr(void);
-extern PT_Input_Opr Get_Socket_Opr(char *pcName);
+extern PT_Socket_Opr Get_Socket_Opr(char *pcName);
 
 #endif
 

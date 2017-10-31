@@ -8,7 +8,6 @@
 #include <unistd.h>
 
 #define DEFAULT_PORT	8000
-#define DATA_MAX_LEN	4096
 
 static int g_iClientSocketFd;
 

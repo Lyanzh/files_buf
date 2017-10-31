@@ -27,6 +27,9 @@ OBJS := main.o \
 		input/stdin.o \
 		input/touchscreen.o \
 		input/button.o \
+		socket/socket_manager.o \
+		socket/tcp_client.o \
+		socket/udp_client.o \
 		memwatch.o
 
 all: $(OBJS)
