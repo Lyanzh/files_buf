@@ -6,7 +6,9 @@
 typedef struct Socket_Operation
 {
 	const char * c_pcName;
-	pthread_t tTreadID;
+	int iIsConnected;
+	pthread_t tSendTreadID;
+	pthread_t tRecvTreadID;
 	int (*Socket_Init)(char *pcServerAddr);
 	void (*Socket_Exit)(void);
 	int (*Socket_Send_Data)(char *pcDataSend);

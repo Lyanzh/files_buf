@@ -10,10 +10,15 @@
 
 static PT_Socket_Opr g_ptSocketOprHead;
 
-static pthread_mutex_t g_tSocketMutex; /* 互斥体lock 用于对缓冲区的互斥操作 */
-static pthread_cond_t g_tSocketCond; /* 缓冲区非空的条件变量 */
+static pthread_mutex_t g_tSendMutex;
+static pthread_cond_t g_tSendCond;
 
-char g_cSocketDataSend[DATA_MAX_LEN];
+static pthread_mutex_t g_tRecvMutex;
+static pthread_cond_t g_tRecvCond;
+
+static int iIsSocketConnected;
+char *g_pcSocketDataSend;
+char  g_cSocketDataRecv[1024];
 
 int Socket_Opr_Regisiter(PT_Socket_Opr ptSocketOpr)
 {
@@ -75,19 +80,34 @@ int Socket_Opr_Init(void)
 	return 0;
 }
 
-static void *Socket_Thread_Function(void *arg)
+static void *Socket_Send_Thread_Function(void *arg)
 {
 	PT_Socket_Opr ptSocketOprTmp;
 	
 	ptSocketOprTmp = (PT_Socket_Opr)arg;
 
 	while (1) {
-		pthread_mutex_lock(&g_tSocketMutex);
-		pthread_cond_wait(&g_tSocketCond, &g_tSocketMutex);
-		if (ptSocketOprTmp->Socket_Send_Data(g_cSocketDataSend) <= 0) {
+		pthread_mutex_lock(&g_tSendMutex);
+		pthread_cond_wait(&g_tSendCond, &g_tSendMutex);
+		if (ptSocketOprTmp->Socket_Send_Data(g_pcSocketDataSend) <= 0) {
 			printf("Error:socket send data error.\n");
 		}
-		pthread_mutex_unlock(&g_tSocketMutex);
+		free(g_pcSocketDataSend);
+		pthread_mutex_unlock(&g_tSendMutex);
+	}
+}
+
+static void *Socket_Recv_Thread_Function(void *arg)
+{
+	PT_Socket_Opr ptSocketOprTmp;
+	
+	ptSocketOprTmp = (PT_Socket_Opr)arg;
+
+	while (1) {
+		pthread_mutex_lock(&g_tRecvMutex);
+		ptSocketOprTmp->Socket_Recv_Data(g_cSocketDataRecv);
+		pthread_cond_signal(&g_tRecvCond);
+		pthread_mutex_unlock(&g_tRecvMutex);
 	}
 }
 
@@ -97,19 +117,30 @@ int All_Socket_Init(void)
 	int iRet;
 	PT_Socket_Opr ptSocketOprTmp;
 
-    pthread_mutex_init(&g_tSocketMutex, NULL);
-    pthread_cond_init(&g_tSocketCond, NULL);
+    pthread_mutex_init(&g_tSendMutex, NULL);
+    pthread_cond_init(&g_tSendCond, NULL);
 
+    pthread_mutex_init(&g_tRecvMutex, NULL);
+    pthread_cond_init(&g_tRecvCond, NULL);
+    
 	if (!g_ptSocketOprHead) {
 		iError = -1;
 	} else {
 		ptSocketOprTmp = g_ptSocketOprHead;
 		while (ptSocketOprTmp) {
+			ptSocketOprTmp->iIsConnected = 0;
 			iRet = ptSocketOprTmp->Socket_Init("192.168.0.3");
 			if (0 == iRet) {
+				ptSocketOprTmp->iIsConnected = 1;
+				iIsSocketConnected = 1;
 				printf("pthread_create: %s\n", ptSocketOprTmp->c_pcName);
-				pthread_create(&ptSocketOprTmp->tTreadID, NULL, Socket_Thread_Function, (void *)ptSocketOprTmp);
+				pthread_create(&ptSocketOprTmp->tSendTreadID, NULL,
+					Socket_Send_Thread_Function, (void *)ptSocketOprTmp);
+				pthread_create(&ptSocketOprTmp->tRecvTreadID, NULL,
+					Socket_Recv_Thread_Function, (void *)ptSocketOprTmp);
 				iError = 0;
+
+				return iError;
 			}
 			ptSocketOprTmp = ptSocketOprTmp->ptNext;
 		}
@@ -122,18 +153,30 @@ int All_Socket_Init(void)
 
 int Socket_Send(char *pcDataSend)
 {
-	int iDataSendLen = strlen(pcDataSend);
-	if (iDataSendLen > DATA_MAX_LEN) {
-		printf("Error:sending data too much.");
+	int iDataSendLen;
+
+	if (!iIsSocketConnected) {
+		printf("Socket has not connect yet.\n");
 		return -1;
 	}
-	
-	pthread_mutex_lock(&g_tSocketMutex);
 
-	strcpy(g_cSocketDataSend, pcDataSend);
+	iDataSendLen = strlen(pcDataSend);
+	if (iDataSendLen > DATA_MAX_LEN) {
+		printf("Error:sending data too much!");
+		return -1;
+	} else if (iDataSendLen <= 0) {
+		printf("Warning:no data to send.");
+		return 0;
+	}
 	
-	pthread_cond_signal(&g_tSocketCond);
-	pthread_mutex_unlock(&g_tSocketMutex);
+	pthread_mutex_lock(&g_tSendMutex);
+
+	g_pcSocketDataSend = (char *)malloc(iDataSendLen+1);
+
+	strcpy(g_pcSocketDataSend, pcDataSend);
+	
+	pthread_cond_signal(&g_tSendCond);
+	pthread_mutex_unlock(&g_tSendMutex);
 	
 	return 0;
 }
