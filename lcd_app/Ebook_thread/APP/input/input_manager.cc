@@ -1,4 +1,5 @@
 #include "input_manager.h"
+#include "disp_manager.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -101,9 +102,17 @@ static int Input_Get_InputEvent(PT_Input_Event ptInputEvent, PT_Input_Data ptInp
 		}
 	} else if (ptInputEvent->iType == INPUT_TYPE_TOUCHSCREEN) {
 		printf("pressure = %d\n", ptInputData->dwPressure);
-		if (ptInputData->dwPressure == 1 && ptInputData->dwPressure != dwPressure) {
-			ptInputEvent->iVal = INPUT_VALUE_DOWN;
+		if (ptInputData->dwPressure >= 1 && 0 == dwPressure) {
+			if (ptInputData->iY > (g_ptDispOprSelected->tDevAttr.dwYres / 3 * 2))
+				ptInputEvent->iVal = INPUT_VALUE_DOWN;
+			else if (ptInputData->iY < (g_ptDispOprSelected->tDevAttr.dwYres / 3))
+				ptInputEvent->iVal = INPUT_VALUE_UP;
+			else
+				ptInputEvent->iVal = INPUT_VALUE_UNKNOWN;
 			dwPressure = ptInputData->dwPressure;
+		} else if (ptInputData->dwPressure == 0) {
+			dwPressure = 0;
+			ptInputEvent->iVal = INPUT_VALUE_UNKNOWN;
 		} else {
 			ptInputEvent->iVal = INPUT_VALUE_UNKNOWN;
 		}
