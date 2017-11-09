@@ -1,11 +1,7 @@
 #include "page_manager.h"
-#include "disp_manager.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <sys/time.h>
-#include <sys/types.h>
-#include <unistd.h>
 
 #include "memwatch.h"
 
@@ -58,3 +54,4 @@ int Page_Opr_Init(void)
 {
 	return 0;
 }
+

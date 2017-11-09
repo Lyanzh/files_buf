@@ -14,3 +14,4 @@ int Main_Page_Init(void)
 {
 	return Page_Opr_Regisiter(&g_tMainPageOpr);
 }
+
