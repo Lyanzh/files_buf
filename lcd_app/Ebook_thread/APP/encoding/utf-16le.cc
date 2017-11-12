@@ -1,5 +1,6 @@
 #include "encoding_manager.h"
 #include <string.h>
+#include <stdio.h>
 
 #include "memwatch.h"
 
@@ -22,6 +23,7 @@ static int Utf16le_Get_Code(unsigned char *pucBufStart,
 {
 	if ((pucBufStart + 1) <= pucBufEnd) {
 		*pdwCode = pucBufStart[0] + (pucBufStart[1]<<8);/* little endian */
+		printf("Code = %x\n", *pdwCode);
 		return 2;
 	} else {
 		/* file end */

@@ -4,6 +4,7 @@
 #include <unistd.h>
 #include <stdio.h>
 #include <string.h>
+#include <signal.h>
 
 #define DEFAULT_PORT	8000
 #define LISTEN_BACKLOG	50
@@ -19,6 +20,8 @@ int main(int argc, char **argv)
 	int iDataLen;
 	char cDataBuf[DATA_MAX_LEN];
 	char cClientAddrBuf[20];
+	
+	signal(SIGCHLD,SIG_IGN);
 	
 	iServerSocketFd = socket(AF_INET, SOCK_DGRAM, 0);
 	if (iServerSocketFd == -1) {

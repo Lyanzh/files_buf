@@ -15,12 +15,14 @@
 
 FT_Library g_tLibrary;
 FT_Face    g_tFace;
-	
+
+FT_GlyphSlot tSlot;
+
 static int Freetype_Get_Bitmap(unsigned int dwCode, PT_Font_Para ptFontPara)
 {
 	int error;
 
-	FT_GlyphSlot tSlot;
+	//FT_GlyphSlot tSlot;
 	FT_Matrix	 tMatrix;	/* transformation matrix */
 	FT_Vector	 tPen;		/* untransformed origin  */
 	
@@ -48,7 +50,7 @@ static int Freetype_Get_Bitmap(unsigned int dwCode, PT_Font_Para ptFontPara)
 	FT_Set_Transform(g_tFace, &tMatrix, &tPen);
 
 	/* load glyph image into the slot (erase previous one) */
-	error = FT_Load_Char(g_tFace, dwCode, FT_LOAD_RENDER);
+	error = FT_Load_Char(g_tFace, dwCode, FT_LOAD_RENDER | FT_LOAD_MONOCHROME);
 	if (error)
 		;				  /* ignore errors */
 

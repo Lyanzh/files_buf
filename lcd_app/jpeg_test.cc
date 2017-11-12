@@ -1,8 +1,132 @@
 #include <stdio.h>
-
 #include "jpeglib.h"
-
 #include <setjmp.h>
+
+#include <unistd.h>
+#include <fcntl.h>
+#include <string.h>
+#include <malloc.h>
+#include <sys/mman.h>
+#include <sys/ioctl.h>
+#include <linux/fb.h>
+
+typedef struct FbDevice
+{
+	int fb_fd;
+	struct fb_var_screeninfo tFbVarInfo;
+	unsigned int dwScreenSize;
+	unsigned int dwLineSize;
+	unsigned int dwPixelSize;
+	char *pFbMem;
+}T_FbDev, *PT_FbDev;
+
+static PT_FbDev g_ptFbDev;
+
+int Fb_Init(void)
+{
+	g_ptFbDev = (PT_FbDev)malloc(sizeof(T_FbDev));
+	if(!g_ptFbDev)
+	{
+		printf("Error:cannot malloc device struct memery.\n");
+	}
+
+	g_ptFbDev->fb_fd = open("/dev/fb0", O_RDWR);
+	if(!g_ptFbDev->fb_fd)
+	{
+		printf("Error:cannot open framebuffer device.\n");
+		return -1;
+	}
+
+	if(ioctl(g_ptFbDev->fb_fd, FBIOGET_VSCREENINFO, &g_ptFbDev->tFbVarInfo))
+	{
+		printf("Error:get variable information error.\n");
+		return -1;
+	}
+
+	printf("screen_bits_per_pixel = %d\n", g_ptFbDev->tFbVarInfo.bits_per_pixel);
+	printf("screen x size = %d\n", g_ptFbDev->tFbVarInfo.xres);
+	printf("screen y size = %d\n", g_ptFbDev->tFbVarInfo.yres);
+
+	g_ptFbDev->dwPixelSize = g_ptFbDev->tFbVarInfo.bits_per_pixel / 8;//pixel size in bytes
+	g_ptFbDev->dwLineSize = g_ptFbDev->tFbVarInfo.xres * g_ptFbDev->dwPixelSize;//line size in bytes
+	g_ptFbDev->dwScreenSize = g_ptFbDev->dwLineSize * g_ptFbDev->tFbVarInfo.yres;//screen size in bytes
+	printf("pixel_size = %d\n", g_ptFbDev->dwPixelSize);
+	printf("line_size = %d\n", g_ptFbDev->dwLineSize);
+	printf("screen_size = %d\n", g_ptFbDev->dwScreenSize);
+
+	//g_tDispDev.tDevAttr.dwXres  = g_ptFbDev->tFbVarInfo.xres;
+	//g_tDispDev.tDevAttr.dwYres  = g_ptFbDev->tFbVarInfo.yres;
+	//g_tDispDev.tDevAttr.dwBitsPerPixel = g_ptFbDev->tFbVarInfo.bits_per_pixel;
+	
+	//map the device to memory
+	g_ptFbDev->pFbMem = (char *)mmap(0, g_ptFbDev->dwScreenSize, PROT_READ | PROT_WRITE, MAP_SHARED, g_ptFbDev->fb_fd, 0);
+	if((int)g_ptFbDev->pFbMem == -1)
+	{
+		printf("Error:fail to map framebuffer device to memory.\n");
+	}
+
+	return 0;
+}
+
+void Fb_Lcd_Put_Pixel(int x, int y, unsigned int color)
+{
+	unsigned char *pen_8 = g_ptFbDev->pFbMem + g_ptFbDev->dwLineSize * y + g_ptFbDev->dwPixelSize * x;
+	unsigned short *pen_16;
+	unsigned int *pen_32;
+	
+	pen_16 = (unsigned short *)pen_8;
+	pen_32 = (unsigned int *)pen_8;
+	
+	unsigned int red, green, blue;
+	
+	switch(g_ptFbDev->tFbVarInfo.bits_per_pixel)
+	{
+	case 8:
+		*pen_8 = color;
+		break;
+	case 16:
+		/* RGB565 */
+		red = (color >> 16) & 0xff;
+		green = (color >> 8) & 0xff;
+		blue = (color >> 0) & 0xff;
+		color = ((red >> 3) << 11) | ((green >> 2) << 5) | ((blue >> 3));
+		*pen_16 = color;
+		break;
+	case 32:
+		*pen_32 = color;
+		break;
+	default:
+		printf("cannot surport %dbpp\n", g_ptFbDev->tFbVarInfo.bits_per_pixel);
+		break;
+	}
+}
+
+void Fb_Lcd_Show_Line(int iStartX, int iEndX, int iY, char *pcData)
+{
+	int i = 0;
+	int j = iStartX * 3;
+	unsigned int color;
+
+	unsigned int red, green, blue;
+
+	//printf("pcData = %x\n", pcData[0]);
+
+	for (i = iStartX, j = 0; i < iEndX; i++) {
+		red = pcData[j];
+		green = pcData[j+1];
+		blue = pcData[j+2];
+		color = ((red << 16) | (green << 8) | blue);
+		//printf("color = %x\n", color);
+		j += 3;
+		Fb_Lcd_Put_Pixel(i, iY, color);
+	}
+}
+
+int Fb_Clean(void)
+{
+	memset(g_ptFbDev->pFbMem, 0, g_ptFbDev->dwScreenSize);
+	return 0;
+}
 
 struct my_error_mgr {
   struct jpeg_error_mgr pub;	/* "public" fields */
@@ -43,8 +167,15 @@ int main(int argc, char **argv)
   struct my_error_mgr jerr;
   /* More stuff */
   FILE * infile;		/* source file */
-  JSAMPARRAY buffer;		/* Output row buffer */
+  JSAMPARRAY buffer;		/* Output row buffer */ /* ¶þ¼¶Ö¸Õë */
   int row_stride;		/* physical row width in output buffer */
+
+  if (-1 == Fb_Init()) {
+  	printf("Error: fb init error\n");
+  	return -1;
+  }
+
+  Fb_Clean();
 
   /* In this example we want to open the input file before doing anything else,
    * so that the setjmp() error recovery below can assume the file is open.
@@ -53,7 +184,7 @@ int main(int argc, char **argv)
    */
 
   if ((infile = fopen(argv[1], "rb")) == NULL) {
-    fprintf(stderr, "can't open %s\n", argv[1]);
+    fprintf(stdout, "can't open %s\n", argv[1]);
     return 0;
   }
 
@@ -119,7 +250,8 @@ int main(int argc, char **argv)
   row_stride = cinfo.output_width * cinfo.output_components;
   /* Make a one-row-high sample array that will go away when done with image */
   buffer = (*cinfo.mem->alloc_sarray)
-		((j_common_ptr) &cinfo, JPOOL_IMAGE, row_stride, 1);
+  		((j_common_ptr) &cinfo, JPOOL_IMAGE, row_stride, 1);
+  //buffer = malloc(row_stride);
 
   /* Step 6: while (scan lines remain to be read) */
   /*           jpeg_read_scanlines(...); */
@@ -127,6 +259,8 @@ int main(int argc, char **argv)
   /* Here we use the library's state variable cinfo.output_scanline as the
    * loop counter, so that we don't have to keep track ourselves.
    */
+  printf("output_scanline = %d\n", cinfo.output_scanline);
+  printf("output_height = %d\n", cinfo.output_height);
   while (cinfo.output_scanline < cinfo.output_height) {
     /* jpeg_read_scanlines expects an array of pointers to scanlines.
      * Here the array is only one element long, but you could ask for
@@ -135,6 +269,7 @@ int main(int argc, char **argv)
     (void) jpeg_read_scanlines(&cinfo, buffer, 1);
     /* Assume put_scanline_someplace wants a pointer and sample count. */
     //put_scanline_someplace(buffer[0], row_stride);
+    Fb_Lcd_Show_Line(0, cinfo.output_width, cinfo.output_scanline, buffer[0]);
   }
 
   /* Step 7: Finish decompression */

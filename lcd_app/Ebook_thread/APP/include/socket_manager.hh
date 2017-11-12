@@ -6,9 +6,11 @@
 typedef struct Socket_Operation
 {
 	const char * c_pcName;
+	int iClientSocketFd;
 	int iIsConnected;
 	pthread_t tSendTreadID;
 	pthread_t tRecvTreadID;
+	pthread_t tHeartbeatTreadID;
 	int (*Socket_Init)(char *pcServerAddr);
 	void (*Socket_Exit)(void);
 	int (*Socket_Send_Data)(char *pcDataSend);
@@ -24,6 +26,11 @@ int TCP_Socket_Init(void);
 extern int Socket_Opr_Regisiter(PT_Socket_Opr ptSocketOpr);
 extern void Show_Socket_Opr(void);
 extern PT_Socket_Opr Get_Socket_Opr(char *pcName);
+
+extern int Socket_Opr_Init(void);
+extern int All_Socket_Init(void);
+extern int Socket_Select_And_Init(char *pcSocketType, char *pcServerAddr);
+extern int Socket_Send(char *pcDataSend);
 
 #endif
 

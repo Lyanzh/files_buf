@@ -38,6 +38,7 @@ typedef struct Input_Operation
 
 extern int Stdin_Input_Init(void);
 extern int Touchscreen_Input_Init(void);
+extern int Button_Input_Init(void);
 
 extern int Input_Opr_Regisiter(PT_Input_Opr ptFontOpr);
 extern void Show_Input_Opr(void);

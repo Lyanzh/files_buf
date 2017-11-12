@@ -9,6 +9,8 @@
 
 #define DEFAULT_PORT	8000
 
+static T_Socket_Opr g_tUDPOpr;
+
 static int g_iClientSocketFd;
 static struct sockaddr_in g_tServerAddr;
 
@@ -19,6 +21,8 @@ static int UDP_Init(char *pcServerAddr)
 		perror("Create socket error");
 		return -1;
 	}
+
+	g_tUDPOpr.iClientSocketFd = g_iClientSocketFd;
 
 	memset(&g_tServerAddr, 0, sizeof(struct sockaddr_in));
 	g_tServerAddr.sin_family = AF_INET;

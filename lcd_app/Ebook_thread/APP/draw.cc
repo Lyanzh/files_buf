@@ -166,6 +166,20 @@ static int Show_One_Font(PT_Font_Para ptFontPara)
 	int bit;
 	unsigned char ucByte;
 
+#if 0
+	printf("iBpp = %d\n", ptFontPara->iBpp);
+	printf("iCurOriginX = %d\n", ptFontPara->iCurOriginX);
+	printf("iCurOriginY = %d\n", ptFontPara->iCurOriginY);
+	printf("iNextOriginX = %d\n", ptFontPara->iNextOriginX);
+	printf("iNextOriginY = %d\n", ptFontPara->iNextOriginY);
+	printf("iXLeft = %d\n", ptFontPara->iXLeft);
+	printf("iXmax = %d\n", ptFontPara->iXmax);
+	printf("iYmax = %d\n", ptFontPara->iYmax);
+	printf("iYTop = %d\n", ptFontPara->iYTop);
+	printf("iPitch = %d\n", ptFontPara->iPitch);
+	printf("pucBuffer = %x\n", ptFontPara->pucBuffer);
+#endif
+
 	if (ptFontPara->iBpp == 1) {
 		for (y = ptFontPara->iYTop; y < ptFontPara->iYmax; y++) {
 			iIndex = (y - ptFontPara->iYTop) * ptFontPara->iPitch;

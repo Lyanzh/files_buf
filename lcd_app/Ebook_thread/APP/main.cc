@@ -4,6 +4,7 @@
 #include "fonts_manager.h"
 #include "disp_manager.h"
 #include "input_manager.h"
+#include "socket_manager.h"
 
 #include "memwatch.h"
 
@@ -17,6 +18,7 @@ int main(int argc, char **argv)
 	Font_Opr_Init();
 	Encoding_Opr_Init();
 	Input_Opr_Init();
+	Socket_Opr_Init();
 
 	//Show_Disp_Opr();
 	//Show_Font_Opr();
@@ -33,6 +35,8 @@ int main(int argc, char **argv)
 
 	All_Input_Device_Init();
 
+	Socket_Select_And_Init("udp", "192.168.0.3");
+
 	printf("Enter 'n' to show next page, 'u' to show previous page, 'q' to exit:\n");
 	//fflush(stdout);//刷新输出缓冲区，否则以上打印(末尾没有\n)不输出
 
@@ -40,6 +44,7 @@ int main(int argc, char **argv)
 		Input_Get_Key(&tInputEvent);
 		if (tInputEvent.iVal == INPUT_VALUE_DOWN) {
 			printf("show next page.\n");
+			Socket_Send("show next page.\n");
 			Show_Next_Page();
 		} else if (tInputEvent.iVal == INPUT_VALUE_UP) {
 			printf("show pre page.\n");
