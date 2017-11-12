@@ -84,6 +84,9 @@ int Input_Opr_Init(void)
 static int Input_Get_InputEvent(PT_Input_Event ptInputEvent, PT_Input_Data ptInputData)
 {
 	static unsigned int dwPressure = 0;
+	static unsigned int iRecX;
+	int iThreshold;
+	int iDelta;
 
 	if (!ptInputEvent || !ptInputData)
 		return -1;
@@ -101,8 +104,12 @@ static int Input_Get_InputEvent(PT_Input_Event ptInputEvent, PT_Input_Data ptInp
 			ptInputEvent->iVal = INPUT_VALUE_UNKNOWN;
 		}
 	} else if (ptInputEvent->iType == INPUT_TYPE_TOUCHSCREEN) {
-		printf("pressure = %d\n", ptInputData->dwPressure);
-		if (ptInputData->dwPressure >= 1 && 0 == dwPressure) {
+		//printf("pressure = %d\n", ptInputData->dwPressure);
+		//printf("x = %d\n", ptInputData->iX);
+		//printf("y = %d\n", ptInputData->iY);
+	#if 0 /* press */
+		if (ptInputData->dwPressure == 1 && 0 == dwPressure) {
+			//first press
 			if (ptInputData->iY > (g_ptDispOprSelected->tDevAttr.dwYres / 3 * 2))
 				ptInputEvent->iVal = INPUT_VALUE_DOWN;
 			else if (ptInputData->iY < (g_ptDispOprSelected->tDevAttr.dwYres / 3))
@@ -115,6 +122,34 @@ static int Input_Get_InputEvent(PT_Input_Event ptInputEvent, PT_Input_Data ptInp
 			ptInputEvent->iVal = INPUT_VALUE_UNKNOWN;
 		} else {
 			ptInputEvent->iVal = INPUT_VALUE_UNKNOWN;
+		}
+	#endif
+		/* slide */
+		if (ptInputData->dwPressure == 1 && 0 == dwPressure) {
+			/* first press */
+			dwPressure = 1;
+			iRecX = ptInputData->iX;
+			//ptInputEvent->iVal = INPUT_VALUE_UNKNOWN;
+			return -1;
+		} else if (ptInputData->dwPressure == 0) {
+			if (dwPressure == 1) {
+				dwPressure = 0;
+				iDelta = ptInputData->iX - iRecX;
+				iThreshold = g_ptDispOprSelected->tDevAttr.dwXres / 5;
+				//printf("iDelta = %d\n", iDelta);
+				//printf("iThreshold = %d\n", iThreshold);
+				if (iDelta > iThreshold) {
+					ptInputEvent->iVal = INPUT_VALUE_DOWN;
+				} else if (iDelta < (0 - iThreshold)) {
+					ptInputEvent->iVal = INPUT_VALUE_UP;
+				} else {
+					return -1;
+				}
+			} else {
+				return -1;
+			}
+		} else {
+			return -1;
 		}
 	} else if (ptInputEvent->iType == INPUT_TYPE_BUTTON) {
 		if (ptInputData->cCode == 0x01) {
@@ -139,11 +174,8 @@ static void *Input_Thread_Function(void *arg)
 	ptInputOprTmp = (PT_Input_Opr)arg;
 
 	while (1) {
-		if (ptInputOprTmp->Input_Get_Data(&tInputData)) {
+		if (ptInputOprTmp->Input_Get_Data(&tInputData) && Input_Get_InputEvent(&g_tInputEvent, &tInputData) == 0) {
 			pthread_mutex_lock(&g_tMutex);
-			if (Input_Get_InputEvent(&g_tInputEvent, &tInputData)) {
-				printf("Error:get input event error.\n");
-			}
 			pthread_cond_signal(&g_tInputCond);
 			pthread_mutex_unlock(&g_tMutex);
 		}

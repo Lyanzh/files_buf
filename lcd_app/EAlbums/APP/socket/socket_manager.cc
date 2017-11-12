@@ -5,6 +5,8 @@
 #include <sys/time.h>
 #include <sys/types.h>
 #include <unistd.h>
+#include <sys/select.h>
+#include <sys/time.h>
 
 #include "memwatch.h"
 
@@ -66,6 +68,8 @@ PT_Socket_Opr Get_Socket_Opr(char *pcName)
 int Socket_Opr_Init(void)
 {
 	int iError;
+
+
 	iError = UDP_Socket_Init();
 	if (iError) {
 		printf("Error:udp init fail.\n");
@@ -77,6 +81,7 @@ int Socket_Opr_Init(void)
 		printf("Error:tcp init fail.\n");
 		return -1;
 	}
+	
 	return 0;
 }
 
@@ -100,55 +105,71 @@ static void *Socket_Send_Thread_Function(void *arg)
 static void *Socket_Recv_Thread_Function(void *arg)
 {
 	PT_Socket_Opr ptSocketOprTmp;
+
+	fd_set set;
+	struct timeval tv;
+	int retval;
 	
 	ptSocketOprTmp = (PT_Socket_Opr)arg;
+
+	/* Wait up to five seconds. */
+	tv.tv_sec = 5;
+	tv.tv_usec = 0;
 
 	while (1) {
 		pthread_mutex_lock(&g_tRecvMutex);
 		ptSocketOprTmp->Socket_Recv_Data(g_cSocketDataRecv);
+		printf("recv data from server : %s\n", g_cSocketDataRecv);
 		pthread_cond_signal(&g_tRecvCond);
 		pthread_mutex_unlock(&g_tRecvMutex);
 	}
 }
 
-int All_Socket_Init(void)
+static void *Socket_Heartbeat_Thread_Function(void *arg)
 {
-	int iError = -1;
+	while (1) {
+		Socket_Send("Heartbeat");
+		sleep(5);
+	}
+}
+
+int Socket_Select_And_Init(char *pcSocketType, char *pcServerAddr)
+{
 	int iRet;
-	PT_Socket_Opr ptSocketOprTmp;
+	PT_Socket_Opr ptSocketOprSelect;
 
-    pthread_mutex_init(&g_tSendMutex, NULL);
-    pthread_cond_init(&g_tSendCond, NULL);
+	pthread_mutex_init(&g_tSendMutex, NULL);
+	pthread_cond_init(&g_tSendCond, NULL);
 
-    pthread_mutex_init(&g_tRecvMutex, NULL);
-    pthread_cond_init(&g_tRecvCond, NULL);
-    
-	if (!g_ptSocketOprHead) {
-		iError = -1;
-	} else {
-		ptSocketOprTmp = g_ptSocketOprHead;
-		while (ptSocketOprTmp) {
-			ptSocketOprTmp->iIsConnected = 0;
-			iRet = ptSocketOprTmp->Socket_Init("192.168.0.3");
-			if (0 == iRet) {
-				ptSocketOprTmp->iIsConnected = 1;
-				iIsSocketConnected = 1;
-				printf("pthread_create: %s\n", ptSocketOprTmp->c_pcName);
-				pthread_create(&ptSocketOprTmp->tSendTreadID, NULL,
-					Socket_Send_Thread_Function, (void *)ptSocketOprTmp);
-				pthread_create(&ptSocketOprTmp->tRecvTreadID, NULL,
-					Socket_Recv_Thread_Function, (void *)ptSocketOprTmp);
-				iError = 0;
+	pthread_mutex_init(&g_tRecvMutex, NULL);
+	pthread_cond_init(&g_tRecvCond, NULL);
 
-				return iError;
-			}
-			ptSocketOprTmp = ptSocketOprTmp->ptNext;
-		}
+	ptSocketOprSelect = Get_Socket_Opr(pcSocketType);
+
+	if (!ptSocketOprSelect) {
+		printf("Error:can not init %s.", pcSocketType);
+		return -1;
+	}
+	
+	ptSocketOprSelect->iIsConnected = 0;
+	iRet = ptSocketOprSelect->Socket_Init(pcServerAddr);
+	if (0 == iRet) {
+		ptSocketOprSelect->iIsConnected = 1;
+		iIsSocketConnected = 1;
+		printf("pthread_create: %s\n", ptSocketOprSelect->c_pcName);
+		pthread_create(&ptSocketOprSelect->tSendTreadID, NULL,
+			Socket_Send_Thread_Function, (void *)ptSocketOprSelect);
+		pthread_create(&ptSocketOprSelect->tRecvTreadID, NULL,
+			Socket_Recv_Thread_Function, (void *)ptSocketOprSelect);
+
+		pthread_create(&ptSocketOprSelect->tHeartbeatTreadID, NULL,
+			Socket_Heartbeat_Thread_Function, NULL);
+		
+		return 0;
 	}
 
-	printf("All_Socket_Init over.\n");
-
-	return iError;
+	printf("Error:socket init error for %s.", pcSocketType);
+	return -1;
 }
 
 int Socket_Send(char *pcDataSend)

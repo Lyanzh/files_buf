@@ -62,7 +62,7 @@ static int Touchscreen_Get_Data(PT_Input_Data ptInputData)
 	ptInputData->iY = samp.y;
 	ptInputData->dwPressure = samp.pressure;
 
-	printf("%ld.%06ld: %6d %6d %6d\n", samp.tv.tv_sec, samp.tv.tv_usec, samp.x, samp.y, samp.pressure);
+	//printf("%ld.%06ld: %6d %6d %6d\n", samp.tv.tv_sec, samp.tv.tv_usec, samp.x, samp.y, samp.pressure);
 	return 1;
 	//return 0;
 }

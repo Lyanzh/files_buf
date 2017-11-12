@@ -223,8 +223,7 @@ int main(int argc, char **argv)
 	printf("num_components = %d\n", cinfo.num_components);
 
   /* Step 4: set parameters for decompression */
-
-	// 设置解压参数,比如放大、缩小
+  
 	printf("enter M/N:\n");
 	scanf("%d/%d", &cinfo.scale_num, &cinfo.scale_denom);
 	printf("scale to : %d/%d\n", cinfo.scale_num, cinfo.scale_denom);

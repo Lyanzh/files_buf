@@ -1,5 +1,6 @@
 #include "encoding_manager.h"
 #include <string.h>
+#include <stdio.h>
 
 #include "memwatch.h"
 
