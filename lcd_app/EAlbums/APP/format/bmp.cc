@@ -1,4 +1,11 @@
 #include "format_manager.h"
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <fcntl.h>
+#include <unistd.h>
+#include <sys/mman.h>
+
+#pragma pack (1) /*指定按1字节对齐*/
 
 typedef struct Bitmap_File_Head
 {  
@@ -27,6 +34,39 @@ typedef struct Bitmap_Information
 	unsigned long  dwClrImportant;	/* 4字节，说明对图像显示有重要影响的颜色索引数，为0说明都重要 */
 } T_Bitmap_Info, *PT_Bitmap_Info;
 
+#pragma pack () /*取消指定对齐，恢复缺省对齐*/
+
+int BMP_Init()
+{
+	
+}
+
+int BMP_Get_Data(char *pcFilePath)
+{
+	int iFd;
+	struct stat tFileStat;
+	char *FileData;
+
+	iFd = open(pcFilePath, O_RDONLY);
+	if (iFd < 0) {
+		printf("Error:can not open %s\n", pcFilePath);
+		return -1;
+	}
+
+	if (fstat(iFd, &tFileStat)) {
+		printf("Error:get file stat error\n");
+		return -1;
+	}
+
+	FileData = (char *)mmap(NULL, tFileStat.st_size, PROT_READ, MAP_SHARED, iFd, 0);
+	if (FileData == (void *) -1)) {
+		printf("Error:map file error\n");
+		return -1;
+	}
+
+	
+}
+
 static T_Format_Opr g_tBMPOpr = {
 	.c_pcName   = "bmp",
 };
@@ -39,6 +79,8 @@ static T_Format_Opr g_tBMPOpr = {
 int iLineByteCnt = (((m_iImageWidth * m_iBitsPerPixel) + 31) >> 5) << 2;
 /* 这样，位图数据区的大小为 */
 m_iImageDataSize = iLineByteCnt * m_iImageHeight;
+
+
 
 int BMP_Format_Init(void)
 {

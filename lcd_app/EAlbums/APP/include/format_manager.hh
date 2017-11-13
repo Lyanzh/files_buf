@@ -5,8 +5,9 @@ typedef struct Format_Operation
 {
 	const char * c_pcName;
 	int iHeadLen;
+	int (*Init)(char *pcFilePath);
 	int (*isSupport)(unsigned char *pucBufHead);
-	int (*Get_Code)(void);
+	int (*Get_Data)(char *pcFilePath);
 	struct Format_Operation *ptNext;
 } T_Format_Opr, *PT_Format_Opr;
 
