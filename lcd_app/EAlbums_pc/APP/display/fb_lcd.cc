@@ -26,7 +26,7 @@ static PT_FbDev g_ptFbDev;
 
 void Fb_Lcd_Put_Pixel(int x, int y, unsigned int color)
 {
-	unsigned char *pen_8 = g_ptFbDev->pFbMem + g_ptFbDev->dwLineSize * y + g_ptFbDev->dwPixelSize * x;
+	unsigned char *pen_8 = (unsigned char *)(g_ptFbDev->pFbMem + g_ptFbDev->dwLineSize * y + g_ptFbDev->dwPixelSize * x);
 	unsigned short *pen_16;
 	unsigned int *pen_32;
 	

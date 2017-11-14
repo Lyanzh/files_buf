@@ -73,6 +73,11 @@ int Select_And_Init_Display(char *pcName)
 	}
 
 	iError = g_ptDispOprSelected->Dev_Init();
-	return 0;
+	return iError;
+}
+
+PT_DispDev Selected_Display(void)
+{
+	return g_ptDispOprSelected;
 }
 

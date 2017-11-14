@@ -1,10 +1,10 @@
 #include "config.h"
 #include "draw.h"
-#include "encoding_manager.h"
-#include "fonts_manager.h"
+//#include "encoding_manager.h"
+//#include "fonts_manager.h"
 #include "disp_manager.h"
-#include "input_manager.h"
-#include "socket_manager.h"
+//#include "input_manager.h"
+//#include "socket_manager.h"
 #include "format_manager.h"
 
 #include "memwatch.h"
@@ -13,9 +13,11 @@
 
 int main(int argc, char **argv)
 {
-	T_Input_Event tInputEvent;
+	//T_Input_Event tInputEvent;
+	T_PicRegion tPicReg;
 
 	Disp_Opr_Init();
+	Format_Opr_Init();
 	//Font_Opr_Init();
 	//Encoding_Opr_Init();
 	//Input_Opr_Init();
@@ -38,8 +40,14 @@ int main(int argc, char **argv)
 
 	//Socket_Select_And_Init("udp", "192.168.0.3");
 
-	printf("Enter 'n' to show next page, 'u' to show previous page, 'q' to exit:\n");
+	//printf("Enter 'n' to show next page, 'u' to show previous page, 'q' to exit:\n");
 	//fflush(stdout);//刷新输出缓冲区，否则以上打印(末尾没有\n)不输出
+
+	Get_Format_Opr("bmp")->Get_Pic_Region("cancel.bmp", &tPicReg);
+
+	g_ptDispOprSelected->Clean_Screen();
+
+	Fb_Lcd_Show_Pic(0, 0, &tPicReg);
 
 	while (1) {
 	#if 0

@@ -52,7 +52,7 @@ PT_Format_Opr Get_Format_Opr(char *pcName)
 
 int Format_Opr_Init(void)
 {
-	return 0;
+	return BMP_Format_Init();
 }
 
 

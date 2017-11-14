@@ -1,6 +1,8 @@
 #ifndef _PAGE_MANAGER_H
 #define _PAGE_MANAGER_H
 
+#include "disp_manager.h"
+
 typedef struct Page_Operation
 {
 	const char * c_pcName;

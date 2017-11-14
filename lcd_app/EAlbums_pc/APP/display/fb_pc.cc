@@ -26,7 +26,7 @@ static PT_FbDev g_ptFbDev;
 
 static void Fb_Lcd_Put_Pixel(int x, int y, unsigned int color)
 {
-	unsigned char *pen_8 = g_ptFbDev->pFbMem + g_ptFbDev->dwLineSize * y + g_ptFbDev->dwPixelSize * x;
+	unsigned char *pen_8 = (unsigned char *)(g_ptFbDev->pFbMem + g_ptFbDev->dwLineSize * y + g_ptFbDev->dwPixelSize * x);
 	unsigned short *pen_16;
 	unsigned int *pen_32;
 	
@@ -57,7 +57,7 @@ static void Fb_Lcd_Put_Pixel(int x, int y, unsigned int color)
 	}
 }
 
-#if 1
+#if 0
 void Fb_Lcd_Show_Line(int iStartX, int iEndX, int iY, int iBpp, char *pcData)
 {
 	int iByte = iBpp / 8;
@@ -78,32 +78,6 @@ void Fb_Lcd_Show_Line(int iStartX, int iEndX, int iY, int iBpp, char *pcData)
 	}
 }
 #endif
-
-void Fb_Lcd_Show_Pic(int iX, int iY, PT_PicRegion ptPicReg)
-{
-	int x;
-	int y;
-	int iLine;
-	int iWhich;
-	int byte;
-	unsigned int color;
-	unsigned int red, green, blue, alph;
-
-	byte = ptPicReg->wBpp / 8;
-
-	for (y = 0; y < ptPicReg->dwHeight; y++) {
-		iLine = ptPicReg->dwWidth * byte * y;
-		for (x = 0; x < ptPicReg->dwWidth; x++) {
-			iWhich = iLine + x * byte;
-			red   = ptPicReg->pcData[iWhich];
-			green = ptPicReg->pcData[iWhich+1];
-			blue  = ptPicReg->pcData[iWhich+2];
-			alph  = 0;
-			color = ((red << 24) | (green << 16) | (blue << 8) | alph);
-			Fb_Lcd_Put_Pixel((iX + x), (iY + y), color);
-		}
-	}
-}
 
 static int Fb_Init(void)
 {
