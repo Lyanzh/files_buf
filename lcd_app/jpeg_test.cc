@@ -70,7 +70,7 @@ int Fb_Init(void)
 
 void Fb_Lcd_Put_Pixel(int x, int y, unsigned int color)
 {
-	unsigned char *pen_8 = g_ptFbDev->pFbMem + g_ptFbDev->dwLineSize * y + g_ptFbDev->dwPixelSize * x;
+	char *pen_8 = g_ptFbDev->pFbMem + g_ptFbDev->dwLineSize * y + g_ptFbDev->dwPixelSize * x;
 	unsigned short *pen_16;
 	unsigned int *pen_32;
 	
@@ -268,7 +268,7 @@ int main(int argc, char **argv)
     (void) jpeg_read_scanlines(&cinfo, buffer, 1);
     /* Assume put_scanline_someplace wants a pointer and sample count. */
     //put_scanline_someplace(buffer[0], row_stride);
-    Fb_Lcd_Show_Line(0, cinfo.output_width, cinfo.output_scanline, buffer[0]);
+    Fb_Lcd_Show_Line(0, cinfo.output_width, cinfo.output_scanline, (char *)buffer[0]);
   }
 
   /* Step 7: Finish decompression */
