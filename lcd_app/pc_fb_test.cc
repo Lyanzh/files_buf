@@ -44,7 +44,7 @@ int main (int argc, char **argv)
 	screensize = vinfo.xres * vinfo.yres * vinfo.bits_per_pixel / 8;
 	/*这就是把fp所指的文件中从开始到screensize大小的内容给映射出来，得到一个指向这块空间的指针*/
 	fbp =(char *) mmap (0, screensize, PROT_READ | PROT_WRITE, MAP_SHARED, fp, 0);
-	if ((int) fbp == -1)
+	if (fbp == MAP_FAILED)
 	{
 		printf ("Error: failed to map framebuffer device to memory./n");
 		exit (4);

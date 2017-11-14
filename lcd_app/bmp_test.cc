@@ -104,7 +104,7 @@ int Fb_Init(void)
 	
 	//map the device to memory
 	g_ptFbDev->pFbMem = (char *)mmap(0, g_ptFbDev->dwScreenSize, PROT_READ | PROT_WRITE, MAP_SHARED, g_ptFbDev->fb_fd, 0);
-	if((int)g_ptFbDev->pFbMem == -1)
+	if(g_ptFbDev->pFbMem == MAP_FAILED)
 	{
 		printf("Error:fail to map framebuffer device to memory.\n");
 	}
@@ -365,6 +365,10 @@ int main(int argc, char **argv)
 {
 	Fb_Init();
 	Fb_Clean();
+	
+	printf("size of g_ptBitmapFileHead = %ld\n", sizeof(T_Bitmap_File_Head));
+	printf("size of unsigned short = %ld\n", sizeof(unsigned short));
+	printf("size of unsigned long = %ld\n", sizeof(unsigned long));
 
 	if (BMP_Get_Data(argv[1], &g_tSrcPicReg)) {
 		printf("Error:can not get bitmap\n");
