@@ -116,6 +116,10 @@ static int BMP_Get_Pic_Region(char *pcFilePath, PT_PicRegion ptPicReg)
 	iBitmapLineByteCnt = ptPicReg->dwWidth * ptPicReg->wBpp / 8;
 
 	ptPicReg->pcData = (char *)malloc(iBitmapLineByteCnt * ptPicReg->dwHeight);
+	if (ptPicReg->pcData == NULL) {
+		printf("Error:malloc ptPicReg->pcData error\n");
+		return -1;
+	}
 
 	if (ptBitmapInfo->lHeight < 0) {	/* Î»Í¼ÕýÏò */
 		for (i = 0; i < dwBitmapHeight; i++) {

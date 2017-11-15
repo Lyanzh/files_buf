@@ -1,4 +1,5 @@
 #include "draw.h"
+#include "config.h"
 #include <stdio.h>
 #include <string.h>
 #include <sys/types.h>
@@ -47,12 +48,28 @@ void Pic_Zoom(PT_PicRegion ptDstPicReg, PT_PicRegion ptSrcPicReg)
 
 	char *pcSrcLineData;
 	char *pcDstLineData;
-	
+
+	if ((0 == ptSrcPicReg->dwWidth) || (0 == ptSrcPicReg->dwHeight)) {
+		printf("Error:size error\n");
+		return;
+	}
+
+	if ((0 == ptDstPicReg->dwWidth) || (0 == ptDstPicReg->dwHeight)) {
+		ptDstPicReg->dwWidth = ptSrcPicReg->dwWidth * DEFAULT_ZOOM_FACTOR;
+		ptDstPicReg->dwHeight = ptSrcPicReg->dwHeight * DEFAULT_ZOOM_FACTOR;
+	}
+
+	if (ptDstPicReg->wBpp == 0) {
+		ptDstPicReg->wBpp = ptSrcPicReg->wBpp;
+	}
+
+#if 0
 	if ((0 == ptDstPicReg->dwWidth) || (0 == ptDstPicReg->dwHeight) ||
 		(0 == ptSrcPicReg->dwWidth) || (0 == ptSrcPicReg->dwHeight)) {
 		printf("Error:please indicate the size to zoom\n");
 		return;
 	}
+#endif
 
 	if (ptDstPicReg->wBpp != ptSrcPicReg->wBpp) {
 		printf("Error:can not zoom in this bpp %d\n", ptDstPicReg->wBpp);

@@ -5,7 +5,9 @@ CFLAGS := -Wall -g -c
 CFLAGS += -I $(PWD)/include
 CFLAGS += -DMEMWATCH -DMEMWATCH_STDIO
 
-LDFLAGS := -lm -lpthread
+# gcc 4.6.3 use -pthread instead of -lpthread
+
+LDFLAGS := -lm -pthread -L/usr/local/lib -ljpeg
 
 CC := $(CROSSCOMPILE)gcc
 LD := $(CROSSCOMPILE)ld
@@ -15,8 +17,14 @@ OBJS := main.o \
 		display/disp_manager.o \
 		display/fb_lcd.o \
 		display/fb_pc.o \
+		input/input_manager.o \
+		input/stdin.o \
+		input/button.o \
 		format/format_manager.o \
 		format/bmp.o \
+		format/jpeg.o \
+		page/page_manager.o \
+		page/main_page.o \
 		memwatch.o
 
 all: $(OBJS)

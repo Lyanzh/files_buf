@@ -67,6 +67,7 @@ int Input_Opr_Init(void)
 		return -1;
 	}
 
+#if 0
 	iError = Touchscreen_Input_Init();
 	if (iError) {
 		printf("Error:Touchscreen init fail.\n");
@@ -78,6 +79,8 @@ int Input_Opr_Init(void)
 		printf("Error:Button init fail.\n");
 		return -1;
 	}
+#endif
+	
 	return 0;
 }
 
@@ -92,6 +95,7 @@ static int Input_Get_InputEvent(PT_Input_Event ptInputEvent, PT_Input_Data ptInp
 		return -1;
 
 	ptInputEvent->iType = ptInputData->iType;
+	ptInputEvent->cCode= ptInputData->cCode;
 	gettimeofday(&ptInputEvent->tTime, NULL);
 	if (ptInputEvent->iType == INPUT_TYPE_STDIN) {
 		if (ptInputData->cCode == 'u') {
@@ -180,6 +184,7 @@ static void *Input_Thread_Function(void *arg)
 			pthread_mutex_unlock(&g_tMutex);
 		}
 	}
+	return NULL;
 }
 
 int All_Input_Device_Init(void)

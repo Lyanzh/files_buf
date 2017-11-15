@@ -40,7 +40,7 @@ PT_Page_Opr Get_Page_Opr(char *pcName)
 	PT_Page_Opr ptPageOprTmp = g_ptPageOprHead;
 	while (ptPageOprTmp) {
 		if (strcmp(ptPageOprTmp->c_pcName, pcName) == 0) {
-			printf("get input %s.\n", pcName);
+			//printf("get page %s.\n", pcName);
 			return ptPageOprTmp;
 		} else {
 			ptPageOprTmp = ptPageOprTmp->ptNext;
@@ -52,6 +52,6 @@ PT_Page_Opr Get_Page_Opr(char *pcName)
 
 int Page_Opr_Init(void)
 {
-	return 0;
+	return Main_Page_Init();
 }
 

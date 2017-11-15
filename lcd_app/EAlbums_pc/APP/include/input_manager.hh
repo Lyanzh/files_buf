@@ -1,5 +1,5 @@
-#ifndef __INPUT_MANAGER__
-#define __INPUT_MANAGER__
+#ifndef _INPUT_MANAGER_H
+#define _INPUT_MANAGER_H
 #include <sys/time.h>
 #include <pthread.h>
 
@@ -23,6 +23,7 @@ typedef struct Input_Data {
 typedef struct Input_Event {
 	struct timeval tTime;
 	int iType;
+	char cCode;
 	int iVal;
 } T_Input_Event, *PT_Input_Event;
 
@@ -37,7 +38,7 @@ typedef struct Input_Operation
 } T_Input_Opr, *PT_Input_Opr;
 
 extern int Stdin_Input_Init(void);
-extern int Touchscreen_Input_Init(void);
+//extern int Touchscreen_Input_Init(void);
 extern int Button_Input_Init(void);
 
 extern int Input_Opr_Regisiter(PT_Input_Opr ptFontOpr);

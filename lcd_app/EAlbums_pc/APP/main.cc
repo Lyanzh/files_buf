@@ -6,6 +6,7 @@
 //#include "input_manager.h"
 //#include "socket_manager.h"
 #include "format_manager.h"
+#include "page_manager.h"
 
 #include "memwatch.h"
 
@@ -14,13 +15,14 @@
 int main(int argc, char **argv)
 {
 	//T_Input_Event tInputEvent;
-	T_PicRegion tPicReg;
+	//T_PicRegion tPicReg;
 
 	Disp_Opr_Init();
 	Format_Opr_Init();
+	Page_Opr_Init();
 	//Font_Opr_Init();
 	//Encoding_Opr_Init();
-	//Input_Opr_Init();
+	Input_Opr_Init();
 	//Socket_Opr_Init();
 
 	//Show_Disp_Opr();
@@ -36,18 +38,21 @@ int main(int argc, char **argv)
 	
 	//Show_Next_Page();
 
-	//All_Input_Device_Init();
+	All_Input_Device_Init();
 
 	//Socket_Select_And_Init("udp", "192.168.0.3");
 
 	//printf("Enter 'n' to show next page, 'u' to show previous page, 'q' to exit:\n");
 	//fflush(stdout);//刷新输出缓冲区，否则以上打印(末尾没有\n)不输出
 
-	Get_Format_Opr("bmp")->Get_Pic_Region("cancel.bmp", &tPicReg);
+	//Get_Format_Opr("bmp")->Get_Pic_Region("cancel.bmp", &tPicReg);
 
 	g_ptDispOprSelected->Clean_Screen();
 
-	Fb_Lcd_Show_Pic(0, 0, &tPicReg);
+	//Fb_Lcd_Show_Pic(0, 0, &tPicReg);
+
+	Get_Page_Opr("mainpage")->Prepare();
+	Get_Page_Opr("mainpage")->Run();
 
 	while (1) {
 	#if 0
@@ -64,6 +69,8 @@ int main(int argc, char **argv)
 			return 0;
 		}
 	#endif
+
+		Get_Page_Opr("mainpage")->Get_Input_Event();
 	}
 
 	return 0;

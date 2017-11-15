@@ -2,6 +2,9 @@
 #define _PAGE_MANAGER_H
 
 #include "disp_manager.h"
+#include "format_manager.h"
+#include "input_manager.h"
+#include "draw.h"
 
 typedef struct Page_Operation
 {
@@ -11,6 +14,8 @@ typedef struct Page_Operation
 	void (*Get_Input_Event)(void);
 	struct Page_Operation *ptNext;
 } T_Page_Opr, *PT_Page_Opr;
+
+int Main_Page_Init(void);
 
 extern int Page_Opr_Regisiter(PT_Page_Opr ptPageOpr);
 extern void Show_Page_Opr(void);
