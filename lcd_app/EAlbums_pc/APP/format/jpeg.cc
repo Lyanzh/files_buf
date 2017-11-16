@@ -1,6 +1,6 @@
 #include "format_manager.h"
 #include <stdio.h>
-#include "jpeglib.h"
+#include <jpeglib.h>
 #include <setjmp.h>
 #include <unistd.h>
 #include <fcntl.h>

@@ -46,12 +46,24 @@ PT_Page_Opr Get_Page_Opr(char *pcName)
 			ptPageOprTmp = ptPageOprTmp->ptNext;
 		}
 	}
-	printf("Error:can't get input %s.\n", pcName);
+	printf("Error:can't get page %s.\n", pcName);
 	return NULL;
 }
 
 int Page_Opr_Init(void)
 {
-	return Main_Page_Init();
+	int iRet;
+	int iErr;
+
+	iRet = Main_Page_Init();
+	if (0 == iRet) {
+		iErr = 0;
+	}
+
+	iRet = Auto_Page_Init();
+	if (0 == iRet) {
+		iErr = 0;
+	}
+	return iErr;
 }
 

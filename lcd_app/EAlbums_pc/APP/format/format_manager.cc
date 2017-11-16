@@ -40,19 +40,21 @@ PT_Format_Opr Get_Format_Opr(char *pcName)
 	PT_Format_Opr ptFormatOprTmp = g_ptFormatOprHead;
 	while (ptFormatOprTmp) {
 		if (strcmp(ptFormatOprTmp->c_pcName, pcName) == 0) {
-			printf("get input %s.\n", pcName);
+			//printf("get input %s.\n", pcName);
 			return ptFormatOprTmp;
 		} else {
 			ptFormatOprTmp = ptFormatOprTmp->ptNext;
 		}
 	}
-	printf("Error:can't get input %s.\n", pcName);
+	printf("Error:can't get format %s.\n", pcName);
 	return NULL;
 }
 
 int Format_Opr_Init(void)
 {
-	return BMP_Format_Init();
+	int iErr;
+	iErr = JPEG_Format_Init() | BMP_Format_Init();
+	return iErr;
 }
 
 

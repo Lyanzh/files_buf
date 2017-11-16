@@ -7,7 +7,7 @@ CFLAGS += -DMEMWATCH -DMEMWATCH_STDIO
 
 # gcc 4.6.3 use -pthread instead of -lpthread
 
-LDFLAGS := -lm -pthread -L/usr/local/lib -ljpeg
+LDFLAGS := -lm -pthread -L /usr/local/lib -ljpeg
 
 CC := $(CROSSCOMPILE)gcc
 LD := $(CROSSCOMPILE)ld
@@ -25,10 +25,11 @@ OBJS := main.o \
 		format/jpeg.o \
 		page/page_manager.o \
 		page/main_page.o \
+		page/auto_page.o \
 		memwatch.o
 
 all: $(OBJS)
-	$(CC) $(LDFLAGS) -o show_pic $^
+	$(CC) -o show_pic $^ $(LDFLAGS)
 
 clean:
 	rm -f show_file

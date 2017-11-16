@@ -20,6 +20,7 @@ typedef struct Format_Operation
 } T_Format_Opr, *PT_Format_Opr;
 
 int BMP_Format_Init(void);
+int JPEG_Format_Init(void);
 
 extern int Format_Opr_Regisiter(PT_Format_Opr ptFormatOpr);
 extern void Show_Format_Opr(void);
