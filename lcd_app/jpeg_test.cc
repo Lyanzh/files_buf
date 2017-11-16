@@ -107,15 +107,19 @@ void Fb_Lcd_Show_Line(int iStartX, int iEndX, int iY, char *pcData)
 	int j = iStartX * 3;
 	unsigned int color;
 
-	unsigned int red, green, blue;
+	unsigned int red = 0;
+	unsigned int green = 0;
+	unsigned int blue = 0;
 
 	//printf("pcData = %x\n", pcData[0]);
 
 	for (i = iStartX, j = 0; i < iEndX; i++) {
+	#if 1
 		red = pcData[j];
 		green = pcData[j+1];
 		blue = pcData[j+2];
-		color = ((red << 16) | (green << 8) | blue);
+	#endif
+		color = ((1 << 24) | (red << 16) | (green << 8) | (blue << 0));
 		//printf("color = %x\n", color);
 		j += 3;
 		Fb_Lcd_Put_Pixel(i, iY, color);

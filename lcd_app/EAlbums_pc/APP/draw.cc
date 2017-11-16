@@ -16,21 +16,21 @@ void Fb_Lcd_Show_Pic(int iX, int iY, PT_PicRegion ptPicReg)
 	int y;
 	int iLine;
 	int iWhich;
-	int byte;
+	int iByte;
 	unsigned int color;
 	unsigned int red, green, blue, alph;
 
-	byte = ptPicReg->wBpp / 8;
+	iByte = ptPicReg->wBpp / 8;
 
 	for (y = 0; y < ptPicReg->dwHeight; y++) {
-		iLine = ptPicReg->dwWidth * byte * y;
+		iLine = ptPicReg->dwWidth * iByte * y;
 		for (x = 0; x < ptPicReg->dwWidth; x++) {
-			iWhich = iLine + x * byte;
+			iWhich = iLine + x * iByte;
 			red   = ptPicReg->pcData[iWhich];
 			green = ptPicReg->pcData[iWhich+1];
 			blue  = ptPicReg->pcData[iWhich+2];
-			alph  = 0;
-			color = ((red << 24) | (green << 16) | (blue << 8) | alph);
+			alph  = 1;
+			color = ((alph << 24) | (red << 16) | (green << 8) | (blue << 0));
 			g_ptDispOprSelected->Put_Pixel((iX + x), (iY + y), color);
 		}
 	}
@@ -40,6 +40,11 @@ void Pic_Zoom(PT_PicRegion ptDstPicReg, PT_PicRegion ptSrcPicReg)
 {
 	unsigned long dwIndexX;
 	unsigned long dwIndexY;
+
+	int i;
+
+	unsigned short wSrcBppByte;
+	unsigned short wDstBppByte;
 
 	unsigned long dwSrcLineByteCnt;
 	unsigned long dwDstLineByteCnt;
@@ -83,8 +88,13 @@ void Pic_Zoom(PT_PicRegion ptDstPicReg, PT_PicRegion ptSrcPicReg)
 	printf("dst Picture height in pixel = %ld\n", ptDstPicReg->dwHeight);
 	printf("dst Bit per pixel           = %d\n", ptDstPicReg->wBpp);
 
-	dwSrcLineByteCnt = ptSrcPicReg->dwWidth * ptSrcPicReg->wBpp / 8;
-	dwDstLineByteCnt = ptDstPicReg->dwWidth * ptDstPicReg->wBpp / 8;
+	wSrcBppByte = ptSrcPicReg->wBpp / 8;
+	wDstBppByte = ptDstPicReg->wBpp / 8;
+
+	dwSrcLineByteCnt = ptSrcPicReg->dwWidth * wSrcBppByte;
+	dwDstLineByteCnt = ptDstPicReg->dwWidth * wDstBppByte;
+
+	printf("dwDstLineByteCnt = %ld\n", dwDstLineByteCnt);
 	
 	pdwSrcTableX = (unsigned long *)malloc(sizeof(unsigned long) * ptDstPicReg->dwWidth);
 	for (dwIndexX = 0; dwIndexX < ptDstPicReg->dwWidth; dwIndexX++)/* 生成表，表中存有需要在原图像取的点的x坐标 */
@@ -93,6 +103,10 @@ void Pic_Zoom(PT_PicRegion ptDstPicReg, PT_PicRegion ptSrcPicReg)
 	}
 
 	ptDstPicReg->pcData = (char *)malloc(dwDstLineByteCnt * ptDstPicReg->dwHeight);
+	if (ptDstPicReg->pcData == NULL) {
+		printf("Error:malloc ptDstPicReg->pcData error\n");
+		return;
+	}
 
 	pcDstLineData = ptDstPicReg->pcData;
 	for (dwIndexY = 0; dwIndexY < ptDstPicReg->dwHeight; dwIndexY++)
@@ -102,7 +116,9 @@ void Pic_Zoom(PT_PicRegion ptDstPicReg, PT_PicRegion ptSrcPicReg)
 		pcSrcLineData = ptSrcPicReg->pcData + dwSrcLineByteCnt * dwSrcY;
 
 		for (dwIndexX = 0; dwIndexX < ptDstPicReg->dwWidth; dwIndexX++) {
-			pcDstLineData[dwIndexX] = pcSrcLineData[pdwSrcTableX[dwIndexX]];
+			for (i = 0; i < wSrcBppByte; i++) {
+				pcDstLineData[dwIndexX * wDstBppByte + i] = pcSrcLineData[pdwSrcTableX[dwIndexX] * wSrcBppByte  + i];
+			}
 		}
         
 		pcDstLineData += dwDstLineByteCnt;

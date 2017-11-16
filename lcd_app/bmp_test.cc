@@ -344,7 +344,9 @@ void Pic_Zoom(PT_PicRegion ptDstPicReg, PT_PicRegion ptSrcPicReg)
 		pcSrcLineData = ptSrcPicReg->pcData + dwSrcLineByteCnt * dwSrcY;
 
 		for (dwIndexX = 0; dwIndexX < ptDstPicReg->dwWidth; dwIndexX++) {
-			pcDstLineData[dwIndexX] = pcSrcLineData[pdwSrcTableX[dwIndexX]];
+			pcDstLineData[dwIndexX * 3] = pcSrcLineData[pdwSrcTableX[dwIndexX] * 3];
+			pcDstLineData[dwIndexX * 3 + 1] = pcSrcLineData[pdwSrcTableX[dwIndexX] * 3 + 1];
+			pcDstLineData[dwIndexX * 3 + 2] = pcSrcLineData[pdwSrcTableX[dwIndexX] * 3 + 2];
 		}
         
 		pcDstLineData += dwDstLineByteCnt;
@@ -363,12 +365,12 @@ T_PicRegion g_tSrcPicReg;
 
 int main(int argc, char **argv)
 {
+	int i, j, iLine;
+	int iWhich;
+	unsigned int color;
+	unsigned int red, green, blue, alph;
 	Fb_Init();
 	Fb_Clean();
-	
-	printf("size of g_ptBitmapFileHead = %ld\n", sizeof(T_Bitmap_File_Head));
-	printf("size of unsigned short = %ld\n", sizeof(unsigned short));
-	printf("size of unsigned long = %ld\n", sizeof(unsigned long));
 
 	if (BMP_Get_Data(argv[1], &g_tSrcPicReg)) {
 		printf("Error:can not get bitmap\n");
@@ -378,15 +380,47 @@ int main(int argc, char **argv)
 	Fb_Lcd_Show_Pic(0, 0, &g_tSrcPicReg);
 
 	g_tDstPicReg.wBpp = 24;
-	g_tDstPicReg.dwWidth = g_tSrcPicReg.dwWidth * 2;
-	g_tDstPicReg.dwHeight= g_tSrcPicReg.dwHeight * 2;
+	g_tDstPicReg.dwWidth = g_tSrcPicReg.dwWidth;
+	g_tDstPicReg.dwHeight= g_tSrcPicReg.dwHeight;
 
 	Pic_Zoom(&g_tDstPicReg, &g_tSrcPicReg);
 
 	Fb_Lcd_Show_Pic(200, 200, &g_tDstPicReg);
+
+#if 0
+	for (j = 0; j < g_tSrcPicReg.dwHeight; j++){
+		iLine = g_tSrcPicReg.dwWidth * 3 * j;
+		for (i = 0; i < g_tSrcPicReg.dwWidth; i++) {
+			iWhich = iLine + i * 3;
+			red   = g_tSrcPicReg.pcData[iWhich];
+			green = g_tSrcPicReg.pcData[iWhich+1];
+			blue  = g_tSrcPicReg.pcData[iWhich+2];
+			alph  = 0;
+			color = ((red << 24) | (green << 16) | (blue << 8) | alph);
+			printf("0x%8x ", color);
+		}
+		printf("\n");
+	}
 	
-	free(g_tSrcPicReg.pcData);
-	free(g_tDstPicReg.pcData);
+	printf("\n\n\n\n");
+	
+	for (j = 0; j < g_tDstPicReg.dwHeight; j++){
+		iLine = g_tDstPicReg.dwWidth * 3 * j;
+		for (i = 0; i < g_tDstPicReg.dwWidth; i++) {
+			iWhich = iLine + i * 3;
+			red   = g_tDstPicReg.pcData[iWhich];
+			green = g_tDstPicReg.pcData[iWhich+1];
+			blue  = g_tDstPicReg.pcData[iWhich+2];
+			alph  = 0;
+			color = ((red << 24) | (green << 16) | (blue << 8) | alph);
+			printf("0x%8x ", color);
+		}
+		printf("\n");
+	}
+#endif
+	
+	//free(g_tSrcPicReg.pcData);
+	//free(g_tDstPicReg.pcData);
 	return 0;
 }
 

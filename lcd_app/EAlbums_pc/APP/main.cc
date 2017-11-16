@@ -51,8 +51,8 @@ int main(int argc, char **argv)
 
 	//Fb_Lcd_Show_Pic(0, 0, &tPicReg);
 
-	Get_Page_Opr("autopage")->Prepare();
-	Get_Page_Opr("autopage")->Run();
+	Get_Page_Opr("mainpage")->Prepare();
+	Get_Page_Opr("mainpage")->Run();
 
 	while (1) {
 	#if 0
@@ -70,7 +70,7 @@ int main(int argc, char **argv)
 		}
 	#endif
 
-		Get_Page_Opr("autopage")->Get_Input_Event();
+		Get_Page_Opr("mainpage")->Get_Input_Event();
 	}
 
 	return 0;
