@@ -26,6 +26,7 @@ OBJS := main.o \
 		page/page_manager.o \
 		page/main_page.o \
 		page/auto_page.o \
+		page/browse_page.o \
 		memwatch.o
 
 all: $(OBJS)

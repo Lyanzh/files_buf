@@ -64,6 +64,11 @@ int Page_Opr_Init(void)
 	if (0 == iRet) {
 		iErr = 0;
 	}
+
+	iRet = Browse_Page_Init();
+	if (0 == iRet) {
+		iErr = 0;
+	}
 	return iErr;
 }
 

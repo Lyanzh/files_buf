@@ -17,6 +17,7 @@ typedef struct Page_Operation
 
 int Main_Page_Init(void);
 int Auto_Page_Init(void);
+int Browse_Page_Init(void);
 
 extern int Page_Opr_Regisiter(PT_Page_Opr ptPageOpr);
 extern void Show_Page_Opr(void);
