@@ -26,34 +26,39 @@ static PT_FbDev g_ptFbDev;
 
 static void Fb_Lcd_Put_Pixel(int x, int y, unsigned int color)
 {
-	unsigned char *pen_8 = (unsigned char *)(g_ptFbDev->pFbMem + g_ptFbDev->dwLineSize * y + g_ptFbDev->dwPixelSize * x);
+	unsigned char *pen_8;
 	unsigned short *pen_16;
 	unsigned int *pen_32;
-	
-	pen_16 = (unsigned short *)pen_8;
-	pen_32 = (unsigned int *)pen_8;
-	
-	unsigned int red, green, blue;
-	
-	switch(g_ptFbDev->tFbVarInfo.bits_per_pixel)
-	{
-	case 8:
-		*pen_8 = color;
-		break;
-	case 16:
-		/* RGB565 */
-		red = (color >> 16) & 0xff;
-		green = (color >> 8) & 0xff;
-		blue = (color >> 0) & 0xff;
-		color = ((red >> 3) << 11) | ((green >> 2) << 5) | ((blue >> 3));
-		*pen_16 = color;
-		break;
-	case 32:
-		*pen_32 = color;
-		break;
-	default:
-		printf("cannot surport %dbpp\n", g_ptFbDev->tFbVarInfo.bits_per_pixel);
-		break;
+
+	if (x < g_ptFbDev->tFbVarInfo.xres && y < g_ptFbDev->tFbVarInfo.yres) {
+		pen_8 = (unsigned char *)(g_ptFbDev->pFbMem
+				+ g_ptFbDev->dwLineSize * y + g_ptFbDev->dwPixelSize * x);
+		
+		pen_16 = (unsigned short *)pen_8;
+		pen_32 = (unsigned int *)pen_8;
+		
+		unsigned int red, green, blue;
+		
+		switch(g_ptFbDev->tFbVarInfo.bits_per_pixel)
+		{
+		case 8:
+			*pen_8 = color;
+			break;
+		case 16:
+			/* RGB565 */
+			red = (color >> 16) & 0xff;
+			green = (color >> 8) & 0xff;
+			blue = (color >> 0) & 0xff;
+			color = ((red >> 3) << 11) | ((green >> 2) << 5) | ((blue >> 3));
+			*pen_16 = color;
+			break;
+		case 32:
+			*pen_32 = color;
+			break;
+		default:
+			printf("cannot surport %dbpp\n", g_ptFbDev->tFbVarInfo.bits_per_pixel);
+			break;
+		}
 	}
 }
 

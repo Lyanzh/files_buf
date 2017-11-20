@@ -20,6 +20,9 @@ void Fb_Lcd_Show_Pic(int iX, int iY, PT_PicRegion ptPicReg)
 	unsigned int color;
 	unsigned int red, green, blue, alph;
 
+	/* clean the area of pic show */
+	
+
 	iByte = ptPicReg->wBpp / 8;
 
 	for (y = 0; y < ptPicReg->dwHeight; y++) {
@@ -36,7 +39,7 @@ void Fb_Lcd_Show_Pic(int iX, int iY, PT_PicRegion ptPicReg)
 	}
 }
 
-void Pic_Zoom(PT_PicRegion ptDstPicReg, PT_PicRegion ptSrcPicReg)
+void Pic_Zoom(PT_PicRegion ptDstPicReg, PT_PicRegion ptSrcPicReg, float fFactor)
 {
 	unsigned long dwIndexX;
 	unsigned long dwIndexY;
@@ -59,6 +62,7 @@ void Pic_Zoom(PT_PicRegion ptDstPicReg, PT_PicRegion ptSrcPicReg)
 		return;
 	}
 
+#if 0
 	if ((0 == ptDstPicReg->dwWidth) || (0 == ptDstPicReg->dwHeight)) {
 		ptDstPicReg->dwWidth = ptSrcPicReg->dwWidth * DEFAULT_ZOOM_FACTOR;
 		ptDstPicReg->dwHeight = ptSrcPicReg->dwHeight * DEFAULT_ZOOM_FACTOR;
@@ -67,6 +71,10 @@ void Pic_Zoom(PT_PicRegion ptDstPicReg, PT_PicRegion ptSrcPicReg)
 	if (ptDstPicReg->wBpp == 0) {
 		ptDstPicReg->wBpp = ptSrcPicReg->wBpp;
 	}
+#endif
+	ptDstPicReg->dwWidth = ptSrcPicReg->dwWidth * fFactor;
+	ptDstPicReg->dwHeight = ptSrcPicReg->dwHeight * fFactor;
+	ptDstPicReg->wBpp = ptSrcPicReg->wBpp;
 
 #if 0
 	if ((0 == ptDstPicReg->dwWidth) || (0 == ptDstPicReg->dwHeight) ||
@@ -81,20 +89,22 @@ void Pic_Zoom(PT_PicRegion ptDstPicReg, PT_PicRegion ptSrcPicReg)
 		return;
 	}
 
+#if 0
 	printf("src Picture width in pixel  = %ld\n", ptSrcPicReg->dwWidth);
 	printf("src Picture height in pixel = %ld\n", ptSrcPicReg->dwHeight);
 	printf("src Bit per pixel           = %d\n", ptSrcPicReg->wBpp);
 	printf("dst Picture width in pixel  = %ld\n", ptDstPicReg->dwWidth);
 	printf("dst Picture height in pixel = %ld\n", ptDstPicReg->dwHeight);
 	printf("dst Bit per pixel           = %d\n", ptDstPicReg->wBpp);
-
+#endif
+	
 	wSrcBppByte = ptSrcPicReg->wBpp / 8;
 	wDstBppByte = ptDstPicReg->wBpp / 8;
 
 	dwSrcLineByteCnt = ptSrcPicReg->dwWidth * wSrcBppByte;
 	dwDstLineByteCnt = ptDstPicReg->dwWidth * wDstBppByte;
 
-	printf("dwDstLineByteCnt = %ld\n", dwDstLineByteCnt);
+	//printf("dwDstLineByteCnt = %ld\n", dwDstLineByteCnt);
 	
 	pdwSrcTableX = (unsigned long *)malloc(sizeof(unsigned long) * ptDstPicReg->dwWidth);
 	for (dwIndexX = 0; dwIndexX < ptDstPicReg->dwWidth; dwIndexX++)/* 生成表，表中存有需要在原图像取的点的x坐标 */

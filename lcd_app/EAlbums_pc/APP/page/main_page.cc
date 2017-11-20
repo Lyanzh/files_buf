@@ -20,25 +20,24 @@ T_PicRegion tSettingDst;
 
 static void Main_Page_Prepare(void)
 {
-	//Pic_Zoom(PT_PicRegion ptDstPicReg, PT_PicRegion ptSrcPicReg);
 }
 
 static void Main_Page_Run(void)
 {
 	Get_Format_Opr("bmp")->Get_Pic_Region("icon/browse_mode.bmp", &tBrowseModeSrc);
-	Pic_Zoom(&tBrowseModeDst, &tBrowseModeSrc);
+	Pic_Zoom(&tBrowseModeDst, &tBrowseModeSrc, 0.5);
 	Fb_Lcd_Show_Pic(BROWSEMODE_X(tBrowseModeDst.dwWidth), BROWSEMODE_Y(tBrowseModeDst.dwHeight), &tBrowseModeDst);
 	//free(tBrowseModeSrc.pcData);
 	//free(tBrowseModeDst.pcData);
 	
 	Get_Format_Opr("bmp")->Get_Pic_Region("icon/continue_mode.bmp", &tContinueModeSrc);
-	Pic_Zoom(&tContinueModeDst, &tContinueModeSrc);
+	Pic_Zoom(&tContinueModeDst, &tContinueModeSrc, 0.5);
 	Fb_Lcd_Show_Pic(CONTINUEMODE_X(tContinueModeDst.dwWidth), CONTINUEMODE_Y(tContinueModeDst.dwHeight), &tContinueModeDst);
 	//free(tContinueModeSrc.pcData);
 	//free(tContinueModeDst.pcData);
 	
 	Get_Format_Opr("bmp")->Get_Pic_Region("icon/setting.bmp", &tSettingSrc);
-	Pic_Zoom(&tSettingDst, &tSettingSrc);
+	Pic_Zoom(&tSettingDst, &tSettingSrc, 0.5);
 	Fb_Lcd_Show_Pic(SETTINGMODE_X(tSettingDst.dwWidth), SETTINGMODE_Y(tSettingDst.dwHeight), &tSettingDst);
 	//free(tSettingSrc.pcData);
 	//free(tSettingDst.pcData);

@@ -93,9 +93,9 @@ int JPEG_Get_Pic_Region(char *pcFilePath, PT_PicRegion ptPicReg)
 	* See libjpeg.txt for more info.
 	*/
 
-	printf("image_width = %d\n", cinfo.image_width);
-	printf("image_height = %d\n", cinfo.image_height);
-	printf("num_components = %d\n", cinfo.num_components);
+	//printf("image_width = %d\n", cinfo.image_width);
+	//printf("image_height = %d\n", cinfo.image_height);
+	//printf("num_components = %d\n", cinfo.num_components);
 
 	/* Step 4: set parameters for decompression */
 
@@ -110,9 +110,9 @@ int JPEG_Get_Pic_Region(char *pcFilePath, PT_PicRegion ptPicReg)
 	* with the stdio data source.
 	*/
 
-	printf("output_width = %d\n", cinfo.output_width);
-	printf("output_height = %d\n", cinfo.output_height);
-	printf("output_components = %d\n", cinfo.output_components);
+	//printf("output_width = %d\n", cinfo.output_width);
+	//printf("output_height = %d\n", cinfo.output_height);
+	//printf("output_components = %d\n", cinfo.output_components);
 
 	ptPicReg->dwHeight = cinfo.output_height;
 	ptPicReg->dwWidth = cinfo.output_width;
@@ -143,8 +143,8 @@ int JPEG_Get_Pic_Region(char *pcFilePath, PT_PicRegion ptPicReg)
 	/* Here we use the library's state variable cinfo.output_scanline as the
 	* loop counter, so that we don't have to keep track ourselves.
 	*/
-	printf("output_scanline = %d\n", cinfo.output_scanline);
-	printf("output_height = %d\n", cinfo.output_height);
+	//printf("output_scanline = %d\n", cinfo.output_scanline);
+	//printf("output_height = %d\n", cinfo.output_height);
 	pcPicRegData = ptPicReg->pcData;
 	while (cinfo.output_scanline < cinfo.output_height) {
 		/* jpeg_read_scanlines expects an array of pointers to scanlines.

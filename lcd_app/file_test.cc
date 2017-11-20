@@ -10,7 +10,7 @@
 typedef struct File_Node
 {
 	char *pcName;
-	File_Node *pNext;
+	struct File_Node *pNext;
 } T_FileNode, *PT_FileNode;
 
 typedef PT_FileNode PT_FileList;

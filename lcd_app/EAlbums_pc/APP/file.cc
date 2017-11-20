@@ -6,9 +6,9 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 
-PT_FileList pt_FileListHead;
+PT_FileList g_ptFileListHead;
 
-void File_List_Add(char *pcFileName)
+void File_List_Add(char *pcFileName)//双向循环链表
 {
 	PT_FileNode pt_File;
 	PT_FileNode pt_FileTmp;
@@ -16,29 +16,33 @@ void File_List_Add(char *pcFileName)
 	pt_File = (PT_FileNode)malloc(sizeof(T_FileNode));
 	pt_File->pcName = (char *)malloc(strlen(pcFileName) + 1);
 	memcpy(pt_File->pcName, pcFileName, (strlen(pcFileName) + 1));
+
+	pt_File->ptPre = pt_File;
+	pt_File->ptNext = pt_File;
 	
-	if (!pt_FileListHead) {
-		pt_FileListHead = pt_File;
+	if (!g_ptFileListHead) {
+		g_ptFileListHead = pt_File;
 	} else {
-		pt_FileTmp = pt_FileListHead;
-		while (pt_FileTmp->pNext) {
-			pt_FileTmp = pt_FileTmp->pNext;
-		}
-		pt_FileTmp->pNext = pt_File;
-		pt_File->pNext = NULL;
+		pt_FileTmp = g_ptFileListHead->ptPre;/* 取出尾部 */
+		/* 从尾部加入 */
+		pt_FileTmp->ptNext->ptPre = pt_File;
+		pt_File->ptNext = pt_FileTmp->ptNext;
+		pt_FileTmp->ptNext = pt_File;
+		pt_File->ptPre = pt_FileTmp;
 	}
 }
 
 void Show_File_List(void)
 {
 	PT_FileNode pt_FileTmp;
-	pt_FileTmp = pt_FileListHead;
+	pt_FileTmp = g_ptFileListHead;
 	if (!pt_FileTmp) {
 		return;
 	} else {
-		while (pt_FileTmp) {
-			printf("d_name:%s\n", pt_FileTmp->pcName);
-			pt_FileTmp = pt_FileTmp->pNext;
+		printf("file_name:%s\n", pt_FileTmp->pcName);
+		while (pt_FileTmp->ptNext != g_ptFileListHead) {
+			pt_FileTmp = pt_FileTmp->ptNext;
+			printf("file_name:%s\n", pt_FileTmp->pcName);
 		}
 	}
 }
@@ -81,43 +85,51 @@ struct stat {
 
 int Read_File_List(char *pcBasePath)
 {
-    DIR *dir;
-    struct dirent *ptr;
+    DIR *pDir;
+    struct dirent *ptPtr;
+    char *pcStr;
+    int iSrcStrLen;
 
-    //struct stat fizestat;
+    //struct stat tFizeStat;
 
-    if ((dir = opendir(pcBasePath)) == NULL) {
-        perror("Error:open dir %s error", pcBasePath);
+    if ((pDir = opendir(pcBasePath)) == NULL) {
+        printf("Error:open dir %s error", pcBasePath);
         exit(1);
     }
 
-    printf("Path:%s\n", pcBasePath);
-
-    while ((ptr = readdir(dir)) != NULL) {
+    while ((ptPtr = readdir(pDir)) != NULL) {
     #if 0
-        if(strcmp(ptr->d_name, ".") == 0 || strcmp(ptr->d_name, "..") == 0)	{	//current dir OR parrent dir
+        if(strcmp(ptPtr->d_name, ".") == 0 || strcmp(ptPtr->d_name, "..") == 0)	{	//current dir OR parrent dir
             continue;
-        } else if(ptr->d_type == 8) {	//file
+        } else if(ptPtr->d_type == 8) {	//file
             //printf("d_name:%s/%s\n", basePath, ptr->d_name);
-            stat(ptr->d_name, &fizestat);
-            File_List_Add(ptr->d_name);
-        } else if(ptr->d_type == 10) {	//link file
-            printf("d_name:%s/%s\n", basePath, ptr->d_name);
-        } else if(ptr->d_type == 4) {	//dir
+            stat(ptPtr->d_name, &tFizeStat);
+            File_List_Add(ptPtr->d_name);
+        } else if(ptPtr->d_type == 10) {	//link file
+            printf("d_name:%s/%s\n", pcBasePath, ptPtr->d_name);
+        } else if(ptPtr->d_type == 4) {	//dir
             memset(base, '\0', sizeof(base));
-            strcpy(base, basePath);
+            strcpy(base, pcBasePath);
             strcat(base, "/");
-            strcat(base, ptr->d_name);
+            strcat(base, ptPtr->d_name);
             //readFileList(base);
         }
 	#endif
-		if(ptr->d_type == 8) {	//file
-            //printf("d_name:%s/%s\n", basePath, ptr->d_name);
-            //stat(ptr->d_name, &fizestat);
-            File_List_Add(ptr->d_name);
+		if(ptPtr->d_type == 8) {	//file
+            //printf("d_name:%s/%s\n", pcBasePath, ptPtr->d_name);
+            //stat(ptPtr->d_name, &tFizeStat);
+            iSrcStrLen = strlen(ptPtr->d_name);
+            if (iSrcStrLen <= 4) {
+            	continue;
+            }
+            pcStr = ptPtr->d_name + iSrcStrLen - 4;
+            if (strcmp(pcStr, ".jpg") == 0 || strcmp(pcStr, ".JPG") == 0) {
+            	printf("jpg : %s\n", ptPtr->d_name);
+            	File_List_Add(ptPtr->d_name);
+            }
         }
     }
-    closedir(dir);
+    closedir(pDir);
     return 1;
 }
 

@@ -5,6 +5,7 @@
 #include "format_manager.h"
 #include "input_manager.h"
 #include "draw.h"
+#include "file.h"
 
 typedef struct Page_Operation
 {

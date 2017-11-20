@@ -7,13 +7,12 @@ T_PicRegion tPicRegSrc;
 
 static void Auto_Page_Prepare(void)
 {
-	//Pic_Zoom(PT_PicRegion ptDstPicReg, PT_PicRegion ptSrcPicReg);
 }
 
 static void Auto_Page_Run(void)
 {
 	Get_Format_Opr("jpeg")->Get_Pic_Region("1.jpg", &tPicRegSrc);
-	//Pic_Zoom(&tPicRegDst, &tPicRegSrc);
+	//Pic_Zoom(&tPicRegDst, &tPicRegSrc, 1);
 	Fb_Lcd_Show_Pic(0, 0, &tPicRegSrc);
 	//free(tBrowseModeSrc.pcData);
 	//free(tBrowseModeDst.pcData);

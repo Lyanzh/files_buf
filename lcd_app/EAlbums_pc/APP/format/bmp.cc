@@ -81,14 +81,14 @@ static int BMP_Get_Pic_Region(char *pcFilePath, PT_PicRegion ptPicReg)
 	}
 
 	ptBitmapFileHead = (PT_Bitmap_File_Head)pcFileData;
-	printf("File Type       = %x\n", ptBitmapFileHead->wFileType);
-	printf("File total Size = %ld\n", ptBitmapFileHead->dwFilefSize);
+	//printf("File Type       = %x\n", ptBitmapFileHead->wFileType);
+	//printf("File total Size = %ld\n", ptBitmapFileHead->dwFilefSize);
 	
 	ptBitmapInfo = (PT_Bitmap_Info)(pcFileData+sizeof(T_Bitmap_File_Head));
-	printf("Info Header Size        = %ld\n", ptBitmapInfo->dwSize);
-	printf("Picture width in pixel  = %ld\n", ptBitmapInfo->dwWidth);
-	printf("Picture height in pixel = %ld\n", ptBitmapInfo->lHeight);
-	printf("Bit per pixel           = %d\n", ptBitmapInfo->wBitCount);
+	//printf("Info Header Size        = %ld\n", ptBitmapInfo->dwSize);
+	//printf("Picture width in pixel  = %ld\n", ptBitmapInfo->dwWidth);
+	//printf("Picture height in pixel = %ld\n", ptBitmapInfo->lHeight);
+	//printf("Bit per pixel           = %d\n", ptBitmapInfo->wBitCount);
 
 	dwBitmapHeight = abs(ptBitmapInfo->lHeight);
 
@@ -107,10 +107,8 @@ static int BMP_Get_Pic_Region(char *pcFilePath, PT_PicRegion ptPicReg)
 	/* 这样，文件的位图数据区的大小为 */
 	iImageDataSize = iFileLineByteCnt * dwBitmapHeight;
 	
-	printf("Line Count in Byte      = %d\n", iFileLineByteCnt);
-	printf("Image Data Size in Byte = %d\n", iImageDataSize);
-
-	//ptPicReg->dwLineByteCnt = iFileLineByteCnt;
+	//printf("Line Count in Byte      = %d\n", iFileLineByteCnt);
+	//printf("Image Data Size in Byte = %d\n", iImageDataSize);
 
 	/* 实际每行位图有效的字节数 */
 	iBitmapLineByteCnt = ptPicReg->dwWidth * ptPicReg->wBpp / 8;

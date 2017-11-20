@@ -14,6 +14,7 @@ LD := $(CROSSCOMPILE)ld
 
 OBJS := main.o \
 		draw.o \
+		file.o \
 		display/disp_manager.o \
 		display/fb_lcd.o \
 		display/fb_pc.o \

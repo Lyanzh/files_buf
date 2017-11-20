@@ -6,9 +6,15 @@
 typedef struct File_Node
 {
 	char *pcName;
-	File_Node *pNext;
+	struct File_Node *ptPre;
+	struct File_Node *ptNext;
 } T_FileNode, *PT_FileNode;
 
 typedef PT_FileNode PT_FileList;
+
+extern PT_FileList g_ptFileListHead;
+
+extern int Read_File_List(char *pcBasePath);
+extern void Show_File_List(void);
 
 #endif /* _FILE_H */
