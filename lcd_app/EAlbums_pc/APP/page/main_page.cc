@@ -2,21 +2,18 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#define BROWSEMODE_X(w)	((Selected_Display()->tDevAttr.dwXres - w) / 2)
-#define BROWSEMODE_Y(h)	((Selected_Display()->tDevAttr.dwYres - h) / 3)
+#define ICON_X(w, t, i)	((Selected_Display()->tDevAttr.dwXres - w) / 2)
+#define ICON_Y(h, t, i)	((Selected_Display()->tDevAttr.dwYres - h * t) / (t + 1) * (i + 1) + (h * i))
 
-#define CONTINUEMODE_X(w)	((Selected_Display()->tDevAttr.dwXres - w) / 2)
-#define CONTINUEMODE_Y(h)	((Selected_Display()->tDevAttr.dwYres - h) / 2)
+static T_IconInfo t_MainPageIcon[] = 
+{
+	{"icon/browse_mode.bmp", 0, 0, 0, 0},
+	{"icon/continue_mode.bmp", 0, 0, 0, 0},
+	{"icon/setting.bmp", 0, 0, 0, 0},
+};
 
-#define SETTINGMODE_X(w)	((Selected_Display()->tDevAttr.dwXres - w) / 2)
-#define SETTINGMODE_Y(h)	((Selected_Display()->tDevAttr.dwYres - h) / 3 * 2)
-
-T_PicRegion tBrowseModeSrc;
-T_PicRegion tContinueModeSrc;
-T_PicRegion tSettingSrc;
-T_PicRegion tBrowseModeDst;
-T_PicRegion tContinueModeDst;
-T_PicRegion tSettingDst;
+static T_PicRegion tPicRegSrc;
+static T_PicRegion tPicRegDst;
 
 static void Main_Page_Prepare(void)
 {
@@ -24,23 +21,21 @@ static void Main_Page_Prepare(void)
 
 static void Main_Page_Run(void)
 {
-	Get_Format_Opr("bmp")->Get_Pic_Region("icon/browse_mode.bmp", &tBrowseModeSrc);
-	Pic_Zoom(&tBrowseModeDst, &tBrowseModeSrc, 0.5);
-	Fb_Lcd_Show_Pic(BROWSEMODE_X(tBrowseModeDst.dwWidth), BROWSEMODE_Y(tBrowseModeDst.dwHeight), &tBrowseModeDst);
-	//free(tBrowseModeSrc.pcData);
-	//free(tBrowseModeDst.pcData);
-	
-	Get_Format_Opr("bmp")->Get_Pic_Region("icon/continue_mode.bmp", &tContinueModeSrc);
-	Pic_Zoom(&tContinueModeDst, &tContinueModeSrc, 0.5);
-	Fb_Lcd_Show_Pic(CONTINUEMODE_X(tContinueModeDst.dwWidth), CONTINUEMODE_Y(tContinueModeDst.dwHeight), &tContinueModeDst);
-	//free(tContinueModeSrc.pcData);
-	//free(tContinueModeDst.pcData);
-	
-	Get_Format_Opr("bmp")->Get_Pic_Region("icon/setting.bmp", &tSettingSrc);
-	Pic_Zoom(&tSettingDst, &tSettingSrc, 0.5);
-	Fb_Lcd_Show_Pic(SETTINGMODE_X(tSettingDst.dwWidth), SETTINGMODE_Y(tSettingDst.dwHeight), &tSettingDst);
-	//free(tSettingSrc.pcData);
-	//free(tSettingDst.pcData);
+	int i;
+	int iIconNum;
+
+	iIconNum = sizeof(t_MainPageIcon) / sizeof(T_IconInfo);
+	for (i = 0; i < iIconNum; i++) {
+		Get_Format_Opr("bmp")->Get_Pic_Region(t_MainPageIcon[i].pcName, &tPicRegSrc);
+		tPicRegDst.dwWidth = Selected_Display()->tDevAttr.dwXres / 5;
+		tPicRegDst.dwHeight = tPicRegDst.dwWidth / 2;
+		t_MainPageIcon[i].iTopLeftX = ICON_X(tPicRegDst.dwWidth, iIconNum, i);
+		t_MainPageIcon[i].iTopLeftY = ICON_Y(tPicRegDst.dwHeight, iIconNum, i);
+		t_MainPageIcon[i].iBottomRightX = t_MainPageIcon[i].iTopLeftX + tPicRegDst.dwWidth;
+		t_MainPageIcon[i].iBottomRightY = t_MainPageIcon[i].iTopLeftY + tPicRegDst.dwHeight;
+		Pic_Zoom(&tPicRegDst, &tPicRegSrc, 0);
+		Fb_Lcd_Show_Pic(t_MainPageIcon[i].iTopLeftX, t_MainPageIcon[i].iTopLeftY, &tPicRegDst);
+	}
 }
 
 static void Main_Page_Get_Input_Event(void)

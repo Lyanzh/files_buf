@@ -5,52 +5,40 @@
 #include <unistd.h>
 #include <pthread.h>
 
-#define ZOOMOUT_X(w)				(0)
-#define ZOOMOUT_Y(h)				(0)
+#define ICON_X(w, t, i)	(w * i)
+#define ICON_Y(h, t, i)	(0)
 
-#define ZOOMIN_X(w)					(1 * w)
-#define ZOOMIN_Y(h)					(0)
-
-#define CONTINUE_MODE_SMALL_X(w)	(2 * w)
-#define CONTINUE_MODE_SMALL_Y(h)	(0)
-
-#define PRE_PIC_X(w)				(3 * w)
-#define PRE_PIC_Y(h)				(0)
-
-#define NEXT_PIC_X(w)				(4 * w)
-#define NEXT_PIC_Y(h)				(0)
-
-T_IconInfo t_BrowsePageIcon[] = 
+static T_IconInfo t_BrowsePageIcon[] = 
 {
-	{"icon/zoomout.bmp", 0, 0},
-	{"icon/zoomin.bmp", 0, 0},
-	{"icon/continue_mode_small.bmp", 0, 0},
-	{"icon/pre_pic.bmp", 0, 0},
-	{"icon/next_pic.bmp", 0, 0},
+	{"icon/zoomout.bmp", 0, 0, 0, 0},
+	{"icon/zoomin.bmp", 0, 0, 0, 0},
+	{"icon/continue_mode_small.bmp", 0, 0, 0, 0},
+	{"icon/pre_pic.bmp", 0, 0, 0, 0},
+	{"icon/next_pic.bmp", 0, 0, 0, 0},
 };
 
-T_PicRegion tPicRegSrc;
-T_PicRegion tPicRegDst;
+static T_PicRegion tPicRegSrc;
+static T_PicRegion tPicRegDst;
 
-int g_iPicY;
+static int g_iPicY;
 
 static pthread_mutex_t g_tShowMutex;
 static pthread_cond_t g_tShowCond;
 
-PT_FileList g_ptFileListCurShow;
-float g_fZoomFactor;
+static PT_FileList g_ptFileListCurShow;
+static float g_fZoomFactor;
 
 static void Browse_Page_Prepare(void)
 {
-	char basePath[100];
+	char acBasePath[100];
 
 	//get the current absoulte path
-	memset(basePath, '\0', sizeof(basePath));
-	getcwd(basePath, 99);
-	printf("the current dir is : %s\n", basePath);
+	memset(acBasePath, '\0', sizeof(acBasePath));
+	getcwd(acBasePath, 99);
+	printf("the current dir is : %s\n", acBasePath);
 
 	//get the file list
-	Read_File_List(basePath);
+	Read_File_List(acBasePath);
 
 	Show_File_List();
 
@@ -91,8 +79,16 @@ static void Browse_Page_Run(void)
 	iIconNum = sizeof(t_BrowsePageIcon) / sizeof(T_IconInfo);
 	for (i = 0; i < iIconNum; i++) {
 		Get_Format_Opr("bmp")->Get_Pic_Region(t_BrowsePageIcon[i].pcName, &tPicRegSrc);
-		Pic_Zoom(&tPicRegDst, &tPicRegSrc, 0.5);
-		Fb_Lcd_Show_Pic(tPicRegDst.dwWidth * i, t_BrowsePageIcon[i].iY, &tPicRegDst);
+
+		tPicRegDst.dwWidth = Selected_Display()->tDevAttr.dwXres / 10;
+		tPicRegDst.dwHeight = tPicRegDst.dwWidth;
+		t_BrowsePageIcon[i].iTopLeftX = ICON_X(tPicRegDst.dwWidth, iIconNum, i);
+		t_BrowsePageIcon[i].iTopLeftY = ICON_Y(tPicRegDst.dwHeight, iIconNum, i);
+		t_BrowsePageIcon[i].iBottomRightX = t_BrowsePageIcon[i].iTopLeftX + tPicRegDst.dwWidth;
+		t_BrowsePageIcon[i].iBottomRightY = t_BrowsePageIcon[i].iTopLeftY + tPicRegDst.dwHeight;
+		
+		Pic_Zoom(&tPicRegDst, &tPicRegSrc, 0);
+		Fb_Lcd_Show_Pic(t_BrowsePageIcon[i].iTopLeftX, t_BrowsePageIcon[i].iTopLeftY, &tPicRegDst);
 	}
 
 	g_iPicY = tPicRegDst.dwHeight;

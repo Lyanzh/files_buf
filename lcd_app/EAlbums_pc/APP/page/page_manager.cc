@@ -69,6 +69,16 @@ int Page_Opr_Init(void)
 	if (0 == iRet) {
 		iErr = 0;
 	}
+
+	iRet = Setting_Page_Init();
+	if (0 == iRet) {
+		iErr = 0;
+	}
+
+	iRet = Timer_Page_Init();
+	if (0 == iRet) {
+		iErr = 0;
+	}
 	return iErr;
 }
 

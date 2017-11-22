@@ -72,17 +72,18 @@ void Pic_Zoom(PT_PicRegion ptDstPicReg, PT_PicRegion ptSrcPicReg, float fFactor)
 		ptDstPicReg->wBpp = ptSrcPicReg->wBpp;
 	}
 #endif
-	ptDstPicReg->dwWidth = ptSrcPicReg->dwWidth * fFactor;
-	ptDstPicReg->dwHeight = ptSrcPicReg->dwHeight * fFactor;
+
 	ptDstPicReg->wBpp = ptSrcPicReg->wBpp;
 
-#if 0
-	if ((0 == ptDstPicReg->dwWidth) || (0 == ptDstPicReg->dwHeight) ||
-		(0 == ptSrcPicReg->dwWidth) || (0 == ptSrcPicReg->dwHeight)) {
-		printf("Error:please indicate the size to zoom\n");
-		return;
+	if (fFactor > 0.01) {
+		ptDstPicReg->dwWidth = ptSrcPicReg->dwWidth * fFactor;
+		ptDstPicReg->dwHeight = ptSrcPicReg->dwHeight * fFactor;
+	} else {
+		if ((0 == ptDstPicReg->dwWidth) || (0 == ptDstPicReg->dwHeight)) {
+			printf("Error:please indicate the size to zoom\n");
+			return;
+		}
 	}
-#endif
 
 	if (ptDstPicReg->wBpp != ptSrcPicReg->wBpp) {
 		printf("Error:can not zoom in this bpp %d\n", ptDstPicReg->wBpp);

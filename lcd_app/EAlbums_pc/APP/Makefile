@@ -28,6 +28,8 @@ OBJS := main.o \
 		page/main_page.o \
 		page/auto_page.o \
 		page/browse_page.o \
+		page/setting_page.o \
+		page/timer_page.o \
 		memwatch.o
 
 all: $(OBJS)
