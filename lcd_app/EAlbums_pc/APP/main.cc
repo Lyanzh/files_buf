@@ -1,5 +1,6 @@
 #include "config.h"
 #include "draw.h"
+#include "page_mem.h"
 //#include "encoding_manager.h"
 //#include "fonts_manager.h"
 #include "disp_manager.h"
@@ -47,9 +48,11 @@ int main(int argc, char **argv)
 
 	//Get_Format_Opr("bmp")->Get_Pic_Region("cancel.bmp", &tPicReg);
 
-	g_ptDispOprSelected->Clean_Screen();
+	Selected_Display()->Clean_Screen();
 
 	//Lcd_Show_Pic(0, 0, &tPicReg);
+
+	Page_Mem_Prepare(5);
 
 	Get_Page_Opr("mainpage")->Prepare();
 	Get_Page_Opr("mainpage")->Run();

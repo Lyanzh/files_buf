@@ -34,14 +34,40 @@ void Lcd_Show_Pic(int iX, int iY, PT_PicRegion ptPicReg)
 			blue  = ptPicReg->pcData[iWhich+2];
 			alph  = 1;
 			color = ((alph << 24) | (red << 16) | (green << 8) | (blue << 0));
-			g_ptDispOprSelected->Put_Pixel((iX + x), (iY + y), color);
+			Selected_Display()->Put_Pixel((iX + x), (iY + y), color);
 		}
 	}
 }
 
 void Lcd_Merge(int iX, int iY, int iWidth, int iHeight, PT_PicRegion ptPicReg)
 {
+	int x;
+	int y;
+	int iLine;
+	int iWhich;
+	int iByte;
+	unsigned int color;
+	unsigned int red, green, blue, alph;
 
+	iByte = ptPicReg->wBpp / 8;
+
+	for (y = 0; y < ptPicReg->dwHeight; y++) {
+		iLine = ptPicReg->dwWidth * iByte * y;
+		for (x = 0; x < ptPicReg->dwWidth; x++) {
+			iWhich = iLine + x * iByte;
+			red   = ptPicReg->pcData[iWhich];
+			green = ptPicReg->pcData[iWhich+1];
+			blue  = ptPicReg->pcData[iWhich+2];
+			alph  = 1;
+			color = ((alph << 24) | (red << 16) | (green << 8) | (blue << 0));
+			Selected_Display()->Put_Pixel((iX + x), (iY + y), color);
+		}
+	}
+}
+
+void Lcd_Mem_Flush(PT_Page_Mem ptPageMem)
+{
+	memcpy(Selected_Display()->pcMem, ptPageMem->pcMem, ptPageMem->dwMemSize);
 }
 
 void Pic_Zoom(PT_PicRegion ptDstPicReg, PT_PicRegion ptSrcPicReg, float fFactor)

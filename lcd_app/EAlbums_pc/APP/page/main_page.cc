@@ -23,18 +23,26 @@ static void Main_Page_Run(void)
 {
 	int i;
 	int iIconNum;
+	PT_Page_Mem ptMainPageMem;
 
-	iIconNum = sizeof(t_MainPageIcon) / sizeof(T_IconInfo);
-	for (i = 0; i < iIconNum; i++) {
-		Get_Format_Opr("bmp")->Get_Pic_Region(t_MainPageIcon[i].pcName, &tPicRegSrc);
-		tPicRegDst.dwWidth = Selected_Display()->tDevAttr.dwXres / 5;
-		tPicRegDst.dwHeight = tPicRegDst.dwWidth / 2;
-		t_MainPageIcon[i].iTopLeftX = ICON_X(tPicRegDst.dwWidth, iIconNum, i);
-		t_MainPageIcon[i].iTopLeftY = ICON_Y(tPicRegDst.dwHeight, iIconNum, i);
-		t_MainPageIcon[i].iBottomRightX = t_MainPageIcon[i].iTopLeftX + tPicRegDst.dwWidth;
-		t_MainPageIcon[i].iBottomRightY = t_MainPageIcon[i].iTopLeftY + tPicRegDst.dwHeight;
-		Pic_Zoom(&tPicRegDst, &tPicRegSrc, 0);
-		Lcd_Show_Pic(t_MainPageIcon[i].iTopLeftX, t_MainPageIcon[i].iTopLeftY, &tPicRegDst);
+	ptMainPageMem = Page_Mem_Get(MAINPAGE_ID);
+
+	if (ptMainPageMem && ptMainPageMem->State == PAGE_MEM_PACKED) {
+		Lcd_Mem_Flush(ptMainPageMem);
+		ptMainPageMem->State = PAGE_MEM_BUSY;
+	} else {
+		iIconNum = sizeof(t_MainPageIcon) / sizeof(T_IconInfo);
+		for (i = 0; i < iIconNum; i++) {
+			Get_Format_Opr("bmp")->Get_Pic_Region(t_MainPageIcon[i].pcName, &tPicRegSrc);
+			tPicRegDst.dwWidth = Selected_Display()->tDevAttr.dwXres / 5;
+			tPicRegDst.dwHeight = tPicRegDst.dwWidth / 2;
+			t_MainPageIcon[i].iTopLeftX = ICON_X(tPicRegDst.dwWidth, iIconNum, i);
+			t_MainPageIcon[i].iTopLeftY = ICON_Y(tPicRegDst.dwHeight, iIconNum, i);
+			t_MainPageIcon[i].iBottomRightX = t_MainPageIcon[i].iTopLeftX + tPicRegDst.dwWidth;
+			t_MainPageIcon[i].iBottomRightY = t_MainPageIcon[i].iTopLeftY + tPicRegDst.dwHeight;
+			Pic_Zoom(&tPicRegDst, &tPicRegSrc, 0);
+			Lcd_Show_Pic(t_MainPageIcon[i].iTopLeftX, t_MainPageIcon[i].iTopLeftY, &tPicRegDst);
+		}
 	}
 }
 

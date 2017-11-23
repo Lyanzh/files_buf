@@ -101,6 +101,8 @@ int Fb_Init(void)
 		printf("Error:fail to map framebuffer device to memory.\n");
 	}
 
+	g_tS3cDispOpr.pcMem = g_ptFbDev->pFbMem;
+
 	return 0;
 }
 

@@ -114,9 +114,9 @@ static int Input_Get_InputEvent(PT_Input_Event ptInputEvent, PT_Input_Data ptInp
 	#if 0 /* press */
 		if (ptInputData->dwPressure == 1 && 0 == dwPressure) {
 			//first press
-			if (ptInputData->iY > (g_ptDispOprSelected->tDevAttr.dwYres / 3 * 2))
+			if (ptInputData->iY > (Selected_Display()->tDevAttr.dwYres / 3 * 2))
 				ptInputEvent->iVal = INPUT_VALUE_DOWN;
-			else if (ptInputData->iY < (g_ptDispOprSelected->tDevAttr.dwYres / 3))
+			else if (ptInputData->iY < (Selected_Display()->tDevAttr.dwYres / 3))
 				ptInputEvent->iVal = INPUT_VALUE_UP;
 			else
 				ptInputEvent->iVal = INPUT_VALUE_UNKNOWN;
@@ -139,7 +139,7 @@ static int Input_Get_InputEvent(PT_Input_Event ptInputEvent, PT_Input_Data ptInp
 			if (dwPressure == 1) {
 				dwPressure = 0;
 				iDelta = ptInputData->iX - iRecX;
-				iThreshold = g_ptDispOprSelected->tDevAttr.dwXres / 5;
+				iThreshold = Selected_Display()->tDevAttr.dwXres / 5;
 				//printf("iDelta = %d\n", iDelta);
 				//printf("iThreshold = %d\n", iThreshold);
 				if (iDelta > iThreshold) {

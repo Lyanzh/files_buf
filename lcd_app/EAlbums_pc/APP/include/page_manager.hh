@@ -1,6 +1,7 @@
 #ifndef _PAGE_MANAGER_H
 #define _PAGE_MANAGER_H
 
+#include "page_mem.h"
 #include "disp_manager.h"
 #include "format_manager.h"
 #include "input_manager.h"

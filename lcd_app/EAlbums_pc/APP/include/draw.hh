@@ -14,6 +14,7 @@ typedef struct Icon_Info
 } T_IconInfo, *PT_IconInfo;
 
 extern void Lcd_Show_Pic(int iX, int iY, PT_PicRegion ptPicReg);
+extern void Lcd_Mem_Flush(PT_Page_Mem ptPageMem);
 extern void Pic_Zoom(PT_PicRegion ptDstPicReg, PT_PicRegion ptSrcPicReg, float fFactor);
 
 #endif

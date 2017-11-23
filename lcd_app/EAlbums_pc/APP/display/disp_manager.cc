@@ -5,7 +5,7 @@
 #include "memwatch.h"
 
 static PT_Disp_Opr g_ptDispOprHead;
-PT_Disp_Opr g_ptDispOprSelected;
+static PT_Disp_Opr g_ptDispOprSelected;
 
 int Disp_Opr_Regisiter(PT_Disp_Opr ptDispOpr)
 {

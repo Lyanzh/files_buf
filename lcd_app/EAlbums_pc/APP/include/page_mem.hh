@@ -1,10 +1,15 @@
 #ifndef _PAGE_MEM_H
 #define _PAGE_MEM_H
 
+#define MAINPAGE_ID		0
+#define BROWSEPAGE_ID	1
+#define AUTOPAGE_ID		2
+
 typedef enum Page_Mem_State
 {
-	PAGE_MEM_FREE,
-	PAGE_MEM_BUSY,
+	PAGE_MEM_FREE,	/* no data  */
+	PAGE_MEM_PACKED,/* has data */
+	PAGE_MEM_BUSY,	/* showing  */
 } E_Page_Mem_State, *PE_Page_Mem_State;
 
 typedef struct Page_Mem_Desc

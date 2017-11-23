@@ -13,6 +13,7 @@ typedef struct Disp_Opr
 	const char *pcName;
 	T_Dev_Attr tDevAttr;
 	unsigned int dwScreenSize;
+	char *pcMem;
 	int (*Init)(void);
 	int (*Clean_Screen)(void);
 	void (*Put_Pixel)(int, int, unsigned int);
@@ -22,8 +23,6 @@ typedef struct Disp_Opr
 
 int Fb_Dev_Init(void);
 int PC_Disp_Dev_Init(void);
-
-extern PT_Disp_Opr g_ptDispOprSelected;
 
 extern int Disp_Opr_Regisiter(PT_Disp_Opr ptDispOpr);
 extern void Show_Disp_Opr(void);

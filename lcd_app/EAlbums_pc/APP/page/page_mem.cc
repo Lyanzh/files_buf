@@ -1,4 +1,3 @@
-#include "page_mem.h"
 #include "page_manager.h"
 #include <stdio.h>
 #include <stdlib.h>
@@ -11,7 +10,6 @@ PT_Page_Mem_List g_ptPageMemListHead;
 static void Page_Mem_List_Add(PT_Page_Mem ptPageMemNew)
 {
 	PT_Page_Mem ptPageMemTmp;
-	ptPageMemTmp->iID = 0;
 	if (!g_ptPageMemListHead) {
 		g_ptPageMemListHead = ptPageMemNew;
 	} else {
@@ -34,6 +32,7 @@ static PT_Page_Mem Page_Mem_Alloc(void)
 		return NULL;
 	}
 
+	ptPageMemNew->iID = 0;
 	ptPageMemNew->dwMemSize = Selected_Display()->dwScreenSize;
 	ptPageMemNew->pcMem = (char *)malloc(ptPageMemNew->dwMemSize);
 	if (!ptPageMemNew->pcMem) {
@@ -44,6 +43,39 @@ static PT_Page_Mem Page_Mem_Alloc(void)
 
 	ptPageMemNew->State = PAGE_MEM_FREE;
 	return ptPageMemNew;
+}
+
+PT_Page_Mem Page_Mem_Get(int iID)
+{
+	PT_Page_Mem ptPageMemTmp;
+	if (!g_ptPageMemListHead) {
+		return NULL;
+	} else {
+		ptPageMemTmp = g_ptPageMemListHead;
+		while (ptPageMemTmp->iID != iID) {
+			ptPageMemTmp = ptPageMemTmp->ptNext;
+		}
+		return ptPageMemTmp;
+	}
+}
+
+PT_Page_Mem Page_Mem_Free_Find(void)
+{
+	PT_Page_Mem ptPageMemTmp;
+	if (!g_ptPageMemListHead) {
+		return NULL;
+	} else {
+		ptPageMemTmp = g_ptPageMemListHead;
+		while (ptPageMemTmp->State != PAGE_MEM_FREE) {
+			ptPageMemTmp = ptPageMemTmp->ptNext;
+		}
+
+		if (ptPageMemTmp == NULL) {/* 缓存已经用完 */
+			
+		}
+		
+		return ptPageMemTmp;
+	}
 }
 
 int Page_Mem_Prepare(int iNum)
@@ -61,3 +93,4 @@ int Page_Mem_Prepare(int iNum)
 	}
 	return 0;
 }
+
