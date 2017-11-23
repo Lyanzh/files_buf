@@ -10,7 +10,7 @@
 
 #include "memwatch.h"
 
-static T_DispDev g_tDispDev;
+static T_Disp_Opr g_tS3cDispOpr;
 
 typedef struct FbDevice
 {
@@ -89,9 +89,10 @@ int Fb_Init(void)
 	printf("line_size = %d\n", g_ptFbDev->dwLineSize);
 	printf("screen_size = %d\n", g_ptFbDev->dwScreenSize);
 
-	g_tDispDev.tDevAttr.dwXres  = g_ptFbDev->tFbVarInfo.xres;
-	g_tDispDev.tDevAttr.dwYres  = g_ptFbDev->tFbVarInfo.yres;
-	g_tDispDev.tDevAttr.dwBitsPerPixel = g_ptFbDev->tFbVarInfo.bits_per_pixel;
+	g_tS3cDispOpr.tDevAttr.dwXres  = g_ptFbDev->tFbVarInfo.xres;
+	g_tS3cDispOpr.tDevAttr.dwYres  = g_ptFbDev->tFbVarInfo.yres;
+	g_tS3cDispOpr.tDevAttr.dwBitsPerPixel = g_ptFbDev->tFbVarInfo.bits_per_pixel;
+	g_tS3cDispOpr.dwScreenSize = g_ptFbDev->dwScreenSize;
 	
 	//map the device to memory
 	g_ptFbDev->pFbMem = (char *)mmap(0, g_ptFbDev->dwScreenSize, PROT_READ | PROT_WRITE, MAP_SHARED, g_ptFbDev->fb_fd, 0);
@@ -117,9 +118,9 @@ int Fb_Remove(void)
 	return 0;
 }
 
-static T_DispDev g_tDispDev = {
-	.c_pDevName	  = "s3c2440-lcd",
-	.Dev_Init     = Fb_Init,
+static T_Disp_Opr g_tS3cDispOpr = {
+	.pcName	  = "s3c2440-lcd",
+	.Init     = Fb_Init,
 	.Clean_Screen = Fb_Clean,
 	.Put_Pixel    = Fb_Lcd_Put_Pixel,
 	.Dev_Remove   = Fb_Remove,
@@ -127,6 +128,6 @@ static T_DispDev g_tDispDev = {
 
 int Fb_Dev_Init(void)
 {
-	return Disp_Dev_Regisiter(&g_tDispDev);
+	return Disp_Opr_Regisiter(&g_tS3cDispOpr);
 }
 

@@ -53,7 +53,7 @@ static int BMP_Get_Pic_Region(char *pcFilePath, PT_PicRegion ptPicReg)
 	char *pcFileData;
 	int iBitmapLineByteCnt;	/* 实际每行位图有效的字节数 */
 	int iFileLineByteCnt;	/* 填充后的每行的字节数 */
-	int iImageDataSize;		/* 填充后位图数据区的大小 */
+	//int iImageDataSize;		/* 填充后位图数据区的大小 */
 
 	char *pcFileBitmapData;
 	char *pcFileLineData;
@@ -105,7 +105,7 @@ static int BMP_Get_Pic_Region(char *pcFilePath, PT_PicRegion ptPicReg)
 	/* 填充后的每行的字节数 */
 	iFileLineByteCnt = (((ptBitmapInfo->dwWidth * ptBitmapInfo->wBitCount) + 31) >> 5) << 2;
 	/* 这样，文件的位图数据区的大小为 */
-	iImageDataSize = iFileLineByteCnt * dwBitmapHeight;
+	//iImageDataSize = iFileLineByteCnt * dwBitmapHeight;
 	
 	//printf("Line Count in Byte      = %d\n", iFileLineByteCnt);
 	//printf("Image Data Size in Byte = %d\n", iImageDataSize);

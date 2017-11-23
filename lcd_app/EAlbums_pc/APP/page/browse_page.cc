@@ -54,10 +54,10 @@ static void *Browse_Page_Thread(void *arg)
 		if (g_ptFileListCurShow) {
 			Get_Format_Opr("jpeg")->Get_Pic_Region(g_ptFileListCurShow->pcName, &tPicRegSrc);
 			if (g_fZoomFactor == 0 || g_fZoomFactor == 1) {
-				Fb_Lcd_Show_Pic(0, g_iPicY, &tPicRegSrc);
+				Lcd_Show_Pic(0, g_iPicY, &tPicRegSrc);
 			} else {
 				Pic_Zoom(&tPicRegDst, &tPicRegSrc, g_fZoomFactor);
-				Fb_Lcd_Show_Pic(0, g_iPicY, &tPicRegDst);
+				Lcd_Show_Pic(0, g_iPicY, &tPicRegDst);
 			}
 			//free(tBrowseModeSrc.pcData);
 			//free(tBrowseModeDst.pcData);
@@ -88,7 +88,7 @@ static void Browse_Page_Run(void)
 		t_BrowsePageIcon[i].iBottomRightY = t_BrowsePageIcon[i].iTopLeftY + tPicRegDst.dwHeight;
 		
 		Pic_Zoom(&tPicRegDst, &tPicRegSrc, 0);
-		Fb_Lcd_Show_Pic(t_BrowsePageIcon[i].iTopLeftX, t_BrowsePageIcon[i].iTopLeftY, &tPicRegDst);
+		Lcd_Show_Pic(t_BrowsePageIcon[i].iTopLeftX, t_BrowsePageIcon[i].iTopLeftY, &tPicRegDst);
 	}
 
 	g_iPicY = tPicRegDst.dwHeight;
@@ -96,10 +96,10 @@ static void Browse_Page_Run(void)
 	if (g_ptFileListCurShow) {
 		Get_Format_Opr("jpeg")->Get_Pic_Region(g_ptFileListCurShow->pcName, &tPicRegSrc);
 		if (g_fZoomFactor == 0 || g_fZoomFactor == 1) {
-			Fb_Lcd_Show_Pic(0, g_iPicY, &tPicRegSrc);
+			Lcd_Show_Pic(0, g_iPicY, &tPicRegSrc);
 		} else {
 			Pic_Zoom(&tPicRegDst, &tPicRegSrc, g_fZoomFactor);
-			Fb_Lcd_Show_Pic(0, g_iPicY, &tPicRegDst);
+			Lcd_Show_Pic(0, g_iPicY, &tPicRegDst);
 		}
 		
 		//free(tBrowseModeSrc.pcData);
@@ -112,31 +112,33 @@ static void Browse_Page_Run(void)
 static void Browse_Page_Get_Input_Event(void)
 {
 	T_Input_Event tInputEvent;
-	Input_Get_Key(&tInputEvent);
-	if (tInputEvent.cCode == 'l') {
-		printf("\nlager.\n");
-		pthread_mutex_lock(&g_tShowMutex);
-		g_fZoomFactor += 0.1;
-		pthread_cond_signal(&g_tShowCond);
-		pthread_mutex_unlock(&g_tShowMutex);
-	} else if (tInputEvent.cCode == 's') {
-		printf("\nsmaller.\n");
-		if (g_fZoomFactor > 0.1) {
+	while (1) {
+		Input_Get_Key(&tInputEvent);
+		if (tInputEvent.cCode == 'l') {
+			printf("\nlager.\n");
 			pthread_mutex_lock(&g_tShowMutex);
-			g_fZoomFactor -= 0.1;
+			g_fZoomFactor += 0.1;
+			pthread_cond_signal(&g_tShowCond);
+			pthread_mutex_unlock(&g_tShowMutex);
+		} else if (tInputEvent.cCode == 's') {
+			printf("\nsmaller.\n");
+			if (g_fZoomFactor > 0.1) {
+				pthread_mutex_lock(&g_tShowMutex);
+				g_fZoomFactor -= 0.1;
+				pthread_cond_signal(&g_tShowCond);
+				pthread_mutex_unlock(&g_tShowMutex);
+			}
+		} else if (tInputEvent.cCode == 'p') {
+			pthread_mutex_lock(&g_tShowMutex);
+			g_ptFileListCurShow = g_ptFileListCurShow->ptPre;
+			pthread_cond_signal(&g_tShowCond);
+			pthread_mutex_unlock(&g_tShowMutex);
+		} else if (tInputEvent.cCode == 'n') {
+			pthread_mutex_lock(&g_tShowMutex);
+			g_ptFileListCurShow = g_ptFileListCurShow->ptNext;
 			pthread_cond_signal(&g_tShowCond);
 			pthread_mutex_unlock(&g_tShowMutex);
 		}
-	} else if (tInputEvent.cCode == 'p') {
-		pthread_mutex_lock(&g_tShowMutex);
-		g_ptFileListCurShow = g_ptFileListCurShow->ptPre;
-		pthread_cond_signal(&g_tShowCond);
-		pthread_mutex_unlock(&g_tShowMutex);
-	} else if (tInputEvent.cCode == 'n') {
-		pthread_mutex_lock(&g_tShowMutex);
-		g_ptFileListCurShow = g_ptFileListCurShow->ptNext;
-		pthread_cond_signal(&g_tShowCond);
-		pthread_mutex_unlock(&g_tShowMutex);
 	}
 }
 

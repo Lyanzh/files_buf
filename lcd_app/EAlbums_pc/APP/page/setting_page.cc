@@ -39,18 +39,20 @@ static void Setting_Page_Run(void)
 		t_SettingPageIcon[i].iBottomRightY = t_SettingPageIcon[i].iTopLeftY + tPicRegDst.dwHeight;
 		
 		Pic_Zoom(&tPicRegDst, &tPicRegSrc, 0);
-		Fb_Lcd_Show_Pic(t_SettingPageIcon[i].iTopLeftX, t_SettingPageIcon[i].iTopLeftY, &tPicRegDst);
+		Lcd_Show_Pic(t_SettingPageIcon[i].iTopLeftX, t_SettingPageIcon[i].iTopLeftY, &tPicRegDst);
 	}
 }
 
 static void Setting_Page_Get_Input_Event(void)
 {
 	T_Input_Event tInputEvent;
-	Input_Get_Key(&tInputEvent);
-	if (tInputEvent.cCode == 'd') {
-		printf("\nselect folder.\n");
-	} else if (tInputEvent.cCode == 't') {
-		printf("\nset timer.\n");
+	while (1) {
+		Input_Get_Key(&tInputEvent);
+		if (tInputEvent.cCode == 'd') {
+			printf("\nselect folder.\n");
+		} else if (tInputEvent.cCode == 't') {
+			printf("\nset timer.\n");
+		}
 	}
 }
 

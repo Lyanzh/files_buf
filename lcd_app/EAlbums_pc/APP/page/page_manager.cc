@@ -82,3 +82,12 @@ int Page_Opr_Init(void)
 	return iErr;
 }
 
+void Page_Change(char *pcName)
+{
+	PT_Page_Opr ptPageOprNext;
+	ptPageOprNext = Get_Page_Opr(pcName);
+	ptPageOprNext->Prepare();
+	ptPageOprNext->Run();
+	ptPageOprNext->Get_Input_Event();
+}
+

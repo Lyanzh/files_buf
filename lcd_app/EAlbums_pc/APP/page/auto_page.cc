@@ -7,6 +7,8 @@
 #include <sys/time.h>
 #include <signal.h>
 
+typedef void (*sighandler_t)(int);
+
 static T_PicRegion tPicRegSrc;
 static T_PicRegion tPicRegDst;
 
@@ -16,7 +18,6 @@ static pthread_mutex_t g_tShowMutex;
 static pthread_cond_t g_tShowCond;
 
 static PT_FileList g_ptFileListCurShow;
-static float g_fZoomFactor;
 
 static struct itimerval g_tOldTv;
 
@@ -62,7 +63,7 @@ static void *Auto_Page_Thread(void *arg)
 		pthread_cond_wait(&g_tShowCond, &g_tShowMutex);
 		if (g_ptFileListCurShow) {
 			Get_Format_Opr("jpeg")->Get_Pic_Region(g_ptFileListCurShow->pcName, &tPicRegSrc);
-			Fb_Lcd_Show_Pic(0, g_iPicY, &tPicRegSrc);
+			Lcd_Show_Pic(0, g_iPicY, &tPicRegSrc);
 		}
 		pthread_mutex_unlock(&g_tShowMutex);
 	}
@@ -80,10 +81,11 @@ static void Auto_Page_Run(void)
 
 	if (g_ptFileListCurShow) {
 		Get_Format_Opr("jpeg")->Get_Pic_Region(g_ptFileListCurShow->pcName, &tPicRegSrc);
-		Fb_Lcd_Show_Pic(0, g_iPicY, &tPicRegSrc);
+		Lcd_Show_Pic(0, 0, &tPicRegSrc);
+		printf("Lcd_Show_Pic\n");
 	}
 
-	signal(SIGALRM, signal_handler);
+	signal(SIGALRM, (sighandler_t)signal_handler);
 
 	Set_Timer();
 	
@@ -93,9 +95,12 @@ static void Auto_Page_Run(void)
 static void Auto_Page_Get_Input_Event(void)
 {
 	T_Input_Event tInputEvent;
-	Input_Get_Key(&tInputEvent);
-	if (tInputEvent.cCode == 'q') {
-		printf("\nto browse page.\n");
+
+	while (1) {
+		Input_Get_Key(&tInputEvent);
+		if (tInputEvent.cCode == 'q') {
+			printf("\nto browse page.\n");
+		}
 	}
 }
 

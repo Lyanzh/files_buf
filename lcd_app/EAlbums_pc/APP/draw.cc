@@ -10,7 +10,7 @@
 
 #include "memwatch.h"
 
-void Fb_Lcd_Show_Pic(int iX, int iY, PT_PicRegion ptPicReg)
+void Lcd_Show_Pic(int iX, int iY, PT_PicRegion ptPicReg)
 {
 	int x;
 	int y;
@@ -21,7 +21,7 @@ void Fb_Lcd_Show_Pic(int iX, int iY, PT_PicRegion ptPicReg)
 	unsigned int red, green, blue, alph;
 
 	/* clean the area of pic show */
-	
+	//...
 
 	iByte = ptPicReg->wBpp / 8;
 
@@ -37,6 +37,11 @@ void Fb_Lcd_Show_Pic(int iX, int iY, PT_PicRegion ptPicReg)
 			g_ptDispOprSelected->Put_Pixel((iX + x), (iY + y), color);
 		}
 	}
+}
+
+void Lcd_Merge(int iX, int iY, int iWidth, int iHeight, PT_PicRegion ptPicReg)
+{
+
 }
 
 void Pic_Zoom(PT_PicRegion ptDstPicReg, PT_PicRegion ptSrcPicReg, float fFactor)

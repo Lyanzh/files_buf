@@ -34,21 +34,23 @@ static void Main_Page_Run(void)
 		t_MainPageIcon[i].iBottomRightX = t_MainPageIcon[i].iTopLeftX + tPicRegDst.dwWidth;
 		t_MainPageIcon[i].iBottomRightY = t_MainPageIcon[i].iTopLeftY + tPicRegDst.dwHeight;
 		Pic_Zoom(&tPicRegDst, &tPicRegSrc, 0);
-		Fb_Lcd_Show_Pic(t_MainPageIcon[i].iTopLeftX, t_MainPageIcon[i].iTopLeftY, &tPicRegDst);
+		Lcd_Show_Pic(t_MainPageIcon[i].iTopLeftX, t_MainPageIcon[i].iTopLeftY, &tPicRegDst);
 	}
 }
 
 static void Main_Page_Get_Input_Event(void)
 {
 	T_Input_Event tInputEvent;
-	Input_Get_Key(&tInputEvent);
-	if (tInputEvent.cCode == 'b') {
-		printf("\nshow browse page.\n");
-		//Socket_Send("show next page.\n");
-	} else if (tInputEvent.cCode == 'c') {
-		printf("\nshow continue mode page.\n");
-	} else if (tInputEvent.cCode == 's') {
-		printf("\nshow setting page.\n");
+	while (1) {
+		Input_Get_Key(&tInputEvent);
+		if (tInputEvent.cCode == 'b') {
+			printf("\nshow browse page.\n");
+			Page_Change("browsepage");
+		} else if (tInputEvent.cCode == 'c') {
+			printf("\nshow continue mode page.\n");
+		} else if (tInputEvent.cCode == 's') {
+			printf("\nshow setting page.\n");
+		}
 	}
 }
 

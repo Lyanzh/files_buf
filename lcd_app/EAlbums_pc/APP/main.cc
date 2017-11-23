@@ -49,10 +49,10 @@ int main(int argc, char **argv)
 
 	g_ptDispOprSelected->Clean_Screen();
 
-	//Fb_Lcd_Show_Pic(0, 0, &tPicReg);
+	//Lcd_Show_Pic(0, 0, &tPicReg);
 
-	Get_Page_Opr("timerpage")->Prepare();
-	Get_Page_Opr("timerpage")->Run();
+	Get_Page_Opr("mainpage")->Prepare();
+	Get_Page_Opr("mainpage")->Run();
 
 	while (1) {
 	#if 0
@@ -70,7 +70,7 @@ int main(int argc, char **argv)
 		}
 	#endif
 
-		Get_Page_Opr("timerpage")->Get_Input_Event();
+		Get_Page_Opr("mainpage")->Get_Input_Event();
 	}
 
 	return 0;

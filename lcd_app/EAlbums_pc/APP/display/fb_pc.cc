@@ -10,9 +10,9 @@
 
 #include "memwatch.h"
 
-static T_DispDev g_tDispDev;
+static T_Disp_Opr g_tPcDispOpr;
 
-typedef struct FbDevice
+typedef struct Fb_Device
 {
 	int fb_fd;
 	struct fb_var_screeninfo tFbVarInfo;
@@ -116,9 +116,10 @@ static int Fb_Init(void)
 	printf("line_size = %d\n", g_ptFbDev->dwLineSize);
 	printf("screen_size = %d\n", g_ptFbDev->dwScreenSize);
 
-	g_tDispDev.tDevAttr.dwXres  = g_ptFbDev->tFbVarInfo.xres;
-	g_tDispDev.tDevAttr.dwYres  = g_ptFbDev->tFbVarInfo.yres;
-	g_tDispDev.tDevAttr.dwBitsPerPixel = g_ptFbDev->tFbVarInfo.bits_per_pixel;
+	g_tPcDispOpr.tDevAttr.dwXres  = g_ptFbDev->tFbVarInfo.xres;
+	g_tPcDispOpr.tDevAttr.dwYres  = g_ptFbDev->tFbVarInfo.yres;
+	g_tPcDispOpr.tDevAttr.dwBitsPerPixel = g_ptFbDev->tFbVarInfo.bits_per_pixel;
+	g_tPcDispOpr.dwScreenSize = g_ptFbDev->dwScreenSize;
 	
 	//map the device to memory
 	g_ptFbDev->pFbMem = (char *)mmap(0, g_ptFbDev->dwScreenSize, PROT_READ | PROT_WRITE, MAP_SHARED, g_ptFbDev->fb_fd, 0);
@@ -144,9 +145,9 @@ static int Fb_Remove(void)
 	return 0;
 }
 
-static T_DispDev g_tPcDispDev = {
-	.c_pDevName	  = "ubuntu",
-	.Dev_Init     = Fb_Init,
+static T_Disp_Opr g_tPcDispOpr = {
+	.pcName	  = "ubuntu",
+	.Init     = Fb_Init,
 	.Clean_Screen = Fb_Clean,
 	.Put_Pixel    = Fb_Lcd_Put_Pixel,
 	.Dev_Remove   = Fb_Remove,
@@ -154,6 +155,6 @@ static T_DispDev g_tPcDispDev = {
 
 int PC_Disp_Dev_Init(void)
 {
-	return Disp_Dev_Regisiter(&g_tPcDispDev);
+	return Disp_Opr_Regisiter(&g_tPcDispOpr);
 }
 

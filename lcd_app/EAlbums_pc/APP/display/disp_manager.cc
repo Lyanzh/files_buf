@@ -4,23 +4,23 @@
 
 #include "memwatch.h"
 
-static PT_DispDev g_ptDispDevHead;
-PT_DispDev g_ptDispOprSelected;
+static PT_Disp_Opr g_ptDispOprHead;
+PT_Disp_Opr g_ptDispOprSelected;
 
-int Disp_Dev_Regisiter(PT_DispDev ptDispDev)
+int Disp_Opr_Regisiter(PT_Disp_Opr ptDispOpr)
 {
-	PT_DispDev ptDispDevTmp;
+	PT_Disp_Opr ptDispOprTmp;
 	
-	if (!g_ptDispDevHead) {
-		g_ptDispDevHead = ptDispDev;
+	if (!g_ptDispOprHead) {
+		g_ptDispOprHead = ptDispOpr;
 	} else {
-		ptDispDevTmp = g_ptDispDevHead;
-		while (ptDispDevTmp->ptNextDev) {
-			ptDispDevTmp = ptDispDevTmp->ptNextDev;
+		ptDispOprTmp = g_ptDispOprHead;
+		while (ptDispOprTmp->ptNext) {
+			ptDispOprTmp = ptDispOprTmp->ptNext;
 		}
-		ptDispDevTmp->ptNextDev = ptDispDev;
+		ptDispOprTmp->ptNext = ptDispOpr;
 	}
-	ptDispDev->ptNextDev = NULL;
+	ptDispOpr->ptNext = NULL;
 
 	return 0;
 }
@@ -28,21 +28,21 @@ int Disp_Dev_Regisiter(PT_DispDev ptDispDev)
 void Show_Disp_Opr(void)
 {
 	int i = 0;
-	PT_DispDev ptDispDevTmp = g_ptDispDevHead;
-	while (ptDispDevTmp) {
-		printf("%d: %s\n", i++, ptDispDevTmp->c_pDevName);
-		ptDispDevTmp = ptDispDevTmp->ptNextDev;
+	PT_Disp_Opr ptDispOprTmp = g_ptDispOprHead;
+	while (ptDispOprTmp) {
+		printf("%d: %s\n", i++, ptDispOprTmp->pcName);
+		ptDispOprTmp = ptDispOprTmp->ptNext;
 	}
 }
 
-PT_DispDev Get_Disp_Opr(char *pcName)
+PT_Disp_Opr Get_Disp_Opr(char *pcName)
 {
-	PT_DispDev ptDispDevTmp = g_ptDispDevHead;
-	while (ptDispDevTmp) {
-		if (strcmp(ptDispDevTmp->c_pDevName, pcName) == 0)
-			return ptDispDevTmp;
+	PT_Disp_Opr ptDispOprTmp = g_ptDispOprHead;
+	while (ptDispOprTmp) {
+		if (strcmp(ptDispOprTmp->pcName, pcName) == 0)
+			return ptDispOprTmp;
 		else
-			ptDispDevTmp = ptDispDevTmp->ptNextDev;
+			ptDispOprTmp = ptDispOprTmp->ptNext;
 	}
 	return NULL;
 }
@@ -72,11 +72,11 @@ int Select_And_Init_Display(char *pcName)
 		return -1;
 	}
 
-	iError = g_ptDispOprSelected->Dev_Init();
+	iError = g_ptDispOprSelected->Init();
 	return iError;
 }
 
-PT_DispDev Selected_Display(void)
+PT_Disp_Opr Selected_Display(void)
 {
 	return g_ptDispOprSelected;
 }

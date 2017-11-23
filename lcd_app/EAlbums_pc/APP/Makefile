@@ -30,6 +30,7 @@ OBJS := main.o \
 		page/browse_page.o \
 		page/setting_page.o \
 		page/timer_page.o \
+		page/page_mem.o \
 		memwatch.o
 
 all: $(OBJS)
