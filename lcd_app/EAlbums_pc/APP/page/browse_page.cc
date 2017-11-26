@@ -48,7 +48,7 @@ static void *Browse_Page_Thread(void *arg)
 	return NULL;
 }
 
-static int Browse_Page_Date(PT_Page_Mem ptPageMem)
+static int Browse_Page_Data(PT_Page_Mem ptPageMem)
 {
 	int i;
 	int iIconNum;
@@ -116,13 +116,13 @@ static void Browse_Page_Pre_Thread(void)
 			return;
 		} else {
 			/* 写数据进缓存 */
-			Browse_Page_Date(ptPageMem);
+			Browse_Page_Data(ptPageMem);
 		}
 	} else {
 		/* 还未申请或已经销毁，重新申请，并且写数据进去 */
 		ptPageMem = Page_Mem_Alloc(BROWSEPAGE_MAIN);
 		/* 写数据进缓存 */
-		Browse_Page_Date(ptPageMem);
+		Browse_Page_Data(ptPageMem);
 	}
 	pthread_detach(pthread_self());
 }

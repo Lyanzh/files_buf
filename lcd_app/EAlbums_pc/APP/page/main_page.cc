@@ -16,7 +16,7 @@ static T_IconInfo t_MainPageIcon[] =
 static T_PicRegion tPicRegSrc;
 static T_PicRegion tPicRegDst;
 
-static int Main_Page_Date(PT_Page_Mem ptPageMem)
+static int Main_Page_Data(PT_Page_Mem ptPageMem)
 {
 	int i;
 	int iIconNum;
@@ -59,13 +59,13 @@ static void Main_Page_Pre_Thread(void)
 			return;
 		} else {
 			/* 写数据进缓存 */
-			Main_Page_Date(ptPageMem);
+			Main_Page_Data(ptPageMem);
 		}
 	} else {
 		/* 还未申请或已经销毁，重新申请，并且写数据进去 */
 		ptPageMem = Page_Mem_Alloc(MAINPAGE_MAIN);
 		/* 写数据进缓存 */
-		Main_Page_Date(ptPageMem);
+		Main_Page_Data(ptPageMem);
 	}
 	pthread_detach(pthread_self());
 }
@@ -92,7 +92,7 @@ static void Main_Page_Run(void)
 static void Main_Page_PrepareNext(void)
 {
 	Get_Page_Opr("browsepage")->PrepareSelf();
-	//Get_Page_Opr("settingpage")->PrepareSelf();
+	Get_Page_Opr("settingpage")->PrepareSelf();
 }
 
 static void Main_Page_Get_Input_Event(void)

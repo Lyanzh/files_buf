@@ -2,14 +2,17 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <pthread.h>
 
 #include "memwatch.h"
 
+static pthread_mutex_t g_tPageMemListMutex = PTHREAD_MUTEX_INITIALIZER;
 PT_Page_Mem_List g_ptPageMemListHead;/* 空头部，方便删除操作 */
 
 static void Page_Mem_List_Add(PT_Page_Mem ptPageMemNew)
 {
 	PT_Page_Mem ptPageMemTmp;
+	pthread_mutex_lock(&g_tPageMemListMutex);
 	if (!g_ptPageMemListHead) {
 		g_ptPageMemListHead = (PT_Page_Mem)malloc(sizeof(T_Page_Mem));/* 创建空头部 */
 		g_ptPageMemListHead->ptNext = ptPageMemNew;
@@ -21,12 +24,16 @@ static void Page_Mem_List_Add(PT_Page_Mem ptPageMemNew)
 		ptPageMemTmp->ptNext = ptPageMemNew;
 	}
 	ptPageMemNew->ptNext = NULL;
+	pthread_mutex_unlock(&g_tPageMemListMutex);
 }
 
 void Page_Mem_List_Del(int iPageID)
 {
-	PT_Page_Mem ptPageMemPre = g_ptPageMemListHead;
-	PT_Page_Mem ptPageMemTmp = g_ptPageMemListHead->ptNext;
+	PT_Page_Mem ptPageMemPre;
+	PT_Page_Mem ptPageMemTmp;
+	pthread_mutex_lock(&g_tPageMemListMutex);
+	ptPageMemPre = g_ptPageMemListHead;
+	ptPageMemTmp = g_ptPageMemListHead->ptNext;
 	if (!ptPageMemTmp) {
 		return;
 	} else {
@@ -38,12 +45,16 @@ void Page_Mem_List_Del(int iPageID)
 		free(ptPageMemTmp->pcMem);
 		free(ptPageMemTmp);
 	}
+	pthread_mutex_unlock(&g_tPageMemListMutex);
 }
 
 void Page_Grop_Mem_List_Del(int iPageGropID)
 {
-	PT_Page_Mem ptPageMemPre = g_ptPageMemListHead;
-	PT_Page_Mem ptPageMemTmp = g_ptPageMemListHead->ptNext;
+	PT_Page_Mem ptPageMemPre;
+	PT_Page_Mem ptPageMemTmp;
+	pthread_mutex_lock(&g_tPageMemListMutex);
+	ptPageMemPre = g_ptPageMemListHead;
+	ptPageMemTmp = g_ptPageMemListHead->ptNext;
 	if (!ptPageMemTmp) {
 		return;
 	} else {
@@ -59,6 +70,7 @@ void Page_Grop_Mem_List_Del(int iPageGropID)
 			}
 		}
 	}
+	pthread_mutex_unlock(&g_tPageMemListMutex);
 }
 
 PT_Page_Mem Page_Mem_Alloc(int iPageID)

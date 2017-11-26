@@ -17,7 +17,7 @@ static T_IconInfo t_SettingPageIcon[] =
 static T_PicRegion tPicRegSrc;
 static T_PicRegion tPicRegDst;
 
-static int Setting_Page_Date(PT_Page_Mem ptPageMem)
+static int Setting_Page_Data(PT_Page_Mem ptPageMem)
 {
 	int i;
 	int iIconNum;
@@ -62,13 +62,13 @@ static void Setting_Page_Pre_Thread(void)
 			return;
 		} else {
 			/* 写数据进缓存 */
-			Setting_Page_Date(ptPageMem);
+			Setting_Page_Data(ptPageMem);
 		}
 	} else {
 		/* 还未申请或已经销毁，重新申请，并且写数据进去 */
 		ptPageMem = Page_Mem_Alloc(SETTINGPAGE_MAIN);
 		/* 写数据进缓存 */
-		Setting_Page_Date(ptPageMem);
+		Setting_Page_Data(ptPageMem);
 	}
 	pthread_detach(pthread_self());
 }
