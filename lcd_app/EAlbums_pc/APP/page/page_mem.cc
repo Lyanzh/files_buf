@@ -5,25 +5,63 @@
 
 #include "memwatch.h"
 
-PT_Page_Mem_List g_ptPageMemListHead;
+PT_Page_Mem_List g_ptPageMemListHead;/* 空头部，方便删除操作 */
 
 static void Page_Mem_List_Add(PT_Page_Mem ptPageMemNew)
 {
 	PT_Page_Mem ptPageMemTmp;
 	if (!g_ptPageMemListHead) {
-		g_ptPageMemListHead = ptPageMemNew;
+		g_ptPageMemListHead = (PT_Page_Mem)malloc(sizeof(T_Page_Mem));/* 创建空头部 */
+		g_ptPageMemListHead->ptNext = ptPageMemNew;
 	} else {
-		ptPageMemTmp = g_ptPageMemListHead;
+		ptPageMemTmp = g_ptPageMemListHead->ptNext;
 		while (ptPageMemTmp->ptNext) {
 			ptPageMemTmp = ptPageMemTmp->ptNext;
 		}
-		ptPageMemNew->iID = ptPageMemTmp->iID + 1;
 		ptPageMemTmp->ptNext = ptPageMemNew;
 	}
 	ptPageMemNew->ptNext = NULL;
 }
 
-static PT_Page_Mem Page_Mem_Alloc(void)
+void Page_Mem_List_Del(int iPageID)
+{
+	PT_Page_Mem ptPageMemPre = g_ptPageMemListHead;
+	PT_Page_Mem ptPageMemTmp = g_ptPageMemListHead->ptNext;
+	if (!ptPageMemTmp) {
+		return;
+	} else {
+		while (ptPageMemTmp->iPageID != iPageID) {
+			ptPageMemPre = ptPageMemTmp;
+			ptPageMemTmp = ptPageMemTmp->ptNext;
+		}
+		ptPageMemPre->ptNext = ptPageMemTmp->ptNext;
+		free(ptPageMemTmp->pcMem);
+		free(ptPageMemTmp);
+	}
+}
+
+void Page_Grop_Mem_List_Del(int iPageGropID)
+{
+	PT_Page_Mem ptPageMemPre = g_ptPageMemListHead;
+	PT_Page_Mem ptPageMemTmp = g_ptPageMemListHead->ptNext;
+	if (!ptPageMemTmp) {
+		return;
+	} else {
+		while (ptPageMemTmp) {
+			if ((ptPageMemTmp->iPageID & PAGE_GROUP_MASK) == iPageGropID) {
+				/* delete */
+				ptPageMemPre->ptNext = ptPageMemTmp->ptNext;
+				free(ptPageMemTmp->pcMem);
+				free(ptPageMemTmp);
+			} else {
+				ptPageMemPre = ptPageMemTmp;
+				ptPageMemTmp = ptPageMemTmp->ptNext;
+			}
+		}
+	}
+}
+
+PT_Page_Mem Page_Mem_Alloc(int iPageID)
 {
 	PT_Page_Mem ptPageMemNew;
 	ptPageMemNew = (PT_Page_Mem)malloc(sizeof(T_Page_Mem));
@@ -32,7 +70,7 @@ static PT_Page_Mem Page_Mem_Alloc(void)
 		return NULL;
 	}
 
-	ptPageMemNew->iID = 0;
+	ptPageMemNew->iPageID = iPageID;
 	ptPageMemNew->dwMemSize = Selected_Display()->dwScreenSize;
 	ptPageMemNew->pcMem = (char *)malloc(ptPageMemNew->dwMemSize);
 	if (!ptPageMemNew->pcMem) {
@@ -41,31 +79,37 @@ static PT_Page_Mem Page_Mem_Alloc(void)
 		return NULL;
 	}
 
+	memset(ptPageMemNew->pcMem, 0, ptPageMemNew->dwMemSize);
+
 	ptPageMemNew->State = PAGE_MEM_FREE;
+
+	Page_Mem_List_Add(ptPageMemNew);
+	
 	return ptPageMemNew;
 }
 
-PT_Page_Mem Page_Mem_Get(int iID)
+PT_Page_Mem Page_Mem_Get(int iPageID)
 {
 	PT_Page_Mem ptPageMemTmp;
-	if (!g_ptPageMemListHead) {
+	if (!g_ptPageMemListHead->ptNext) {
 		return NULL;
 	} else {
-		ptPageMemTmp = g_ptPageMemListHead;
-		while (ptPageMemTmp->iID != iID) {
+		ptPageMemTmp = g_ptPageMemListHead->ptNext;
+		while (ptPageMemTmp->iPageID != iPageID) {
 			ptPageMemTmp = ptPageMemTmp->ptNext;
 		}
 		return ptPageMemTmp;
 	}
 }
 
+#if 0
 PT_Page_Mem Page_Mem_Free_Find(void)
 {
 	PT_Page_Mem ptPageMemTmp;
-	if (!g_ptPageMemListHead) {
+	if (!g_ptPageMemListHead->ptNext) {
 		return NULL;
 	} else {
-		ptPageMemTmp = g_ptPageMemListHead;
+		ptPageMemTmp = g_ptPageMemListHead->ptNext;
 		while (ptPageMemTmp->State != PAGE_MEM_FREE) {
 			ptPageMemTmp = ptPageMemTmp->ptNext;
 		}
@@ -93,4 +137,5 @@ int Page_Mem_Prepare(int iNum)
 	}
 	return 0;
 }
+#endif
 

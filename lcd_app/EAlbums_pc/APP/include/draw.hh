@@ -1,8 +1,8 @@
 #ifndef _DRAW_H
 #define _DRAW_H
-
 #include "format_manager.h"
 #include "disp_manager.h"
+#include "page_manager.h"
 
 typedef struct Icon_Info
 {
@@ -14,6 +14,7 @@ typedef struct Icon_Info
 } T_IconInfo, *PT_IconInfo;
 
 extern void Lcd_Show_Pic(int iX, int iY, PT_PicRegion ptPicReg);
+extern void Lcd_Merge(int iX, int iY, PT_PicRegion ptPicReg, char *pcMem);
 extern void Lcd_Mem_Flush(PT_Page_Mem ptPageMem);
 extern void Pic_Zoom(PT_PicRegion ptDstPicReg, PT_PicRegion ptSrcPicReg, float fFactor);
 

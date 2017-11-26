@@ -12,11 +12,12 @@ typedef struct Disp_Opr
 {
 	const char *pcName;
 	T_Dev_Attr tDevAttr;
-	unsigned int dwScreenSize;
+	unsigned int dwScreenSize;/* screen size in bytes */
 	char *pcMem;
 	int (*Init)(void);
 	int (*Clean_Screen)(void);
 	void (*Put_Pixel)(int, int, unsigned int);
+	void (*Store_Pixel)(int, int, unsigned int, char *);
 	int (*Dev_Remove)(void);
 	struct Disp_Opr *ptNext;
 }T_Disp_Opr, *PT_Disp_Opr;

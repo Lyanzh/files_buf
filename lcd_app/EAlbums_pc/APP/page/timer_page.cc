@@ -56,9 +56,9 @@ static void Timer_Page_Get_Input_Event(void)
 }
 
 static T_Page_Opr g_tTimerPageOpr = {
-	.c_pcName   = "timerpage",
-	.Prepare    = Timer_Page_Prepare,
-	.Run		= Timer_Page_Run,
+	.c_pcName        = "timerpage",
+	.PrepareSelf     = Timer_Page_Prepare,
+	.Run		     = Timer_Page_Run,
 	.Get_Input_Event = Timer_Page_Get_Input_Event,
 };
 

@@ -12,8 +12,10 @@ typedef struct Page_Operation
 {
 	const char *c_pcName;
 	void (*Run)(void);
-	void (*Prepare)(void);
+	void (*PrepareSelf)(void);
+	void (*PrepareNext)(void);
 	void (*Get_Input_Event)(void);
+	void (*Exit)(void);
 	struct Page_Operation *ptNext;
 } T_Page_Opr, *PT_Page_Opr;
 

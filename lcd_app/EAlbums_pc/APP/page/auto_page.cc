@@ -105,9 +105,9 @@ static void Auto_Page_Get_Input_Event(void)
 }
 
 static T_Page_Opr g_tAutoPageOpr = {
-	.c_pcName   = "autopage",
-	.Prepare    = Auto_Page_Prepare,
-	.Run		= Auto_Page_Run,
+	.c_pcName    = "autopage",
+	.PrepareSelf = Auto_Page_Prepare,
+	.Run		 = Auto_Page_Run,
 	.Get_Input_Event = Auto_Page_Get_Input_Event,
 };
 

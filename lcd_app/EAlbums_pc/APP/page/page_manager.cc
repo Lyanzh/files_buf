@@ -5,6 +5,9 @@
 
 #include "memwatch.h"
 
+PT_Page_Opr g_ptPrePageOpr;
+PT_Page_Opr g_ptCurPageOpr;
+
 static PT_Page_Opr g_ptPageOprHead;
 
 int Page_Opr_Regisiter(PT_Page_Opr ptPageOpr)
@@ -84,10 +87,10 @@ int Page_Opr_Init(void)
 
 void Page_Change(char *pcName)
 {
-	PT_Page_Opr ptPageOprNext;
-	ptPageOprNext = Get_Page_Opr(pcName);
-	ptPageOprNext->Prepare();
-	ptPageOprNext->Run();
-	ptPageOprNext->Get_Input_Event();
+	g_ptPrePageOpr = g_ptCurPageOpr;
+	g_ptCurPageOpr = Get_Page_Opr(pcName);
+	g_ptCurPageOpr->Run();
+	g_ptCurPageOpr->PrepareNext();
+	g_ptCurPageOpr->Get_Input_Event();
 }
 

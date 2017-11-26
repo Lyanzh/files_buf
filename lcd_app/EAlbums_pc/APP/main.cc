@@ -52,10 +52,12 @@ int main(int argc, char **argv)
 
 	//Lcd_Show_Pic(0, 0, &tPicReg);
 
-	Page_Mem_Prepare(5);
+	//Page_Mem_Prepare(5);
 
-	Get_Page_Opr("mainpage")->Prepare();
-	Get_Page_Opr("mainpage")->Run();
+	//Get_Page_Opr("mainpage")->PrepareSelf();
+	//Get_Page_Opr("mainpage")->Run();
+
+	Page_Change("mainpage");
 
 	while (1) {
 	#if 0
@@ -73,7 +75,7 @@ int main(int argc, char **argv)
 		}
 	#endif
 
-		Get_Page_Opr("mainpage")->Get_Input_Event();
+		//Get_Page_Opr("mainpage")->Get_Input_Event();
 	}
 
 	return 0;
