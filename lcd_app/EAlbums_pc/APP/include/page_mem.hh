@@ -32,6 +32,7 @@ typedef PT_Page_Mem PT_Page_Mem_List;
 extern int Page_Mem_Prepare(int iNum);
 extern PT_Page_Mem Page_Mem_Alloc(int iPageID);
 extern void Page_Mem_List_Del(int iPageID);
+extern void Page_Grop_Mem_List_Del(int iPageGropID);
 extern PT_Page_Mem Page_Mem_Get(int iPageID);
 
 #endif
