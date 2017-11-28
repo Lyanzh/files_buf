@@ -27,21 +27,61 @@ static pthread_mutex_t g_tShowMutex;
 static pthread_cond_t g_tShowCond;
 
 static PT_FileList g_ptFileListCurShow;
-static float g_fZoomFactor;
+static float g_fZoomFactorPre;
+static float g_fZoomFactorCur;
 
 static void *Browse_Page_Thread(void *arg)
 {
+	PT_Page_Mem ptPageMemCur;
+	PT_Page_Mem ptPageMemLager;
+	PT_Page_Mem ptPageMemSmaller;
+
+	ptPageMemCur = Page_Mem_Get(BROWSEPAGE_MAIN);
+	if (!ptPageMemCur || ptPageMemCur->State == PAGE_MEM_FREE) {
+		printf("Error:can not get ptPageMemCur\n");
+		return;
+	}
+	
+	/* 申请缓存 */
+	ptPageMemLager = Page_Mem_Get(BROWSEPAGE_LARGER);
+	if (!ptPageMemLager) {
+		/* 还未申请或已经销毁，重新申请 */
+		ptPageMemLager = Page_Mem_Alloc(BROWSEPAGE_LARGER);
+		if (!ptPageMemLager) {
+			printf("Error:can not get ptPageMemLager\n");
+			return;
+		}
+	}
+	ptPageMemSmaller = Page_Mem_Get(BROWSEPAGE_SMALLER);
+	if (!ptPageMemSmaller) {
+		/* 还未申请或已经销毁，重新申请 */
+		ptPageMemSmaller = Page_Mem_Alloc(BROWSEPAGE_SMALLER);
+		if (!ptPageMemSmaller) {
+			printf("Error:can not get ptPageMemSmaller\n");
+			return;
+		}
+	}
+
+	memcpy(ptPageMemLager->pcMem, ptPageMemCur->pcMem, ptPageMemLager->dwMemSize);
+	memcpy(ptPageMemSmaller->pcMem, ptPageMemCur->pcMem, ptPageMemSmaller->dwMemSize);
+	
 	while (1) {
 		pthread_mutex_lock(&g_tShowMutex);
 		pthread_cond_wait(&g_tShowCond, &g_tShowMutex);
+		/* 显示这一次的，准备下一次的 */
 		if (g_ptFileListCurShow) {
 			Get_Format_Opr("jpeg")->Get_Pic_Region(g_ptFileListCurShow->pcName, &tPicRegSrc);
-			if (g_fZoomFactor == 0 || g_fZoomFactor == 1) {
+			if (g_fZoomFactorCur == 0 || g_fZoomFactorCur == 1) {
 				Lcd_Show_Pic(0, g_iPicY, &tPicRegSrc);
 			} else {
-				Pic_Zoom(&tPicRegDst, &tPicRegSrc, g_fZoomFactor);
+				Pic_Zoom(&tPicRegDst, &tPicRegSrc, g_fZoomFactorCur);
 				Lcd_Show_Pic(0, g_iPicY, &tPicRegDst);
 			}
+		}
+
+		if () {
+			Pic_Zoom(&tPicRegDst, &tPicRegSrc, 0);
+			Lcd_Merge(0, g_iPicY, &tPicRegDst, ptPageMem->pcMem);
 		}
 		pthread_mutex_unlock(&g_tShowMutex);
 	}
@@ -65,7 +105,7 @@ static int Browse_Page_Data(PT_Page_Mem ptPageMem)
 	Show_File_List();
 
 	g_ptFileListCurShow = g_ptFileListHead;
-	g_fZoomFactor = 1;
+	g_fZoomFactorCur = 1;
 	
 	if (!ptPageMem) {
 		printf("Error:Mainpage memery invalid\n");
@@ -93,10 +133,10 @@ static int Browse_Page_Data(PT_Page_Mem ptPageMem)
 	g_iPicY = tPicRegDst.dwHeight;
 	if (g_ptFileListCurShow) {
 		Get_Format_Opr("jpeg")->Get_Pic_Region(g_ptFileListCurShow->pcName, &tPicRegSrc);
-		if (g_fZoomFactor == 0 || g_fZoomFactor == 1) {
+		if (g_fZoomFactorCur == 0 || g_fZoomFactorCur == 1) {
 			Lcd_Merge(0, g_iPicY, &tPicRegSrc, ptPageMem->pcMem);
 		} else {
-			Pic_Zoom(&tPicRegDst, &tPicRegSrc, g_fZoomFactor);
+			Pic_Zoom(&tPicRegDst, &tPicRegSrc, g_fZoomFactorCur);
 			Lcd_Merge(0, g_iPicY, &tPicRegDst, ptPageMem->pcMem);
 		}
 	}
@@ -146,7 +186,6 @@ static void Browse_Page_Run(void)
 	ptPageMem = Page_Mem_Get(BROWSEPAGE_MAIN);
 	if (ptPageMem && ptPageMem->State == PAGE_MEM_PACKED) {
 		Lcd_Mem_Flush(ptPageMem);
-		ptPageMem->State = PAGE_MEM_BUSY;
 	} else {
 		printf("Warning:Browsepage data has not been prepared\n");
 	}
@@ -156,7 +195,7 @@ static void Browse_Page_Run(void)
 
 static void Browse_Page_PrepareNext(void)
 {
-	//Get_Page_Opr("mainpage")->PrepareSelf();
+	Get_Page_Opr("mainpage")->PrepareSelf();
 }
 
 static void Browse_Page_Get_Input_Event(void)
@@ -167,14 +206,14 @@ static void Browse_Page_Get_Input_Event(void)
 		if (tInputEvent.cCode == 'l') {
 			printf("\nlager.\n");
 			pthread_mutex_lock(&g_tShowMutex);
-			g_fZoomFactor += 0.1;
+			g_fZoomFactorCur += 0.1;
 			pthread_cond_signal(&g_tShowCond);
 			pthread_mutex_unlock(&g_tShowMutex);
 		} else if (tInputEvent.cCode == 's') {
 			printf("\nsmaller.\n");
-			if (g_fZoomFactor > 0.1) {
+			if (g_fZoomFactorCur > 0.1) {
 				pthread_mutex_lock(&g_tShowMutex);
-				g_fZoomFactor -= 0.1;
+				g_fZoomFactorCur -= 0.1;
 				pthread_cond_signal(&g_tShowCond);
 				pthread_mutex_unlock(&g_tShowMutex);
 			}

@@ -9,13 +9,14 @@
 
 #define MAINPAGE_MAIN			(MAINPAGE_GROUP    | 0x01)
 #define BROWSEPAGE_MAIN			(BROWSEPAGE_GROUP  | 0x01)
+#define BROWSEPAGE_LARGER		(BROWSEPAGE_GROUP  | 0x02)
+#define BROWSEPAGE_SMALLER		(BROWSEPAGE_GROUP  | 0x03)
 #define SETTINGPAGE_MAIN		(SETTINGPAGE_GROUP | 0x01)
 
 typedef enum Page_Mem_State
 {
 	PAGE_MEM_FREE,	/* no data  */
 	PAGE_MEM_PACKED,/* has data */
-	PAGE_MEM_BUSY,	/* showing  */
 } E_Page_Mem_State, *PE_Page_Mem_State;
 
 typedef struct Page_Mem_Desc
@@ -24,6 +25,7 @@ typedef struct Page_Mem_Desc
 	unsigned int dwMemSize;
 	char *pcMem;
 	E_Page_Mem_State State;
+	struct Page_Mem_Desc *ptPre;
 	struct Page_Mem_Desc *ptNext;
 } T_Page_Mem, *PT_Page_Mem;
 

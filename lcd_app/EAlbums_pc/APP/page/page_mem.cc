@@ -7,14 +7,13 @@
 #include "memwatch.h"
 
 static pthread_mutex_t g_tPageMemListMutex = PTHREAD_MUTEX_INITIALIZER;
-static PT_Page_Mem_List g_ptPageMemListHead;/* 空头部，方便删除操作 */
+static PT_Page_Mem_List g_ptPageMemListHead;/* 空表头，方便插入删除操作 */
 
 static void Page_Mem_List_Add(PT_Page_Mem ptPageMemNew)
 {
 	PT_Page_Mem ptPageMemTmp;
 	pthread_mutex_lock(&g_tPageMemListMutex);
 	if (!g_ptPageMemListHead) {
-		//g_ptPageMemListHead->ptNext = ptPageMemNew;
 		printf("Error:please initialize g_ptPageMemListHead first\n");
 	} else {
 		ptPageMemTmp = g_ptPageMemListHead;
@@ -22,56 +21,74 @@ static void Page_Mem_List_Add(PT_Page_Mem ptPageMemNew)
 			ptPageMemTmp = ptPageMemTmp->ptNext;
 		}
 		ptPageMemTmp->ptNext = ptPageMemNew;
+		ptPageMemNew->ptPre = ptPageMemTmp;
+		ptPageMemNew->ptNext = NULL;
 	}
-	ptPageMemNew->ptNext = NULL;
 	pthread_mutex_unlock(&g_tPageMemListMutex);
 }
 
 void Page_Mem_List_Del(int iPageID)
 {
-	PT_Page_Mem ptPageMemPre;
 	PT_Page_Mem ptPageMemTmp;
 	pthread_mutex_lock(&g_tPageMemListMutex);
-	ptPageMemPre = g_ptPageMemListHead;
 	ptPageMemTmp = g_ptPageMemListHead->ptNext;
 	if (!ptPageMemTmp) {
 		/* 只有头部，无实际成员，直接退出 */
-		return;
+		goto unlock;
 	} else {
-		while (ptPageMemTmp->iPageID != iPageID) {
-			ptPageMemPre = ptPageMemTmp;
-			ptPageMemTmp = ptPageMemTmp->ptNext;
+		while (ptPageMemTmp) {
+			if (ptPageMemTmp->iPageID == iPageID) {
+				/* delete */
+				if (!ptPageMemTmp->ptNext) {
+					/* 链表尾 */
+					ptPageMemTmp->ptPre->ptNext = NULL;
+				} else {
+					ptPageMemTmp->ptNext->ptPre = ptPageMemTmp->ptPre;
+					ptPageMemTmp->ptPre->ptNext = ptPageMemTmp->ptNext;
+				}
+				free(ptPageMemTmp->pcMem);
+				free(ptPageMemTmp);
+				goto unlock;
+			} else {
+				ptPageMemTmp = ptPageMemTmp->ptNext;
+			}
 		}
-		ptPageMemPre->ptNext = ptPageMemTmp->ptNext;
-		free(ptPageMemTmp->pcMem);
-		free(ptPageMemTmp);
 	}
+unlock:
 	pthread_mutex_unlock(&g_tPageMemListMutex);
 }
 
 void Page_Grop_Mem_List_Del(int iPageGropID)
 {
-	PT_Page_Mem ptPageMemPre;
 	PT_Page_Mem ptPageMemTmp;
 	pthread_mutex_lock(&g_tPageMemListMutex);
-	ptPageMemPre = g_ptPageMemListHead;
 	ptPageMemTmp = g_ptPageMemListHead->ptNext;
 	if (!ptPageMemTmp) {
 		/* 只有头部，无实际成员，直接退出 */
-		return;
+		goto unlock;
 	} else {
 		while (ptPageMemTmp) {
 			if ((ptPageMemTmp->iPageID & PAGE_GROUP_MASK) == iPageGropID) {
 				/* delete */
-				ptPageMemPre->ptNext = ptPageMemTmp->ptNext;
-				free(ptPageMemTmp->pcMem);
-				free(ptPageMemTmp);
-			} else {
-				ptPageMemPre = ptPageMemTmp;
-				ptPageMemTmp = ptPageMemTmp->ptNext;
+				if (!ptPageMemTmp->ptNext) {
+					/* 链表尾 */
+					ptPageMemTmp->ptPre->ptNext = NULL;
+					free(ptPageMemTmp->pcMem);
+					free(ptPageMemTmp);
+					goto unlock;
+				} else {
+					ptPageMemTmp->ptNext->ptPre = ptPageMemTmp->ptPre;
+					ptPageMemTmp->ptPre->ptNext = ptPageMemTmp->ptNext;
+
+					/* 指向下一个 */
+					ptPageMemTmp = ptPageMemTmp->ptNext;
+					free(ptPageMemTmp->pcMem);
+					free(ptPageMemTmp);
+				}
 			}
 		}
 	}
+unlock:
 	pthread_mutex_unlock(&g_tPageMemListMutex);
 }
 
@@ -105,10 +122,10 @@ PT_Page_Mem Page_Mem_Get(int iPageID)
 {
 	PT_Page_Mem ptPageMemTmp;
 	printf("Page_Mem_Get\n");
-	//pthread_mutex_lock(&g_tPageMemListMutex);
 	if (!g_ptPageMemListHead->ptNext) {
 		return NULL;
 	} else {
+		ptPageMemTmp = g_ptPageMemListHead->ptNext;
 		while (ptPageMemTmp) {
 			if (ptPageMemTmp->iPageID == iPageID) {
 				return ptPageMemTmp;
@@ -117,13 +134,13 @@ PT_Page_Mem Page_Mem_Get(int iPageID)
 		}
 		return NULL;
 	}
-	//pthread_mutex_unlock(&g_tPageMemListMutex);
 }
 
 void Page_Mem_Init(void)
 {
 	/* 创建空头部 */
 	g_ptPageMemListHead = (PT_Page_Mem)malloc(sizeof(T_Page_Mem));
+	g_ptPageMemListHead->ptPre = NULL;
 	g_ptPageMemListHead->ptNext = NULL;
 }
 

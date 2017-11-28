@@ -88,7 +88,6 @@ static void Setting_Page_Run(void)
 	ptPageMem = Page_Mem_Get(SETTINGPAGE_MAIN);
 	if (ptPageMem && ptPageMem->State == PAGE_MEM_PACKED) {
 		Lcd_Mem_Flush(ptPageMem);
-		ptPageMem->State = PAGE_MEM_BUSY;
 	} else {
 		printf("Warning:Settingpage data has not been prepared\n");
 	}

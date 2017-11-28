@@ -83,7 +83,6 @@ static void Main_Page_Run(void)
 	ptPageMem = Page_Mem_Get(MAINPAGE_MAIN);
 	if (ptPageMem && ptPageMem->State == PAGE_MEM_PACKED) {
 		Lcd_Mem_Flush(ptPageMem);
-		ptPageMem->State = PAGE_MEM_BUSY;
 	} else {
 		printf("Warning:Mainpage data has not been prepared\n");
 	}
@@ -114,7 +113,7 @@ static void Main_Page_Get_Input_Event(void)
 
 static void Main_Page_Exit(void)
 {
-	//Page_Grop_Mem_List_Del(MAINPAGE_GROUP);
+	Page_Grop_Mem_List_Del(MAINPAGE_GROUP);
 }
 
 static T_Page_Opr g_tMainPageOpr = {
