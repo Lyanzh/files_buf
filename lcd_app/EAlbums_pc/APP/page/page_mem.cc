@@ -7,17 +7,17 @@
 #include "memwatch.h"
 
 static pthread_mutex_t g_tPageMemListMutex = PTHREAD_MUTEX_INITIALIZER;
-PT_Page_Mem_List g_ptPageMemListHead;/* 空头部，方便删除操作 */
+static PT_Page_Mem_List g_ptPageMemListHead;/* 空头部，方便删除操作 */
 
 static void Page_Mem_List_Add(PT_Page_Mem ptPageMemNew)
 {
 	PT_Page_Mem ptPageMemTmp;
 	pthread_mutex_lock(&g_tPageMemListMutex);
 	if (!g_ptPageMemListHead) {
-		g_ptPageMemListHead = (PT_Page_Mem)malloc(sizeof(T_Page_Mem));/* 创建空头部 */
-		g_ptPageMemListHead->ptNext = ptPageMemNew;
+		//g_ptPageMemListHead->ptNext = ptPageMemNew;
+		printf("Error:please initialize g_ptPageMemListHead first\n");
 	} else {
-		ptPageMemTmp = g_ptPageMemListHead->ptNext;
+		ptPageMemTmp = g_ptPageMemListHead;
 		while (ptPageMemTmp->ptNext) {
 			ptPageMemTmp = ptPageMemTmp->ptNext;
 		}
@@ -35,6 +35,7 @@ void Page_Mem_List_Del(int iPageID)
 	ptPageMemPre = g_ptPageMemListHead;
 	ptPageMemTmp = g_ptPageMemListHead->ptNext;
 	if (!ptPageMemTmp) {
+		/* 只有头部，无实际成员，直接退出 */
 		return;
 	} else {
 		while (ptPageMemTmp->iPageID != iPageID) {
@@ -56,6 +57,7 @@ void Page_Grop_Mem_List_Del(int iPageGropID)
 	ptPageMemPre = g_ptPageMemListHead;
 	ptPageMemTmp = g_ptPageMemListHead->ptNext;
 	if (!ptPageMemTmp) {
+		/* 只有头部，无实际成员，直接退出 */
 		return;
 	} else {
 		while (ptPageMemTmp) {
@@ -93,9 +95,7 @@ PT_Page_Mem Page_Mem_Alloc(int iPageID)
 	}
 
 	memset(ptPageMemNew->pcMem, 0, ptPageMemNew->dwMemSize);
-
 	ptPageMemNew->State = PAGE_MEM_FREE;
-
 	Page_Mem_List_Add(ptPageMemNew);
 	
 	return ptPageMemNew;
@@ -105,17 +105,26 @@ PT_Page_Mem Page_Mem_Get(int iPageID)
 {
 	PT_Page_Mem ptPageMemTmp;
 	printf("Page_Mem_Get\n");
-	pthread_mutex_lock(&g_tPageMemListMutex);
+	//pthread_mutex_lock(&g_tPageMemListMutex);
 	if (!g_ptPageMemListHead->ptNext) {
 		return NULL;
 	} else {
-		ptPageMemTmp = g_ptPageMemListHead->ptNext;
-		while (ptPageMemTmp->iPageID != iPageID) {
+		while (ptPageMemTmp) {
+			if (ptPageMemTmp->iPageID == iPageID) {
+				return ptPageMemTmp;
+			}
 			ptPageMemTmp = ptPageMemTmp->ptNext;
 		}
-		return ptPageMemTmp;
+		return NULL;
 	}
-	pthread_mutex_unlock(&g_tPageMemListMutex);
+	//pthread_mutex_unlock(&g_tPageMemListMutex);
+}
+
+void Page_Mem_Init(void)
+{
+	/* 创建空头部 */
+	g_ptPageMemListHead = (PT_Page_Mem)malloc(sizeof(T_Page_Mem));
+	g_ptPageMemListHead->ptNext = NULL;
 }
 
 #if 0

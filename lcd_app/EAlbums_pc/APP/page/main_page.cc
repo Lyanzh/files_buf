@@ -114,7 +114,7 @@ static void Main_Page_Get_Input_Event(void)
 
 static void Main_Page_Exit(void)
 {
-	Page_Grop_Mem_List_Del(MAINPAGE_GROUP);
+	//Page_Grop_Mem_List_Del(MAINPAGE_GROUP);
 }
 
 static T_Page_Opr g_tMainPageOpr = {

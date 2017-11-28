@@ -53,6 +53,7 @@ static int Setting_Page_Data(PT_Page_Mem ptPageMem)
 
 static void Setting_Page_Pre_Thread(void)
 {
+#if 1
 	PT_Page_Mem ptPageMem;
 	/* ÉêÇë»º´æ */
 	ptPageMem = Page_Mem_Get(SETTINGPAGE_MAIN);
@@ -70,6 +71,7 @@ static void Setting_Page_Pre_Thread(void)
 		/* Ð´Êý¾Ý½ø»º´æ */
 		Setting_Page_Data(ptPageMem);
 	}
+#endif
 	pthread_detach(pthread_self());
 }
 

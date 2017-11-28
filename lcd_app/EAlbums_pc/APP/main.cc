@@ -31,6 +31,8 @@ int main(int argc, char **argv)
 	//Show_Encoding_Opr();
 	//Show_Input_Opr();
 
+	Page_Mem_Init();
+
 	Select_And_Init_Display(DISPLAY_LCD);
 
 	//Open_Text_File(EBOOK_TEXT_FILE);

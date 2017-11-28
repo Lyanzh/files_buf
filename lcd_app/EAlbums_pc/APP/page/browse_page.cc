@@ -107,6 +107,7 @@ static int Browse_Page_Data(PT_Page_Mem ptPageMem)
 
 static void Browse_Page_Pre_Thread(void)
 {
+#if 1
 	PT_Page_Mem ptPageMem;
 	/* ÉêÇë»º´æ */
 	ptPageMem = Page_Mem_Get(BROWSEPAGE_MAIN);
@@ -124,6 +125,7 @@ static void Browse_Page_Pre_Thread(void)
 		/* Ð´Êý¾Ý½ø»º´æ */
 		Browse_Page_Data(ptPageMem);
 	}
+#endif
 	pthread_detach(pthread_self());
 }
 
@@ -154,7 +156,7 @@ static void Browse_Page_Run(void)
 
 static void Browse_Page_PrepareNext(void)
 {
-	//Get_Page_Opr("settingpage")->PrepareSelf();
+	//Get_Page_Opr("mainpage")->PrepareSelf();
 }
 
 static void Browse_Page_Get_Input_Event(void)
@@ -192,12 +194,18 @@ static void Browse_Page_Get_Input_Event(void)
 	}
 }
 
+static void Browse_Page_Exit(void)
+{
+	Page_Grop_Mem_List_Del(BROWSEPAGE_GROUP);
+}
+
 static T_Page_Opr g_tBrowsePageOpr = {
 	.c_pcName        = "browsepage",
 	.PrepareSelf     = Browse_Page_PrepareSelf,
 	.PrepareNext     = Browse_Page_PrepareNext,
 	.Run		     = Browse_Page_Run,
 	.Get_Input_Event = Browse_Page_Get_Input_Event,
+	.Exit            = Browse_Page_Exit,
 };
 
 int Browse_Page_Init(void)
