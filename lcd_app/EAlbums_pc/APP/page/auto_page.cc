@@ -109,8 +109,8 @@ static void Pic_Prepare_Next(void)
 
 	/* 准备下一张的数据 */
 	Get_Format_Opr("jpeg")->Get_Pic_Region(g_ptFileListCurShow->pcName, &tPicRegSrc);
-	Pic_Zoom(&tPicRegDst, &tPicRegSrc, g_fZoomFactorCur);
-	Lcd_Merge(0, g_iPicY, &tPicRegDst, g_ptPageMemNextPic->pcMem);
+	//Pic_Zoom(&tPicRegDst, &tPicRegSrc, g_fZoomFactorCur);
+	Lcd_Merge(0, g_iPicY, &tPicRegSrc, g_ptPageMemNextPic->pcMem);
 	Do_Free(tPicRegSrc.pcData);
 }
 
@@ -159,7 +159,7 @@ static void Auto_Page_Run(void)
 	}
 	if (g_ptFileListCurShow->ptNext) {
 		Get_Format_Opr("jpeg")->Get_Pic_Region(g_ptFileListCurShow->ptNext->pcName, &tPicRegSrc);
-		Lcd_Merge(0, g_iPicY, &tPicRegDst, g_ptPageMemNextPic->pcMem);
+		Lcd_Merge(0, g_iPicY, &tPicRegSrc, g_ptPageMemNextPic->pcMem);
 		Do_Free(tPicRegSrc.pcData);
 	}
 }

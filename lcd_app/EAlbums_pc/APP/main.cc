@@ -1,3 +1,7 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <unistd.h>
 #include "config.h"
 #include "draw.h"
 #include "page_mem.h"
@@ -10,11 +14,6 @@
 #include "page_manager.h"
 
 #include "memwatch.h"
-
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <unistd.h>
 
 int main(int argc, char **argv)
 {

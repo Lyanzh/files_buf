@@ -346,6 +346,8 @@ static void Browse_Page_Get_Input_Event(void)
 			}
 		} else if (tInputEvent.cCode == 'q') {
 			Page_Change("mainpage");
+		} else if(tInputEvent.cCode == 'a') {
+			Page_Change("autopage");
 		}
 	}
 }

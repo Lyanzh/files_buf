@@ -110,6 +110,7 @@ static void Main_Page_Get_Input_Event(void)
 			Page_Change("browsepage");
 		} else if (tInputEvent.cCode == 'c') {
 			printf("\nshow continue mode page.\n");
+			Page_Change("autopage");
 		} else if (tInputEvent.cCode == 's') {
 			printf("\nshow setting page.\n");
 			Page_Change("settingpage");
