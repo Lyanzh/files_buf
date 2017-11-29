@@ -12,11 +12,16 @@
 #include "memwatch.h"
 
 #include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <unistd.h>
 
 int main(int argc, char **argv)
 {
 	//T_Input_Event tInputEvent;
 	//T_PicRegion tPicReg;
+
+	char acBasePath[100];
 
 	Disp_Opr_Init();
 	Format_Opr_Init();
@@ -51,6 +56,17 @@ int main(int argc, char **argv)
 	//Get_Format_Opr("bmp")->Get_Pic_Region("cancel.bmp", &tPicReg);
 
 	Selected_Display()->Clean_Screen();
+
+	//get the current absoulte path
+	memset(acBasePath, '\0', sizeof(acBasePath));
+	getcwd(acBasePath, 99);
+	printf("the current dir is : %s\n", acBasePath);
+
+	//get the file list
+	Read_File_List(acBasePath);
+
+	Show_File_List();
+	g_ptFileListCurShow = g_ptFileListHead;
 
 	//Lcd_Show_Pic(0, 0, &tPicReg);
 

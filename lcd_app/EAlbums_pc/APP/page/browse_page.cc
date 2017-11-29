@@ -24,7 +24,6 @@ static pthread_mutex_t g_tShowMutex;
 static pthread_cond_t g_tShowCond;
 
 static PT_FileList g_ptFileListPreShow;
-static PT_FileList g_ptFileListCurShow;
 static float g_fZoomFactorPre = 1;
 static float g_fZoomFactorCur = 1;
 
@@ -144,17 +143,6 @@ static int Browse_Page_Data(PT_Page_Mem ptPageMem)
 	T_PicRegion tPicRegSrc;
 	T_PicRegion tPicRegDst;
 
-	//get the current absoulte path
-	memset(acBasePath, '\0', sizeof(acBasePath));
-	getcwd(acBasePath, 99);
-	printf("the current dir is : %s\n", acBasePath);
-
-	//get the file list
-	Read_File_List(acBasePath);
-
-	Show_File_List();
-
-	g_ptFileListCurShow = g_ptFileListHead;
 	g_ptFileListPreShow = g_ptFileListCurShow;
 	g_fZoomFactorPre = 1;
 	g_fZoomFactorCur = 1;

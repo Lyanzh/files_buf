@@ -14,6 +14,8 @@ typedef PT_FileNode PT_FileList;
 
 extern PT_FileList g_ptFileListHead;
 
+extern PT_FileList g_ptFileListCurShow;
+
 extern int Read_File_List(char *pcBasePath);
 extern void Show_File_List(void);
 

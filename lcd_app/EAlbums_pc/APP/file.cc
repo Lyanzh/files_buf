@@ -7,6 +7,7 @@
 #include <sys/stat.h>
 
 PT_FileList g_ptFileListHead;
+PT_FileList g_ptFileListCurShow;
 
 void File_List_Add(char *pcFileName)//Ë«ÏòÑ­»·Á´±í
 {
