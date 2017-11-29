@@ -7,6 +7,7 @@
 #include "input_manager.h"
 #include "draw.h"
 #include "file.h"
+#include "config.h"
 
 typedef struct Page_Operation
 {

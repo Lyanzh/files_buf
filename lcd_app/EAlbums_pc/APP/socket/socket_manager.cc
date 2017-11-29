@@ -97,7 +97,7 @@ static void *Socket_Send_Thread_Function(void *arg)
 		if (ptSocketOprTmp->Socket_Send_Data(g_pcSocketDataSend) <= 0) {
 			printf("Error:socket send data error.\n");
 		}
-		free(g_pcSocketDataSend);
+		Do_Free(g_pcSocketDataSend);
 		pthread_mutex_unlock(&g_tSendMutex);
 	}
 }

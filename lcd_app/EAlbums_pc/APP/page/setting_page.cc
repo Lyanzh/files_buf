@@ -14,13 +14,13 @@ static T_IconInfo t_SettingPageIcon[] =
 	{"icon/interval.bmp", 0, 0, 0, 0},
 };
 
-static T_PicRegion tPicRegSrc;
-static T_PicRegion tPicRegDst;
-
 static int Setting_Page_Data(PT_Page_Mem ptPageMem)
 {
 	int i;
 	int iIconNum;
+	T_PicRegion tPicRegSrc;
+	T_PicRegion tPicRegDst;
+	
 	if (!ptPageMem) {
 		printf("Error:Settingpage memery invalid\n");
 		return -1;
@@ -45,6 +45,7 @@ static int Setting_Page_Data(PT_Page_Mem ptPageMem)
 		//Lcd_Show_Pic(t_SettingPageIcon[i].iTopLeftX, t_SettingPageIcon[i].iTopLeftY, &tPicRegDst);
 		Lcd_Merge(t_SettingPageIcon[i].iTopLeftX, t_SettingPageIcon[i].iTopLeftY,
 				&tPicRegDst, ptPageMem->pcMem);
+		Do_Free(tPicRegSrc.pcData);
 	}
 	
 	ptPageMem->State = PAGE_MEM_PACKED;
@@ -95,7 +96,7 @@ static void Setting_Page_Run(void)
 
 static void Setting_Page_PrepareNext(void)
 {
-	//Get_Page_Opr("settingpage")->PrepareSelf();
+	Get_Page_Opr("settingpage")->PrepareSelf();
 }
 
 static void Setting_Page_Get_Input_Event(void)

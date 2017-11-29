@@ -13,13 +13,14 @@ static T_IconInfo t_MainPageIcon[] =
 	{"icon/setting.bmp", 0, 0, 0, 0},
 };
 
-static T_PicRegion tPicRegSrc;
-static T_PicRegion tPicRegDst;
-
 static int Main_Page_Data(PT_Page_Mem ptPageMem)
 {
 	int i;
 	int iIconNum;
+
+	T_PicRegion tPicRegSrc;
+	T_PicRegion tPicRegDst;
+	
 	if (!ptPageMem) {
 		printf("Error:Mainpage memery invalid\n");
 		return -1;
@@ -40,11 +41,16 @@ static int Main_Page_Data(PT_Page_Mem ptPageMem)
 		t_MainPageIcon[i].iBottomRightX = t_MainPageIcon[i].iTopLeftX + tPicRegDst.dwWidth;
 		t_MainPageIcon[i].iBottomRightY = t_MainPageIcon[i].iTopLeftY + tPicRegDst.dwHeight;
 		Pic_Zoom(&tPicRegDst, &tPicRegSrc, 0);
-		//Lcd_Show_Pic(t_MainPageIcon[i].iTopLeftX, t_MainPageIcon[i].iTopLeftY, &tPicRegDst);
 		Lcd_Merge(t_MainPageIcon[i].iTopLeftX, t_MainPageIcon[i].iTopLeftY,
 				&tPicRegDst, ptPageMem->pcMem);
+
+		printf("tPicRegDst->pcData = 0x%x\n", tPicRegDst.pcData);
+		printf("tPicRegSrc->pcData = 0x%x\n", tPicRegSrc.pcData);
+		//Do_Free(tPicRegSrc.pcData);
+		Do_Free(tPicRegSrc.pcData);
 	}
 	ptPageMem->State = PAGE_MEM_PACKED;
+	
 	return 0;
 }
 

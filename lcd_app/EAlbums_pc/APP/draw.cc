@@ -159,7 +159,9 @@ void Pic_Zoom(PT_PicRegion ptDstPicReg, PT_PicRegion ptSrcPicReg, float fFactor)
 		printf("Error:malloc ptDstPicReg->pcData error\n");
 		return;
 	}
+	printf("Pic_Zoom ptDstPicReg->pcData = 0x%x\n", ptDstPicReg->pcData);
 
+#if 1
 	pcDstLineData = ptDstPicReg->pcData;
 	for (dwIndexY = 0; dwIndexY < ptDstPicReg->dwHeight; dwIndexY++)
 	{
@@ -175,7 +177,8 @@ void Pic_Zoom(PT_PicRegion ptDstPicReg, PT_PicRegion ptSrcPicReg, float fFactor)
         
 		pcDstLineData += dwDstLineByteCnt;
 	}
+#endif
 
-	free(pdwSrcTableX);
+	Do_Free(pdwSrcTableX);
 }
 

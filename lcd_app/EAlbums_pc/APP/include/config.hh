@@ -9,4 +9,6 @@
 
 #define DEFAULT_ZOOM_FACTOR		(1.0/2)
 
+#define Do_Free(p)				do{free(p);p = NULL;}while(0)
+
 #endif

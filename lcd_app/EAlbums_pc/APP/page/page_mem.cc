@@ -46,8 +46,8 @@ void Page_Mem_List_Del(int iPageID)
 					ptPageMemTmp->ptNext->ptPre = ptPageMemTmp->ptPre;
 					ptPageMemTmp->ptPre->ptNext = ptPageMemTmp->ptNext;
 				}
-				free(ptPageMemTmp->pcMem);
-				free(ptPageMemTmp);
+				Do_Free(ptPageMemTmp->pcMem);
+				Do_Free(ptPageMemTmp);
 				goto unlock;
 			} else {
 				ptPageMemTmp = ptPageMemTmp->ptNext;
@@ -73,8 +73,8 @@ void Page_Grop_Mem_List_Del(int iPageGropID)
 				if (!ptPageMemTmp->ptNext) {
 					/* 链表尾 */
 					ptPageMemTmp->ptPre->ptNext = NULL;
-					free(ptPageMemTmp->pcMem);
-					free(ptPageMemTmp);
+					Do_Free(ptPageMemTmp->pcMem);
+					Do_Free(ptPageMemTmp);
 					goto unlock;
 				} else {
 					ptPageMemTmp->ptNext->ptPre = ptPageMemTmp->ptPre;
@@ -82,8 +82,8 @@ void Page_Grop_Mem_List_Del(int iPageGropID)
 
 					/* 指向下一个 */
 					ptPageMemTmp = ptPageMemTmp->ptNext;
-					free(ptPageMemTmp->pcMem);
-					free(ptPageMemTmp);
+					Do_Free(ptPageMemTmp->pcMem);
+					Do_Free(ptPageMemTmp);
 				}
 			}
 		}
@@ -107,7 +107,7 @@ PT_Page_Mem Page_Mem_Alloc(int iPageID)
 	ptPageMemNew->pcMem = (char *)malloc(ptPageMemNew->dwMemSize);
 	if (!ptPageMemNew->pcMem) {
 		printf("Error:malloc pcMem error\n");
-		free(ptPageMemNew);
+		Do_Free(ptPageMemNew);
 		return NULL;
 	}
 

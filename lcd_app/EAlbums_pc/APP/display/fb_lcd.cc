@@ -154,7 +154,7 @@ int Fb_Remove(void)
 {
 	munmap(g_ptFbDev->pcFbMem, g_ptFbDev->dwScreenSize);
 	close(g_ptFbDev->iFd);
-	free(g_ptFbDev);
+	Do_Free(g_ptFbDev);
 	return 0;
 }
 

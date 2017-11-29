@@ -1,6 +1,8 @@
 #ifndef _DISP_MANAGER_H
 #define _DISP_MANAGER_H
 
+#include "config.h"
+
 typedef struct Dev_Attr
 {
 	unsigned int dwXres;			/* visible resolution		*/

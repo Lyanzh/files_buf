@@ -18,59 +18,85 @@ static T_IconInfo t_BrowsePageIcon[] =
 	{"icon/next_pic.bmp", 0, 0, 0, 0},
 };
 
-static T_PicRegion tPicRegSrc;
-static T_PicRegion tPicRegDst;
-
 static int g_iPicY;
 
 static pthread_mutex_t g_tShowMutex;
 static pthread_cond_t g_tShowCond;
 
+static PT_FileList g_ptFileListPreShow;
 static PT_FileList g_ptFileListCurShow;
 static float g_fZoomFactorPre = 1;
 static float g_fZoomFactorCur = 1;
 
-static void *Browse_Page_Thread(void *arg)
+PT_Page_Mem g_ptPageMemCur;
+PT_Page_Mem g_ptPageMemLager;
+PT_Page_Mem g_ptPageMemSmaller;
+
+PT_Page_Mem g_ptPageMemNextPic;
+PT_Page_Mem g_ptPageMemPrePic;
+
+static void Pic_Prepare_Larger(void)
 {
-	PT_Page_Mem ptPageMemCur;
-	PT_Page_Mem ptPageMemLager;
-	PT_Page_Mem ptPageMemSmaller;
-
-	ptPageMemCur = Page_Mem_Get(BROWSEPAGE_MAIN);
-	if (!ptPageMemCur || ptPageMemCur->State == PAGE_MEM_FREE) {
-		printf("Error:can not get ptPageMemCur\n");
-		return;
-	}
+	T_PicRegion tPicRegSrc;
+	T_PicRegion tPicRegDst;
 	
-	/* 申请缓存 */
-	ptPageMemLager = Page_Mem_Get(BROWSEPAGE_LARGER);
-	if (!ptPageMemLager) {
-		/* 还未申请或已经销毁，重新申请 */
-		ptPageMemLager = Page_Mem_Alloc(BROWSEPAGE_LARGER);
-		if (!ptPageMemLager) {
-			printf("Error:can not get ptPageMemLager\n");
-			return;
-		}
-	}
-	ptPageMemSmaller = Page_Mem_Get(BROWSEPAGE_SMALLER);
-	if (!ptPageMemSmaller) {
-		/* 还未申请或已经销毁，重新申请 */
-		ptPageMemSmaller = Page_Mem_Alloc(BROWSEPAGE_SMALLER);
-		if (!ptPageMemSmaller) {
-			printf("Error:can not get ptPageMemSmaller\n");
-			return;
-		}
-	}
+	memcpy(g_ptPageMemSmaller->pcMem, g_ptPageMemCur->pcMem, g_ptPageMemCur->dwMemSize);
+	memcpy(g_ptPageMemCur->pcMem, g_ptPageMemLager->pcMem, g_ptPageMemLager->dwMemSize);
 
-	memcpy(ptPageMemLager->pcMem, ptPageMemCur->pcMem, ptPageMemLager->dwMemSize);
-	memcpy(ptPageMemSmaller->pcMem, ptPageMemCur->pcMem, ptPageMemSmaller->dwMemSize);
-
+	/* 准备下一次放大的数据 */
 	Get_Format_Opr("jpeg")->Get_Pic_Region(g_ptFileListCurShow->pcName, &tPicRegSrc);
 	Pic_Zoom(&tPicRegDst, &tPicRegSrc, g_fZoomFactorCur+0.1);
-	Lcd_Merge(0, g_iPicY, &tPicRegDst, ptPageMemLager->pcMem);
+	Lcd_Merge(0, g_iPicY, &tPicRegDst, g_ptPageMemLager->pcMem);
+	Do_Free(tPicRegSrc.pcData);
+}
 
+static void Pic_Prepare_Smaller(void)
+{
+	T_PicRegion tPicRegSrc;
+	T_PicRegion tPicRegDst;
+	
+	memcpy(g_ptPageMemLager->pcMem, g_ptPageMemCur->pcMem, g_ptPageMemCur->dwMemSize);
+	memcpy(g_ptPageMemCur->pcMem, g_ptPageMemSmaller->pcMem, g_ptPageMemSmaller->dwMemSize);
+
+	/* 准备下一次缩小的数据 */
+	Get_Format_Opr("jpeg")->Get_Pic_Region(g_ptFileListCurShow->pcName, &tPicRegSrc);
 	Pic_Zoom(&tPicRegDst, &tPicRegSrc, g_fZoomFactorCur-0.1);
-	Lcd_Merge(0, g_iPicY, &tPicRegDst, ptPageMemSmaller->pcMem);
+	Lcd_Merge(0, g_iPicY, &tPicRegDst, g_ptPageMemSmaller->pcMem);
+	Do_Free(tPicRegSrc.pcData);
+}
+
+static void Pic_Prepare_Pre(void)
+{
+	T_PicRegion tPicRegSrc;
+	T_PicRegion tPicRegDst;
+	
+	memcpy(g_ptPageMemNextPic->pcMem, g_ptPageMemCur->pcMem, g_ptPageMemCur->dwMemSize);
+	memcpy(g_ptPageMemCur->pcMem, g_ptPageMemPrePic->pcMem, g_ptPageMemPrePic->dwMemSize);
+
+	/* 准备上一张的数据 */
+	Get_Format_Opr("jpeg")->Get_Pic_Region(g_ptFileListCurShow->pcName, &tPicRegSrc);
+	Pic_Zoom(&tPicRegDst, &tPicRegSrc, g_fZoomFactorCur);
+	Lcd_Merge(0, g_iPicY, &tPicRegDst, g_ptPageMemPrePic->pcMem);
+	Do_Free(tPicRegSrc.pcData);
+}
+
+static void Pic_Prepare_Next(void)
+{
+	T_PicRegion tPicRegSrc;
+	T_PicRegion tPicRegDst;
+	
+	memcpy(g_ptPageMemPrePic->pcMem, g_ptPageMemCur->pcMem, g_ptPageMemCur->dwMemSize);
+	memcpy(g_ptPageMemCur->pcMem, g_ptPageMemNextPic->pcMem, g_ptPageMemNextPic->dwMemSize);
+
+	/* 准备下一张的数据 */
+	Get_Format_Opr("jpeg")->Get_Pic_Region(g_ptFileListCurShow->pcName, &tPicRegSrc);
+	Pic_Zoom(&tPicRegDst, &tPicRegSrc, g_fZoomFactorCur);
+	Lcd_Merge(0, g_iPicY, &tPicRegDst, g_ptPageMemNextPic->pcMem);
+	Do_Free(tPicRegSrc.pcData);
+}
+
+static void *Browse_Page_Thread(void *arg)
+{
 	while (1) {
 		pthread_mutex_lock(&g_tShowMutex);
 		pthread_cond_wait(&g_tShowCond, &g_tShowMutex);
@@ -81,27 +107,28 @@ static void *Browse_Page_Thread(void *arg)
 
 		printf("g_fZoomFactorCur = %f, g_fZoomFactorPre = %f\n", g_fZoomFactorCur, g_fZoomFactorPre);
 		/* 显示这一次的，准备下一次的 */
-		if (g_fZoomFactorCur > g_fZoomFactorPre) {/* 放大 */
-			Lcd_Mem_Flush(ptPageMemLager);
-			memcpy(ptPageMemSmaller->pcMem, ptPageMemCur->pcMem, ptPageMemCur->dwMemSize);
-			memcpy(ptPageMemCur->pcMem, ptPageMemLager->pcMem, ptPageMemLager->dwMemSize);
-
-			/* 准备下一次放大的数据 */
-			//Get_Format_Opr("jpeg")->Get_Pic_Region(g_ptFileListCurShow->pcName, &tPicRegSrc);
-			Pic_Zoom(&tPicRegDst, &tPicRegSrc, g_fZoomFactorCur+0.1);
-			Lcd_Merge(0, g_iPicY, &tPicRegDst, ptPageMemLager->pcMem);
-			free(tPicRegDst.pcData);
-		} else {/* 缩小 */
-			memcpy(ptPageMemLager->pcMem, ptPageMemCur->pcMem, ptPageMemCur->dwMemSize);
-			memcpy(ptPageMemCur->pcMem, ptPageMemSmaller->pcMem, ptPageMemSmaller->dwMemSize);
-			Lcd_Mem_Flush(ptPageMemCur);
-
-			/* 准备下一次缩小的数据 */
-			if (g_fZoomFactorCur > 0.1) {
-				//Get_Format_Opr("jpeg")->Get_Pic_Region(g_ptFileListCurShow->pcName, &tPicRegSrc);
-				Pic_Zoom(&tPicRegDst, &tPicRegSrc, g_fZoomFactorCur-0.1);
-				Lcd_Merge(0, g_iPicY, &tPicRegDst, ptPageMemSmaller->pcMem);
+		if (g_ptFileListCurShow != g_ptFileListPreShow) {
+			if (g_ptFileListCurShow == g_ptFileListPreShow->ptNext) {
+				Lcd_Mem_Flush(g_ptPageMemNextPic);
+				Pic_Prepare_Next();
+			} else if (g_ptFileListCurShow == g_ptFileListPreShow->ptPre) {
+				Lcd_Mem_Flush(g_ptPageMemPrePic);
+				Pic_Prepare_Pre();
 			}
+			g_ptFileListPreShow = g_ptFileListCurShow;
+		} else if (g_fZoomFactorCur != g_fZoomFactorPre) {
+			if (g_fZoomFactorCur > g_fZoomFactorPre) {/* 放大 */
+				Lcd_Mem_Flush(g_ptPageMemLager);
+				if (g_fZoomFactorCur <= 3) {
+					Pic_Prepare_Larger();
+				}
+			} else if (g_fZoomFactorCur < g_fZoomFactorPre) {/* 缩小 */
+				Lcd_Mem_Flush(g_ptPageMemSmaller);
+				if (g_fZoomFactorCur > 0.1) {
+					Pic_Prepare_Smaller();
+				}
+			}
+			g_fZoomFactorPre = g_fZoomFactorCur;
 		}
 		pthread_mutex_unlock(&g_tShowMutex);
 	}
@@ -114,6 +141,9 @@ static int Browse_Page_Data(PT_Page_Mem ptPageMem)
 	int iIconNum;
 	char acBasePath[100];
 
+	T_PicRegion tPicRegSrc;
+	T_PicRegion tPicRegDst;
+
 	//get the current absoulte path
 	memset(acBasePath, '\0', sizeof(acBasePath));
 	getcwd(acBasePath, 99);
@@ -125,6 +155,7 @@ static int Browse_Page_Data(PT_Page_Mem ptPageMem)
 	Show_File_List();
 
 	g_ptFileListCurShow = g_ptFileListHead;
+	g_ptFileListPreShow = g_ptFileListCurShow;
 	g_fZoomFactorPre = 1;
 	g_fZoomFactorCur = 1;
 	
@@ -149,6 +180,7 @@ static int Browse_Page_Data(PT_Page_Mem ptPageMem)
 		t_BrowsePageIcon[i].iBottomRightY = t_BrowsePageIcon[i].iTopLeftY + tPicRegDst.dwHeight;
 		Pic_Zoom(&tPicRegDst, &tPicRegSrc, 0);
 		Lcd_Merge(t_BrowsePageIcon[i].iTopLeftX, t_BrowsePageIcon[i].iTopLeftY, &tPicRegDst, ptPageMem->pcMem);
+		Do_Free(tPicRegSrc.pcData);
 	}
 
 	g_iPicY = tPicRegDst.dwHeight;
@@ -160,6 +192,7 @@ static int Browse_Page_Data(PT_Page_Mem ptPageMem)
 			Pic_Zoom(&tPicRegDst, &tPicRegSrc, g_fZoomFactorCur);
 			Lcd_Merge(0, g_iPicY, &tPicRegDst, ptPageMem->pcMem);
 		}
+		Do_Free(tPicRegSrc.pcData);
 	}
 	
 	ptPageMem->State = PAGE_MEM_PACKED;
@@ -198,17 +231,84 @@ static void Browse_Page_PrepareSelf(void)
 
 static void Browse_Page_Run(void)
 {
-	PT_Page_Mem ptPageMem;
+	T_PicRegion tPicRegSrc;
+	T_PicRegion tPicRegDst;
+	
 	pthread_t tShowTreadID;
 
 	pthread_mutex_init(&g_tShowMutex, NULL);
 	pthread_cond_init(&g_tShowCond, NULL);
 
-	ptPageMem = Page_Mem_Get(BROWSEPAGE_MAIN);
-	if (ptPageMem && ptPageMem->State == PAGE_MEM_PACKED) {
-		Lcd_Mem_Flush(ptPageMem);
+	g_ptPageMemCur = Page_Mem_Get(BROWSEPAGE_MAIN);
+	if (g_ptPageMemCur && g_ptPageMemCur->State == PAGE_MEM_PACKED) {
+		Lcd_Mem_Flush(g_ptPageMemCur);
 	} else {
 		printf("Warning:Browsepage data has not been prepared\n");
+	}
+
+	/* 申请缓存 */
+	g_ptPageMemLager = Page_Mem_Get(BROWSEPAGE_LARGER);
+	if (!g_ptPageMemLager) {
+		/* 还未申请或已经销毁，重新申请 */
+		g_ptPageMemLager = Page_Mem_Alloc(BROWSEPAGE_LARGER);
+		if (!g_ptPageMemLager) {
+			printf("Error:can not get g_ptPageMemLager\n");
+			return;
+		}
+	}
+	g_ptPageMemSmaller = Page_Mem_Get(BROWSEPAGE_SMALLER);
+	if (!g_ptPageMemSmaller) {
+		/* 还未申请或已经销毁，重新申请 */
+		g_ptPageMemSmaller = Page_Mem_Alloc(BROWSEPAGE_SMALLER);
+		if (!g_ptPageMemSmaller) {
+			printf("Error:can not get g_ptPageMemSmaller\n");
+			return;
+		}
+	}
+	g_ptPageMemNextPic = Page_Mem_Get(BROWSEPAGE_NEXT);
+	if (!g_ptPageMemNextPic) {
+		/* 还未申请或已经销毁，重新申请 */
+		g_ptPageMemNextPic = Page_Mem_Alloc(BROWSEPAGE_NEXT);
+		if (!g_ptPageMemNextPic) {
+			printf("Error:can not get g_ptPageMemNextPic\n");
+			return;
+		}
+	}
+	g_ptPageMemPrePic = Page_Mem_Get(BROWSEPAGE_PRE);
+	if (!g_ptPageMemPrePic) {
+		/* 还未申请或已经销毁，重新申请 */
+		g_ptPageMemPrePic = Page_Mem_Alloc(BROWSEPAGE_PRE);
+		if (!g_ptPageMemPrePic) {
+			printf("Error:can not get g_ptPageMemPrePic\n");
+			return;
+		}
+	}
+
+	memcpy(g_ptPageMemLager->pcMem, g_ptPageMemCur->pcMem, g_ptPageMemLager->dwMemSize);
+	memcpy(g_ptPageMemSmaller->pcMem, g_ptPageMemCur->pcMem, g_ptPageMemSmaller->dwMemSize);
+	memcpy(g_ptPageMemNextPic->pcMem, g_ptPageMemCur->pcMem, g_ptPageMemNextPic->dwMemSize);
+	memcpy(g_ptPageMemPrePic->pcMem, g_ptPageMemCur->pcMem, g_ptPageMemPrePic->dwMemSize);
+
+	Get_Format_Opr("jpeg")->Get_Pic_Region(g_ptFileListCurShow->pcName, &tPicRegSrc);
+	Pic_Zoom(&tPicRegDst, &tPicRegSrc, g_fZoomFactorCur+0.1);
+	Lcd_Merge(0, g_iPicY, &tPicRegDst, g_ptPageMemLager->pcMem);
+
+	Pic_Zoom(&tPicRegDst, &tPicRegSrc, g_fZoomFactorCur-0.1);
+	Lcd_Merge(0, g_iPicY, &tPicRegDst, g_ptPageMemSmaller->pcMem);
+
+	Do_Free(tPicRegSrc.pcData);
+
+	if (g_ptFileListCurShow->ptPre) {
+		Get_Format_Opr("jpeg")->Get_Pic_Region(g_ptFileListCurShow->ptPre->pcName, &tPicRegSrc);
+		Pic_Zoom(&tPicRegDst, &tPicRegSrc, g_fZoomFactorCur);
+		Lcd_Merge(0, g_iPicY, &tPicRegDst, g_ptPageMemPrePic->pcMem);
+		Do_Free(tPicRegSrc.pcData);
+	}
+	if (g_ptFileListCurShow->ptNext) {
+		Get_Format_Opr("jpeg")->Get_Pic_Region(g_ptFileListCurShow->ptNext->pcName, &tPicRegSrc);
+		Pic_Zoom(&tPicRegDst, &tPicRegSrc, g_fZoomFactorCur);
+		Lcd_Merge(0, g_iPicY, &tPicRegDst, g_ptPageMemNextPic->pcMem);
+		Do_Free(tPicRegSrc.pcData);
 	}
 	
 	pthread_create(&tShowTreadID, NULL, Browse_Page_Thread, NULL);
@@ -241,15 +341,21 @@ static void Browse_Page_Get_Input_Event(void)
 				pthread_mutex_unlock(&g_tShowMutex);
 			}
 		} else if (tInputEvent.cCode == 'p') {
-			pthread_mutex_lock(&g_tShowMutex);
-			g_ptFileListCurShow = g_ptFileListCurShow->ptPre;
-			pthread_cond_signal(&g_tShowCond);
-			pthread_mutex_unlock(&g_tShowMutex);
+			if (g_ptFileListCurShow->ptPre) {
+				pthread_mutex_lock(&g_tShowMutex);
+				g_ptFileListPreShow = g_ptFileListCurShow;
+				g_ptFileListCurShow = g_ptFileListCurShow->ptPre;
+				pthread_cond_signal(&g_tShowCond);
+				pthread_mutex_unlock(&g_tShowMutex);
+			}
 		} else if (tInputEvent.cCode == 'n') {
-			pthread_mutex_lock(&g_tShowMutex);
-			g_ptFileListCurShow = g_ptFileListCurShow->ptNext;
-			pthread_cond_signal(&g_tShowCond);
-			pthread_mutex_unlock(&g_tShowMutex);
+			if (g_ptFileListCurShow->ptNext) {
+				pthread_mutex_lock(&g_tShowMutex);
+				g_ptFileListPreShow = g_ptFileListCurShow;
+				g_ptFileListCurShow = g_ptFileListCurShow->ptNext;
+				pthread_cond_signal(&g_tShowCond);
+				pthread_mutex_unlock(&g_tShowMutex);
+			}
 		} else if (tInputEvent.cCode == 'q') {
 			Page_Change("mainpage");
 		}
