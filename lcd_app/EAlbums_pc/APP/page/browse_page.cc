@@ -305,6 +305,7 @@ static void Browse_Page_Run(void)
 static void Browse_Page_PrepareNext(void)
 {
 	Get_Page_Opr("mainpage")->PrepareSelf();
+	Get_Page_Opr("autopage")->PrepareSelf();
 }
 
 static void Browse_Page_Get_Input_Event(void)

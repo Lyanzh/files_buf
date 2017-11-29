@@ -136,7 +136,7 @@ static void Auto_Page_Run(void)
 	pthread_cond_init(&g_tShowCond, NULL);
 
 	/* 获取当前一张缓存 */
-	g_ptPageMemCurPic = Page_Mem_Get(BROWSEPAGE_MAIN);
+	g_ptPageMemCurPic = Page_Mem_Get(AUTOPAGE_MAIN);
 	if (g_ptPageMemCurPic && g_ptPageMemCurPic->State == PAGE_MEM_PACKED) {
 		Lcd_Mem_Flush(g_ptPageMemCurPic);
 	} else {
