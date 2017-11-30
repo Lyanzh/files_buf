@@ -94,7 +94,7 @@ static void Pic_Prepare_Next(void)
 	Do_Free(tPicRegSrc.pcData);
 }
 
-static void *Browse_Page_Thread(void *arg)
+static void Browse_Page_Thread(void *arg)
 {
 	while (1) {
 		pthread_mutex_lock(&g_tShowMutex);
@@ -131,14 +131,13 @@ static void *Browse_Page_Thread(void *arg)
 		}
 		pthread_mutex_unlock(&g_tShowMutex);
 	}
-	return NULL;
+	pthread_detach(pthread_self());
 }
 
 static int Browse_Page_Data(PT_Page_Mem ptPageMem)
 {
 	int i;
 	int iIconNum;
-	char acBasePath[100];
 
 	T_PicRegion tPicRegSrc;
 	T_PicRegion tPicRegDst;
@@ -299,7 +298,7 @@ static void Browse_Page_Run(void)
 		Do_Free(tPicRegSrc.pcData);
 	}
 	
-	pthread_create(&tShowTreadID, NULL, Browse_Page_Thread, NULL);
+	pthread_create(&tShowTreadID, NULL, (void *)Browse_Page_Thread, NULL);
 }
 
 static void Browse_Page_PrepareNext(void)

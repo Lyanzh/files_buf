@@ -5,8 +5,8 @@
 
 #include "memwatch.h"
 
-PT_Page_Opr g_ptPrePageOpr;
-PT_Page_Opr g_ptCurPageOpr;
+static PT_Page_Opr g_ptPrePageOpr;
+static PT_Page_Opr g_ptCurPageOpr;
 
 static PT_Page_Opr g_ptPageOprHead;
 
@@ -87,10 +87,19 @@ int Page_Opr_Init(void)
 
 void Page_Change(char *pcName)
 {
-	g_ptPrePageOpr = g_ptCurPageOpr;
-	g_ptCurPageOpr = Get_Page_Opr(pcName);
-	g_ptCurPageOpr->Run();
-	g_ptCurPageOpr->PrepareNext();
-	g_ptCurPageOpr->Get_Input_Event();
+	PT_Page_Opr g_ptPageOprTmp;
+	g_ptPageOprTmp = Get_Page_Opr(pcName);
+	/* 如果下一页存在，则删除当前页的数据，显示下一页 */
+	if (g_ptPageOprTmp) {
+		/* 初始时g_ptCurPageOpr为空，并不需要删除当前页的数据 */
+		if (g_ptCurPageOpr) {
+			g_ptCurPageOpr->Exit();
+		}
+		g_ptPrePageOpr = g_ptCurPageOpr;
+		g_ptCurPageOpr = g_ptPageOprTmp;
+		g_ptCurPageOpr->Run();
+		g_ptCurPageOpr->PrepareNext();
+		g_ptCurPageOpr->Get_Input_Event();
+	}
 }
 

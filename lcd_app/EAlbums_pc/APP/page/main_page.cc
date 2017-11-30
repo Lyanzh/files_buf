@@ -120,6 +120,7 @@ static void Main_Page_Get_Input_Event(void)
 
 static void Main_Page_Exit(void)
 {
+	printf("Main_Page_Exit\n");
 	Page_Grop_Mem_List_Del(MAINPAGE_GROUP);
 }
 

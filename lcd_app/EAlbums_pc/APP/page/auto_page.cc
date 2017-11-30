@@ -12,23 +12,19 @@ typedef void (*sighandler_t)(int);
 PT_Page_Mem g_ptPageMemCurPic;
 PT_Page_Mem g_ptPageMemNextPic;
 
-//static T_PicRegion tPicRegSrc;
-//static T_PicRegion tPicRegDst;
-
 static int g_iPicY;
 
 static pthread_mutex_t g_tShowMutex;
 static pthread_cond_t g_tShowCond;
 
+static unsigned char ucAutoPageRunning = 0;
+
 static struct itimerval g_tOldTv;
 
 static int Auto_Page_Data(PT_Page_Mem ptPageMem)
 {
-	int i;
-	int iIconNum;
-
 	T_PicRegion tPicRegSrc;
-	T_PicRegion tPicRegDst;
+	//T_PicRegion tPicRegDst;
 	
 	if (!ptPageMem) {
 		printf("Error:Mainpage memery invalid\n");
@@ -80,12 +76,12 @@ static void Auto_Page_Prepare(void)
 	pthread_create(&tThreadID, NULL, (void*)Auto_Page_Pre_Thread, NULL);
 }
   
-static void Set_Timer(void)
+static void Set_Timer(int iInterval)
 {
 	struct itimerval tTv;
-	tTv.it_interval.tv_sec = 5;	/* 定时器间隔为1s */
+	tTv.it_interval.tv_sec = iInterval;	/* 定时器间隔 */
 	tTv.it_interval.tv_usec = 0;
-	tTv.it_value.tv_sec = 5;	/* 1秒后启用定时器 */
+	tTv.it_value.tv_sec = iInterval;	/* 秒后启用定时器 */
 	tTv.it_value.tv_usec = 0;
 	setitimer(ITIMER_REAL, &tTv, &g_tOldTv);
 }
@@ -103,7 +99,7 @@ static void signal_handler(void)
 static void Pic_Prepare_Next(void)
 {
 	T_PicRegion tPicRegSrc;
-	T_PicRegion tPicRegDst;
+	//T_PicRegion tPicRegDst;
 	
 	memcpy(g_ptPageMemCurPic->pcMem, g_ptPageMemNextPic->pcMem, g_ptPageMemNextPic->dwMemSize);
 
@@ -114,22 +110,22 @@ static void Pic_Prepare_Next(void)
 	Do_Free(tPicRegSrc.pcData);
 }
 
-static void *Auto_Page_Thread(void *arg)
+static void Auto_Page_Thread(void *arg)
 {
-	while (1) {
+	while (ucAutoPageRunning) {
 		pthread_mutex_lock(&g_tShowMutex);
 		pthread_cond_wait(&g_tShowCond, &g_tShowMutex);
 		Lcd_Mem_Flush(g_ptPageMemNextPic);
 		Pic_Prepare_Next();
 		pthread_mutex_unlock(&g_tShowMutex);
 	}
-	return NULL;
+	pthread_detach(pthread_self());
 }
 
 static void Auto_Page_Run(void)
 {
 	T_PicRegion tPicRegSrc;
-	T_PicRegion tPicRegDst;
+	//T_PicRegion tPicRegDst;
 	pthread_t tShowTreadID;
 
 	pthread_mutex_init(&g_tShowMutex, NULL);
@@ -137,15 +133,19 @@ static void Auto_Page_Run(void)
 
 	/* 获取当前一张缓存 */
 	g_ptPageMemCurPic = Page_Mem_Get(AUTOPAGE_MAIN);
+	printf("g_ptPageMemCurPic has got 0\n");
 	if (g_ptPageMemCurPic && g_ptPageMemCurPic->State == PAGE_MEM_PACKED) {
+		printf("g_ptPageMemCurPic has got 1\n");
 		Lcd_Mem_Flush(g_ptPageMemCurPic);
 	} else {
 		printf("Warning:Autopage data has not been prepared\n");
 	}
+	printf("g_ptPageMemCurPic has got 2\n");
 
 	signal(SIGALRM, (sighandler_t)signal_handler);
-	Set_Timer();
-	pthread_create(&tShowTreadID, NULL, Auto_Page_Thread, NULL);
+	Set_Timer(5);
+	ucAutoPageRunning = 1;
+	pthread_create(&tShowTreadID, NULL, (void *)Auto_Page_Thread, NULL);
 
 	/* 申请下一张缓存 */
 	g_ptPageMemNextPic = Page_Mem_Get(AUTOPAGE_NEXT);
@@ -184,6 +184,8 @@ static void Auto_Page_Get_Input_Event(void)
 
 static void Auto_Page_Exit(void)
 {
+	Set_Timer(0);
+	ucAutoPageRunning = 0;
 	Page_Grop_Mem_List_Del(AUTOPAGE_GROUP);
 }
 

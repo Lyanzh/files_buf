@@ -85,6 +85,8 @@ void Page_Grop_Mem_List_Del(int iPageGropID)
 					Do_Free(ptPageMemTmp->pcMem);
 					Do_Free(ptPageMemTmp);
 				}
+			} else {
+				ptPageMemTmp = ptPageMemTmp->ptNext;
 			}
 		}
 	}
@@ -95,7 +97,7 @@ unlock:
 PT_Page_Mem Page_Mem_Alloc(int iPageID)
 {
 	PT_Page_Mem ptPageMemNew;
-	printf("Page_Mem_Alloc\n");
+	printf("Page_Mem_Alloc %x\n", iPageID);
 	ptPageMemNew = (PT_Page_Mem)malloc(sizeof(T_Page_Mem));
 	if (!ptPageMemNew) {
 		printf("Error:malloc ptPageMemNew error\n");
@@ -121,13 +123,15 @@ PT_Page_Mem Page_Mem_Alloc(int iPageID)
 PT_Page_Mem Page_Mem_Get(int iPageID)
 {
 	PT_Page_Mem ptPageMemTmp;
-	printf("Page_Mem_Get\n");
+	printf("Page_Mem_Get %x\n", iPageID);
 	if (!g_ptPageMemListHead->ptNext) {
 		return NULL;
 	} else {
+		printf("Page_Mem_Get 2 %x\n", iPageID);
 		ptPageMemTmp = g_ptPageMemListHead->ptNext;
 		while (ptPageMemTmp) {
 			if (ptPageMemTmp->iPageID == iPageID) {
+				printf("Page_Mem_Get 3 %x\n", iPageID);
 				return ptPageMemTmp;
 			}
 			ptPageMemTmp = ptPageMemTmp->ptNext;
