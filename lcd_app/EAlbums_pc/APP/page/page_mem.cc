@@ -61,6 +61,7 @@ unlock:
 void Page_Grop_Mem_List_Del(int iPageGropID)
 {
 	PT_Page_Mem ptPageMemTmp;
+	PT_Page_Mem ptPageMemTmpFree;
 	pthread_mutex_lock(&g_tPageMemListMutex);
 	ptPageMemTmp = g_ptPageMemListHead->ptNext;
 	if (!ptPageMemTmp) {
@@ -80,10 +81,14 @@ void Page_Grop_Mem_List_Del(int iPageGropID)
 					ptPageMemTmp->ptNext->ptPre = ptPageMemTmp->ptPre;
 					ptPageMemTmp->ptPre->ptNext = ptPageMemTmp->ptNext;
 
+					ptPageMemTmpFree = ptPageMemTmp;
+					
 					/* 指向下一个 */
 					ptPageMemTmp = ptPageMemTmp->ptNext;
-					Do_Free(ptPageMemTmp->pcMem);
-					Do_Free(ptPageMemTmp);
+
+					/* free */
+					Do_Free(ptPageMemTmpFree->pcMem);
+					Do_Free(ptPageMemTmpFree);
 				}
 			} else {
 				ptPageMemTmp = ptPageMemTmp->ptNext;
