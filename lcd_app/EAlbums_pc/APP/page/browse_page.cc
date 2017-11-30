@@ -20,8 +20,10 @@ static T_IconInfo t_BrowsePageIcon[] =
 
 static int g_iPicY;
 
-static pthread_mutex_t g_tShowMutex;
-static pthread_cond_t g_tShowCond;
+static pthread_mutex_t g_tZoomMutex;
+static pthread_cond_t g_tZoomCond;
+static pthread_mutex_t g_tFlipMutex;
+static pthread_cond_t g_tFlipCond;
 
 static PT_FileList g_ptFileListPreShow;
 static float g_fZoomFactorPre = 1;
@@ -77,6 +79,12 @@ static void Pic_Prepare_Pre(void)
 	Pic_Zoom(&tPicRegDst, &tPicRegSrc, g_fZoomFactorCur);
 	Lcd_Merge(0, g_iPicY, &tPicRegDst, g_ptPageMemPrePic->pcMem);
 	Do_Free(tPicRegSrc.pcData);
+
+	/* 准备下一次缩小的数据 */
+	Get_Format_Opr("jpeg")->Get_Pic_Region(g_ptFileListCurShow->pcName, &tPicRegSrc);
+	Pic_Zoom(&tPicRegDst, &tPicRegSrc, g_fZoomFactorCur-0.1);
+	Lcd_Merge(0, g_iPicY, &tPicRegDst, g_ptPageMemSmaller->pcMem);
+	Do_Free(tPicRegSrc.pcData);
 }
 
 static void Pic_Prepare_Next(void)
@@ -92,13 +100,18 @@ static void Pic_Prepare_Next(void)
 	Pic_Zoom(&tPicRegDst, &tPicRegSrc, g_fZoomFactorCur);
 	Lcd_Merge(0, g_iPicY, &tPicRegDst, g_ptPageMemNextPic->pcMem);
 	Do_Free(tPicRegSrc.pcData);
+
+	Pic_Prepare_Smaller();
+	Pic_Prepare_Larger();
+
+
 }
 
-static void Browse_Page_Thread(void *arg)
+static void Browse_Page_Zoom_Thread(void *arg)
 {
 	while (1) {
-		pthread_mutex_lock(&g_tShowMutex);
-		pthread_cond_wait(&g_tShowCond, &g_tShowMutex);
+		pthread_mutex_lock(&g_tZoomMutex);
+		pthread_cond_wait(&g_tZoomCond, &g_tZoomMutex);
 		
 		if (!g_ptFileListCurShow) {
 			continue;
@@ -106,30 +119,41 @@ static void Browse_Page_Thread(void *arg)
 
 		printf("g_fZoomFactorCur = %f, g_fZoomFactorPre = %f\n", g_fZoomFactorCur, g_fZoomFactorPre);
 		/* 显示这一次的，准备下一次的 */
-		if (g_ptFileListCurShow != g_ptFileListPreShow) {
-			if (g_ptFileListCurShow == g_ptFileListPreShow->ptNext) {
-				Lcd_Mem_Flush(g_ptPageMemNextPic);
-				Pic_Prepare_Next();
-			} else if (g_ptFileListCurShow == g_ptFileListPreShow->ptPre) {
-				Lcd_Mem_Flush(g_ptPageMemPrePic);
-				Pic_Prepare_Pre();
+		if (g_fZoomFactorCur > g_fZoomFactorPre) {/* 放大 */
+			Lcd_Mem_Flush(g_ptPageMemLager);
+			if (g_fZoomFactorCur <= 3) {
+				Pic_Prepare_Larger();
 			}
-			g_ptFileListPreShow = g_ptFileListCurShow;
-		} else if (g_fZoomFactorCur != g_fZoomFactorPre) {
-			if (g_fZoomFactorCur > g_fZoomFactorPre) {/* 放大 */
-				Lcd_Mem_Flush(g_ptPageMemLager);
-				if (g_fZoomFactorCur <= 3) {
-					Pic_Prepare_Larger();
-				}
-			} else if (g_fZoomFactorCur < g_fZoomFactorPre) {/* 缩小 */
-				Lcd_Mem_Flush(g_ptPageMemSmaller);
-				if (g_fZoomFactorCur > 0.1) {
-					Pic_Prepare_Smaller();
-				}
+		} else if (g_fZoomFactorCur < g_fZoomFactorPre) {/* 缩小 */
+			Lcd_Mem_Flush(g_ptPageMemSmaller);
+			if (g_fZoomFactorCur > 0.1) {
+				Pic_Prepare_Smaller();
 			}
-			g_fZoomFactorPre = g_fZoomFactorCur;
 		}
-		pthread_mutex_unlock(&g_tShowMutex);
+		pthread_mutex_unlock(&g_tZoomMutex);
+	}
+	pthread_detach(pthread_self());
+}
+
+static void Browse_Page_Flip_Thread(void *arg)
+{
+	while (1) {
+		pthread_mutex_lock(&g_tFlipMutex);
+		pthread_cond_wait(&g_tFlipCond, &g_tFlipMutex);
+		
+		if (!g_ptFileListCurShow) {
+			continue;
+		}
+
+		/* 显示这一次的，准备下一次的 */
+		if (g_ptFileListCurShow == g_ptFileListPreShow->ptNext) {
+			Lcd_Mem_Flush(g_ptPageMemNextPic);
+			Pic_Prepare_Next();
+		} else if (g_ptFileListCurShow == g_ptFileListPreShow->ptPre) {
+			Lcd_Mem_Flush(g_ptPageMemPrePic);
+			Pic_Prepare_Pre();
+		}
+		pthread_mutex_unlock(&g_tFlipMutex);
 	}
 	pthread_detach(pthread_self());
 }
@@ -223,8 +247,10 @@ static void Browse_Page_Run(void)
 	
 	pthread_t tShowTreadID;
 
-	pthread_mutex_init(&g_tShowMutex, NULL);
-	pthread_cond_init(&g_tShowCond, NULL);
+	pthread_mutex_init(&g_tZoomMutex, NULL);
+	pthread_cond_init(&g_tZoomCond, NULL);
+	pthread_mutex_init(&g_tFlipMutex, NULL);
+	pthread_cond_init(&g_tFlipCond, NULL);
 
 	g_ptPageMemCur = Page_Mem_Get(BROWSEPAGE_MAIN);
 	if (g_ptPageMemCur && g_ptPageMemCur->State == PAGE_MEM_PACKED) {
@@ -298,7 +324,8 @@ static void Browse_Page_Run(void)
 		Do_Free(tPicRegSrc.pcData);
 	}
 	
-	pthread_create(&tShowTreadID, NULL, (void *)Browse_Page_Thread, NULL);
+	pthread_create(&tShowTreadID, NULL, (void *)Browse_Page_Zoom_Thread, NULL);
+	pthread_create(&tShowTreadID, NULL, (void *)Browse_Page_Flip_Thread, NULL);
 }
 
 static void Browse_Page_PrepareNext(void)
@@ -314,35 +341,35 @@ static void Browse_Page_Get_Input_Event(void)
 		Input_Get_Key(&tInputEvent);
 		if (tInputEvent.cCode == 'l') {
 			printf("\nlager.\n");
-			pthread_mutex_lock(&g_tShowMutex);
+			pthread_mutex_lock(&g_tZoomMutex);
 			g_fZoomFactorPre = g_fZoomFactorCur;
 			g_fZoomFactorCur += 0.1;
-			pthread_cond_signal(&g_tShowCond);
-			pthread_mutex_unlock(&g_tShowMutex);
+			pthread_cond_signal(&g_tZoomCond);
+			pthread_mutex_unlock(&g_tZoomMutex);
 		} else if (tInputEvent.cCode == 's') {
 			printf("\nsmaller.\n");
 			if (g_fZoomFactorCur > 0.1) {
-				pthread_mutex_lock(&g_tShowMutex);
+				pthread_mutex_lock(&g_tZoomMutex);
 				g_fZoomFactorPre = g_fZoomFactorCur;
 				g_fZoomFactorCur -= 0.1;
-				pthread_cond_signal(&g_tShowCond);
-				pthread_mutex_unlock(&g_tShowMutex);
+				pthread_cond_signal(&g_tZoomCond);
+				pthread_mutex_unlock(&g_tZoomMutex);
 			}
 		} else if (tInputEvent.cCode == 'p') {
 			if (g_ptFileListCurShow->ptPre) {
-				pthread_mutex_lock(&g_tShowMutex);
+				pthread_mutex_lock(&g_tFlipMutex);
 				g_ptFileListPreShow = g_ptFileListCurShow;
 				g_ptFileListCurShow = g_ptFileListCurShow->ptPre;
-				pthread_cond_signal(&g_tShowCond);
-				pthread_mutex_unlock(&g_tShowMutex);
+				pthread_cond_signal(&g_tFlipCond);
+				pthread_mutex_unlock(&g_tFlipMutex);
 			}
 		} else if (tInputEvent.cCode == 'n') {
 			if (g_ptFileListCurShow->ptNext) {
-				pthread_mutex_lock(&g_tShowMutex);
+				pthread_mutex_lock(&g_tFlipMutex);
 				g_ptFileListPreShow = g_ptFileListCurShow;
 				g_ptFileListCurShow = g_ptFileListCurShow->ptNext;
-				pthread_cond_signal(&g_tShowCond);
-				pthread_mutex_unlock(&g_tShowMutex);
+				pthread_cond_signal(&g_tFlipCond);
+				pthread_mutex_unlock(&g_tFlipMutex);
 			}
 		} else if (tInputEvent.cCode == 'q') {
 			Page_Change("mainpage");
@@ -354,6 +381,7 @@ static void Browse_Page_Get_Input_Event(void)
 
 static void Browse_Page_Exit(void)
 {
+	printf("Browse_Page_Exit\n");
 	Page_Grop_Mem_List_Del(BROWSEPAGE_GROUP);
 }
 
