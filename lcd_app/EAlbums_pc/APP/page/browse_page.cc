@@ -85,6 +85,12 @@ static void Pic_Prepare_Pre(void)
 	Lcd_Merge(0, g_iPicY, &tPicRegDst, g_ptPageMemLager->pcMem);
 	
 	Do_Free(tPicRegSrc.pcData);
+
+	/* 准备下一次缩小的数据 */
+	Get_Format_Opr("jpeg")->Get_Pic_Region(g_ptFileListCurShow->pcName, &tPicRegSrc);
+	Pic_Zoom(&tPicRegDst, &tPicRegSrc, g_fZoomFactorCur-0.1);
+	Lcd_Merge(0, g_iPicY, &tPicRegDst, g_ptPageMemSmaller->pcMem);
+	Do_Free(tPicRegSrc.pcData);
 }
 
 static void Pic_Prepare_Next(void)
@@ -107,6 +113,11 @@ static void Pic_Prepare_Next(void)
 	Lcd_Merge(0, g_iPicY, &tPicRegDst, g_ptPageMemLager->pcMem);
 	
 	Do_Free(tPicRegSrc.pcData);
+
+	Pic_Prepare_Smaller();
+	Pic_Prepare_Larger();
+
+
 }
 
 static void Browse_Page_Zoom_Thread(void *arg)
