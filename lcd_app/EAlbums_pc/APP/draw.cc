@@ -77,6 +77,23 @@ void Lcd_Mem_Flush(PT_Page_Mem ptPageMem)
 	memcpy(Selected_Display()->pcMem, ptPageMem->pcMem, ptPageMem->dwMemSize);
 }
 
+void Pic_Zoom_Factor_For_Lcd(PT_PicRegion ptSrcPicReg, float *fFactor)
+{
+	float fFactorX;
+	float fFactorY;
+
+	if (!ptSrcPicReg) {
+		printf("Warning:ptSrcPicReg invalided\n");
+		return;
+	}
+
+	fFactorX = 1.0 * Selected_Display()->tDevAttr.dwXres / ptSrcPicReg->dwWidth;
+	fFactorY = 1.0 * Selected_Display()->tDevAttr.dwYres / ptSrcPicReg->dwHeight;
+
+	*fFactor = (fFactorX<=fFactorY?fFactorX:fFactorY);
+	printf("Pic_Zoom_Factor_For_Lcd fFactor = %f\n", *fFactor);
+}
+
 /*
  * if fFactor is 0, please set ptDstPicReg
  */

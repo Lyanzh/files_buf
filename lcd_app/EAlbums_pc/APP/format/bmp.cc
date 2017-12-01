@@ -53,7 +53,7 @@ static int BMP_Get_Pic_Region(char *pcFilePath, PT_PicRegion ptPicReg)
 	char *pcFileData;
 	int iBitmapLineByteCnt;	/* 实际每行位图有效的字节数 */
 	int iFileLineByteCnt;	/* 填充后的每行的字节数 */
-	//int iImageDataSize;		/* 填充后位图数据区的大小 */
+	//int iImageDataSize;	/* 填充后位图数据区的大小 */
 
 	char *pcFileBitmapData;
 	char *pcFileLineData;

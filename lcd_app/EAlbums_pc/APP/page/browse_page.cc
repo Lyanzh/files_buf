@@ -29,6 +29,9 @@ static PT_FileList g_ptFileListPreShow;
 static float g_fZoomFactorPre = 1;
 static float g_fZoomFactorCur = 1;
 
+static float g_fZoomFactorPrePic = 1;
+static float g_fZoomFactorNextPic = 1;
+
 PT_Page_Mem g_ptPageMemCur;
 PT_Page_Mem g_ptPageMemLager;
 PT_Page_Mem g_ptPageMemSmaller;
@@ -69,13 +72,16 @@ static void Pic_Prepare_Pre(void)
 {
 	T_PicRegion tPicRegSrc;
 	T_PicRegion tPicRegDst;
-	
+
+	g_fZoomFactorCur = g_fZoomFactorPrePic;
+	g_fZoomFactorPre = g_fZoomFactorCur;
 	memcpy(g_ptPageMemNextPic->pcMem, g_ptPageMemCur->pcMem, g_ptPageMemCur->dwMemSize);
 	memcpy(g_ptPageMemCur->pcMem, g_ptPageMemPrePic->pcMem, g_ptPageMemPrePic->dwMemSize);
 
 	/* 准备上一张的数据 */
 	Get_Format_Opr("jpeg")->Get_Pic_Region(g_ptFileListCurShow->pcName, &tPicRegSrc);
-	Pic_Zoom(&tPicRegDst, &tPicRegSrc, g_fZoomFactorCur);
+	Pic_Zoom_Factor_For_Lcd(&tPicRegSrc, &g_fZoomFactorPrePic);
+	Pic_Zoom(&tPicRegDst, &tPicRegSrc, g_fZoomFactorPrePic);
 	Lcd_Merge(0, g_iPicY, &tPicRegDst, g_ptPageMemPrePic->pcMem);
 
 	/* 更新缩小和放大的数据 */
@@ -91,13 +97,16 @@ static void Pic_Prepare_Next(void)
 {
 	T_PicRegion tPicRegSrc;
 	T_PicRegion tPicRegDst;
-	
+
+	g_fZoomFactorCur = g_fZoomFactorNextPic;
+	g_fZoomFactorPre = g_fZoomFactorCur;
 	memcpy(g_ptPageMemPrePic->pcMem, g_ptPageMemCur->pcMem, g_ptPageMemCur->dwMemSize);
 	memcpy(g_ptPageMemCur->pcMem, g_ptPageMemNextPic->pcMem, g_ptPageMemNextPic->dwMemSize);
 
 	/* 准备下一张的数据 */
 	Get_Format_Opr("jpeg")->Get_Pic_Region(g_ptFileListCurShow->pcName, &tPicRegSrc);
-	Pic_Zoom(&tPicRegDst, &tPicRegSrc, g_fZoomFactorCur);
+	Pic_Zoom_Factor_For_Lcd(&tPicRegSrc, &g_fZoomFactorNextPic);
+	Pic_Zoom(&tPicRegDst, &tPicRegSrc, g_fZoomFactorNextPic);
 	Lcd_Merge(0, g_iPicY, &tPicRegDst, g_ptPageMemNextPic->pcMem);
 
 	/* 更新缩小和放大的数据 */
@@ -199,12 +208,9 @@ static int Browse_Page_Data(PT_Page_Mem ptPageMem)
 	g_iPicY = tPicRegDst.dwHeight;
 	if (g_ptFileListCurShow) {
 		Get_Format_Opr("jpeg")->Get_Pic_Region(g_ptFileListCurShow->pcName, &tPicRegSrc);
-		if (g_fZoomFactorCur == 0 || g_fZoomFactorCur == 1) {
-			Lcd_Merge(0, g_iPicY, &tPicRegSrc, ptPageMem->pcMem);
-		} else {
-			Pic_Zoom(&tPicRegDst, &tPicRegSrc, g_fZoomFactorCur);
-			Lcd_Merge(0, g_iPicY, &tPicRegDst, ptPageMem->pcMem);
-		}
+		Pic_Zoom_Factor_For_Lcd(&tPicRegSrc, &g_fZoomFactorCur);
+		Pic_Zoom(&tPicRegDst, &tPicRegSrc, g_fZoomFactorCur);
+		Lcd_Merge(0, g_iPicY, &tPicRegDst, ptPageMem->pcMem);
 		Do_Free(tPicRegSrc.pcData);
 	}
 	
@@ -305,6 +311,7 @@ static void Browse_Page_Run(void)
 	memcpy(g_ptPageMemPrePic->pcMem, g_ptPageMemCur->pcMem, g_ptPageMemPrePic->dwMemSize);
 
 	Get_Format_Opr("jpeg")->Get_Pic_Region(g_ptFileListCurShow->pcName, &tPicRegSrc);
+	Pic_Zoom_Factor_For_Lcd(&tPicRegSrc, &g_fZoomFactorCur);
 	Pic_Zoom(&tPicRegDst, &tPicRegSrc, g_fZoomFactorCur+0.1);
 	Lcd_Merge(0, g_iPicY, &tPicRegDst, g_ptPageMemLager->pcMem);
 
@@ -315,13 +322,15 @@ static void Browse_Page_Run(void)
 
 	if (g_ptFileListCurShow->ptPre) {
 		Get_Format_Opr("jpeg")->Get_Pic_Region(g_ptFileListCurShow->ptPre->pcName, &tPicRegSrc);
-		Pic_Zoom(&tPicRegDst, &tPicRegSrc, g_fZoomFactorCur);
+		Pic_Zoom_Factor_For_Lcd(&tPicRegSrc, &g_fZoomFactorPrePic);
+		Pic_Zoom(&tPicRegDst, &tPicRegSrc, g_fZoomFactorPrePic);
 		Lcd_Merge(0, g_iPicY, &tPicRegDst, g_ptPageMemPrePic->pcMem);
 		Do_Free(tPicRegSrc.pcData);
 	}
 	if (g_ptFileListCurShow->ptNext) {
 		Get_Format_Opr("jpeg")->Get_Pic_Region(g_ptFileListCurShow->ptNext->pcName, &tPicRegSrc);
-		Pic_Zoom(&tPicRegDst, &tPicRegSrc, g_fZoomFactorCur);
+		Pic_Zoom_Factor_For_Lcd(&tPicRegSrc, &g_fZoomFactorNextPic);
+		Pic_Zoom(&tPicRegDst, &tPicRegSrc, g_fZoomFactorNextPic);
 		Lcd_Merge(0, g_iPicY, &tPicRegDst, g_ptPageMemNextPic->pcMem);
 		Do_Free(tPicRegSrc.pcData);
 	}
@@ -343,11 +352,13 @@ static void Browse_Page_Get_Input_Event(void)
 		Input_Get_Key(&tInputEvent);
 		if (tInputEvent.cCode == 'l') {
 			printf("\nlager.\n");
-			pthread_mutex_lock(&g_tZoomMutex);
-			g_fZoomFactorPre = g_fZoomFactorCur;
-			g_fZoomFactorCur += 0.1;
-			pthread_cond_signal(&g_tZoomCond);
-			pthread_mutex_unlock(&g_tZoomMutex);
+			if (g_fZoomFactorCur < 3) {
+				pthread_mutex_lock(&g_tZoomMutex);
+				g_fZoomFactorPre = g_fZoomFactorCur;
+				g_fZoomFactorCur += 0.1;
+				pthread_cond_signal(&g_tZoomCond);
+				pthread_mutex_unlock(&g_tZoomMutex);
+			}
 		} else if (tInputEvent.cCode == 's') {
 			printf("\nsmaller.\n");
 			if (g_fZoomFactorCur > 0.1) {

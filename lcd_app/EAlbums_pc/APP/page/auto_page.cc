@@ -13,6 +13,7 @@ PT_Page_Mem g_ptPageMemCurPic;
 PT_Page_Mem g_ptPageMemNextPic;
 
 static int g_iPicY;
+static float g_fZoomFactor = 1;
 
 static pthread_mutex_t g_tShowMutex;
 static pthread_cond_t g_tShowCond;
@@ -24,7 +25,7 @@ static struct itimerval g_tOldTv;
 static int Auto_Page_Data(PT_Page_Mem ptPageMem)
 {
 	T_PicRegion tPicRegSrc;
-	//T_PicRegion tPicRegDst;
+	T_PicRegion tPicRegDst;
 	
 	if (!ptPageMem) {
 		printf("Error:Mainpage memery invalid\n");
@@ -40,7 +41,9 @@ static int Auto_Page_Data(PT_Page_Mem ptPageMem)
 
 	if (g_ptFileListCurShow) {
 		Get_Format_Opr("jpeg")->Get_Pic_Region(g_ptFileListCurShow->pcName, &tPicRegSrc);
-		Lcd_Merge(0, g_iPicY, &tPicRegSrc, ptPageMem->pcMem);
+		Pic_Zoom_Factor_For_Lcd(&tPicRegSrc, &g_fZoomFactor);
+		Pic_Zoom(&tPicRegDst, &tPicRegSrc, g_fZoomFactor);
+		Lcd_Merge(0, g_iPicY, &tPicRegDst, ptPageMem->pcMem);
 	}
 	ptPageMem->State = PAGE_MEM_PACKED;
 	return 0;
@@ -99,14 +102,15 @@ static void signal_handler(void)
 static void Pic_Prepare_Next(void)
 {
 	T_PicRegion tPicRegSrc;
-	//T_PicRegion tPicRegDst;
+	T_PicRegion tPicRegDst;
 	
 	memcpy(g_ptPageMemCurPic->pcMem, g_ptPageMemNextPic->pcMem, g_ptPageMemNextPic->dwMemSize);
 
 	/* 准备下一张的数据 */
 	Get_Format_Opr("jpeg")->Get_Pic_Region(g_ptFileListCurShow->pcName, &tPicRegSrc);
-	//Pic_Zoom(&tPicRegDst, &tPicRegSrc, g_fZoomFactorCur);
-	Lcd_Merge(0, g_iPicY, &tPicRegSrc, g_ptPageMemNextPic->pcMem);
+	Pic_Zoom_Factor_For_Lcd(&tPicRegSrc, &g_fZoomFactor);
+	Pic_Zoom(&tPicRegDst, &tPicRegSrc, g_fZoomFactor);
+	Lcd_Merge(0, g_iPicY, &tPicRegDst, g_ptPageMemNextPic->pcMem);
 	Do_Free(tPicRegSrc.pcData);
 }
 
@@ -125,7 +129,7 @@ static void Auto_Page_Thread(void *arg)
 static void Auto_Page_Run(void)
 {
 	T_PicRegion tPicRegSrc;
-	//T_PicRegion tPicRegDst;
+	T_PicRegion tPicRegDst;
 	pthread_t tShowTreadID;
 
 	pthread_mutex_init(&g_tShowMutex, NULL);
@@ -159,7 +163,9 @@ static void Auto_Page_Run(void)
 	}
 	if (g_ptFileListCurShow->ptNext) {
 		Get_Format_Opr("jpeg")->Get_Pic_Region(g_ptFileListCurShow->ptNext->pcName, &tPicRegSrc);
-		Lcd_Merge(0, g_iPicY, &tPicRegSrc, g_ptPageMemNextPic->pcMem);
+		Pic_Zoom_Factor_For_Lcd(&tPicRegSrc, &g_fZoomFactor);
+		Pic_Zoom(&tPicRegDst, &tPicRegSrc, g_fZoomFactor);
+		Lcd_Merge(0, g_iPicY, &tPicRegDst, g_ptPageMemNextPic->pcMem);
 		Do_Free(tPicRegSrc.pcData);
 	}
 }
