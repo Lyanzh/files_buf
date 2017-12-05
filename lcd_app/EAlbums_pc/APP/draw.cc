@@ -2,13 +2,14 @@
 #include "config.h"
 #include <stdio.h>
 #include <string.h>
+#include <stdlib.h>
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <fcntl.h>
 #include <unistd.h>
 #include <sys/mman.h>
 
-#include "memwatch.h"
+//#include "memwatch.h"
 
 void Lcd_Show_Pic(int iX, int iY, PT_PicRegion ptPicReg)
 {
@@ -176,7 +177,6 @@ void Pic_Zoom(PT_PicRegion ptDstPicReg, PT_PicRegion ptSrcPicReg, float fFactor)
 		printf("Error:malloc ptDstPicReg->pcData error\n");
 		return;
 	}
-	printf("Pic_Zoom ptDstPicReg->pcData = 0x%x\n", ptDstPicReg->pcData);
 
 #if 1
 	pcDstLineData = ptDstPicReg->pcData;

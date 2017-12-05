@@ -1,7 +1,7 @@
 #include "fonts_manager.h"
 #include <stdio.h>
 
-#include "memwatch.h"
+//#include "memwatch.h"
 
 #define FONTDATAMAX 4096
 static const unsigned char gc_ucFontData8x16[FONTDATAMAX];

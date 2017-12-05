@@ -2,7 +2,7 @@
 #include <stdio.h>
 #include <string.h>
 
-#include "memwatch.h"
+//#include "memwatch.h"
 
 static PT_Encoding_Opr g_ptEncodingOprHead;
 

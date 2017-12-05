@@ -4,7 +4,7 @@
 
 #include "tslib.h"
 
-#include "memwatch.h"
+//#include "memwatch.h"
 
 static T_Input_Opr g_tTouchscreenOpr;
 struct tsdev *g_ptTsDev;

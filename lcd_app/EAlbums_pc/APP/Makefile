@@ -3,7 +3,7 @@ CROSSCOMPILE :=
 #CFLAGS := -Wall -O2 -c
 CFLAGS := -Wall -g -c
 CFLAGS += -I $(PWD)/include
-CFLAGS += -DMEMWATCH -DMEMWATCH_STDIO
+#CFLAGS += -DMEMWATCH -DMEMWATCH_STDIO
 
 # gcc 4.6.3 use -pthread instead of -lpthread
 

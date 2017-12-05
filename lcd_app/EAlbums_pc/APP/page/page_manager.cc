@@ -3,7 +3,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "memwatch.h"
+//#include "memwatch.h"
 
 static PT_Page_Opr g_ptPrePageOpr;
 static PT_Page_Opr g_ptCurPageOpr;

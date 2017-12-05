@@ -44,10 +44,8 @@ static int Main_Page_Data(PT_Page_Mem ptPageMem)
 		Lcd_Merge(t_MainPageIcon[i].iTopLeftX, t_MainPageIcon[i].iTopLeftY,
 				&tPicRegDst, ptPageMem->pcMem);
 
-		printf("tPicRegDst->pcData = 0x%x\n", tPicRegDst.pcData);
-		printf("tPicRegSrc->pcData = 0x%x\n", tPicRegSrc.pcData);
-		//Do_Free(tPicRegSrc.pcData);
 		Do_Free(tPicRegSrc.pcData);
+		Do_Free(tPicRegDst.pcData);
 	}
 	ptPageMem->State = PAGE_MEM_PACKED;
 	

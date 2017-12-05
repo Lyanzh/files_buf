@@ -8,7 +8,7 @@
 #include <linux/fb.h>
 #include "disp_manager.h"
 
-#include "memwatch.h"
+//#include "memwatch.h"
 
 static T_Disp_Opr g_tPcDispOpr;
 

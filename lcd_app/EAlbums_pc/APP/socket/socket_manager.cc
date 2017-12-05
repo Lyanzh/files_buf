@@ -8,7 +8,7 @@
 #include <sys/select.h>
 #include <sys/time.h>
 
-#include "memwatch.h"
+//#include "memwatch.h"
 
 static PT_Socket_Opr g_ptSocketOprHead;
 

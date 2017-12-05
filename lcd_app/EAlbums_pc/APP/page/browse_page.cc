@@ -25,6 +25,8 @@ static pthread_cond_t g_tZoomCond;
 static pthread_mutex_t g_tFlipMutex;
 static pthread_cond_t g_tFlipCond;
 
+static unsigned char ucBrowsePageRunning = 0;
+
 static PT_FileList g_ptFileListPreShow;
 static float g_fZoomFactorPre = 1;
 static float g_fZoomFactorCur = 1;
@@ -32,11 +34,11 @@ static float g_fZoomFactorCur = 1;
 static float g_fZoomFactorPrePic = 1;
 static float g_fZoomFactorNextPic = 1;
 
-PT_Page_Mem g_ptPageMemCur;
-PT_Page_Mem g_ptPageMemLager;
-PT_Page_Mem g_ptPageMemSmaller;
-PT_Page_Mem g_ptPageMemNextPic;
-PT_Page_Mem g_ptPageMemPrePic;
+static PT_Page_Mem g_ptPageMemCur;
+static PT_Page_Mem g_ptPageMemLager;
+static PT_Page_Mem g_ptPageMemSmaller;
+static PT_Page_Mem g_ptPageMemNextPic;
+static PT_Page_Mem g_ptPageMemPrePic;
 
 static void Pic_Prepare_Larger(void)
 {
@@ -51,6 +53,7 @@ static void Pic_Prepare_Larger(void)
 	Pic_Zoom(&tPicRegDst, &tPicRegSrc, g_fZoomFactorCur+0.1);
 	Lcd_Merge(0, g_iPicY, &tPicRegDst, g_ptPageMemLager->pcMem);
 	Do_Free(tPicRegSrc.pcData);
+	Do_Free(tPicRegDst.pcData);
 }
 
 static void Pic_Prepare_Smaller(void)
@@ -66,6 +69,7 @@ static void Pic_Prepare_Smaller(void)
 	Pic_Zoom(&tPicRegDst, &tPicRegSrc, g_fZoomFactorCur-0.1);
 	Lcd_Merge(0, g_iPicY, &tPicRegDst, g_ptPageMemSmaller->pcMem);
 	Do_Free(tPicRegSrc.pcData);
+	Do_Free(tPicRegDst.pcData);
 }
 
 static void Pic_Prepare_Pre(void)
@@ -83,14 +87,18 @@ static void Pic_Prepare_Pre(void)
 	Pic_Zoom_Factor_For_Lcd(&tPicRegSrc, &g_fZoomFactorPrePic);
 	Pic_Zoom(&tPicRegDst, &tPicRegSrc, g_fZoomFactorPrePic);
 	Lcd_Merge(0, g_iPicY, &tPicRegDst, g_ptPageMemPrePic->pcMem);
+	Do_Free(tPicRegDst.pcData);
 
 	/* 更新缩小和放大的数据 */
 	Pic_Zoom(&tPicRegDst, &tPicRegSrc, g_fZoomFactorCur-0.1);
 	Lcd_Merge(0, g_iPicY, &tPicRegDst, g_ptPageMemSmaller->pcMem);
+	Do_Free(tPicRegDst.pcData);
+	
 	Pic_Zoom(&tPicRegDst, &tPicRegSrc, g_fZoomFactorCur+0.1);
 	Lcd_Merge(0, g_iPicY, &tPicRegDst, g_ptPageMemLager->pcMem);
 	
 	Do_Free(tPicRegSrc.pcData);
+	Do_Free(tPicRegDst.pcData);
 }
 
 static void Pic_Prepare_Next(void)
@@ -108,19 +116,23 @@ static void Pic_Prepare_Next(void)
 	Pic_Zoom_Factor_For_Lcd(&tPicRegSrc, &g_fZoomFactorNextPic);
 	Pic_Zoom(&tPicRegDst, &tPicRegSrc, g_fZoomFactorNextPic);
 	Lcd_Merge(0, g_iPicY, &tPicRegDst, g_ptPageMemNextPic->pcMem);
+	Do_Free(tPicRegDst.pcData);
 
 	/* 更新缩小和放大的数据 */
 	Pic_Zoom(&tPicRegDst, &tPicRegSrc, g_fZoomFactorCur-0.1);
 	Lcd_Merge(0, g_iPicY, &tPicRegDst, g_ptPageMemSmaller->pcMem);
+	Do_Free(tPicRegDst.pcData);
+	
 	Pic_Zoom(&tPicRegDst, &tPicRegSrc, g_fZoomFactorCur+0.1);
 	Lcd_Merge(0, g_iPicY, &tPicRegDst, g_ptPageMemLager->pcMem);
 	
 	Do_Free(tPicRegSrc.pcData);
+	Do_Free(tPicRegDst.pcData);
 }
 
 static void Browse_Page_Zoom_Thread(void *arg)
 {
-	while (1) {
+	while (ucBrowsePageRunning) {
 		pthread_mutex_lock(&g_tZoomMutex);
 		pthread_cond_wait(&g_tZoomCond, &g_tZoomMutex);
 		
@@ -148,7 +160,7 @@ static void Browse_Page_Zoom_Thread(void *arg)
 
 static void Browse_Page_Flip_Thread(void *arg)
 {
-	while (1) {
+	while (ucBrowsePageRunning) {
 		pthread_mutex_lock(&g_tFlipMutex);
 		pthread_cond_wait(&g_tFlipCond, &g_tFlipMutex);
 		
@@ -203,6 +215,7 @@ static int Browse_Page_Data(PT_Page_Mem ptPageMem)
 		Pic_Zoom(&tPicRegDst, &tPicRegSrc, 0);
 		Lcd_Merge(t_BrowsePageIcon[i].iTopLeftX, t_BrowsePageIcon[i].iTopLeftY, &tPicRegDst, ptPageMem->pcMem);
 		Do_Free(tPicRegSrc.pcData);
+		Do_Free(tPicRegDst.pcData);
 	}
 
 	g_iPicY = tPicRegDst.dwHeight;
@@ -212,6 +225,7 @@ static int Browse_Page_Data(PT_Page_Mem ptPageMem)
 		Pic_Zoom(&tPicRegDst, &tPicRegSrc, g_fZoomFactorCur);
 		Lcd_Merge(0, g_iPicY, &tPicRegDst, ptPageMem->pcMem);
 		Do_Free(tPicRegSrc.pcData);
+		Do_Free(tPicRegDst.pcData);
 	}
 	
 	ptPageMem->State = PAGE_MEM_PACKED;
@@ -317,15 +331,16 @@ static void Browse_Page_Run(void)
 
 	Pic_Zoom(&tPicRegDst, &tPicRegSrc, g_fZoomFactorCur-0.1);
 	Lcd_Merge(0, g_iPicY, &tPicRegDst, g_ptPageMemSmaller->pcMem);
-
 	Do_Free(tPicRegSrc.pcData);
-
+	Do_Free(tPicRegDst.pcData);
+	
 	if (g_ptFileListCurShow->ptPre) {
 		Get_Format_Opr("jpeg")->Get_Pic_Region(g_ptFileListCurShow->ptPre->pcName, &tPicRegSrc);
 		Pic_Zoom_Factor_For_Lcd(&tPicRegSrc, &g_fZoomFactorPrePic);
 		Pic_Zoom(&tPicRegDst, &tPicRegSrc, g_fZoomFactorPrePic);
 		Lcd_Merge(0, g_iPicY, &tPicRegDst, g_ptPageMemPrePic->pcMem);
 		Do_Free(tPicRegSrc.pcData);
+		Do_Free(tPicRegDst.pcData);
 	}
 	if (g_ptFileListCurShow->ptNext) {
 		Get_Format_Opr("jpeg")->Get_Pic_Region(g_ptFileListCurShow->ptNext->pcName, &tPicRegSrc);
@@ -333,8 +348,10 @@ static void Browse_Page_Run(void)
 		Pic_Zoom(&tPicRegDst, &tPicRegSrc, g_fZoomFactorNextPic);
 		Lcd_Merge(0, g_iPicY, &tPicRegDst, g_ptPageMemNextPic->pcMem);
 		Do_Free(tPicRegSrc.pcData);
+		Do_Free(tPicRegDst.pcData);
 	}
-	
+
+	ucBrowsePageRunning = 1;
 	pthread_create(&tShowTreadID, NULL, (void *)Browse_Page_Zoom_Thread, NULL);
 	pthread_create(&tShowTreadID, NULL, (void *)Browse_Page_Flip_Thread, NULL);
 }
@@ -395,6 +412,7 @@ static void Browse_Page_Get_Input_Event(void)
 static void Browse_Page_Exit(void)
 {
 	printf("Browse_Page_Exit\n");
+	ucBrowsePageRunning = 0;
 	Page_Grop_Mem_List_Del(BROWSEPAGE_GROUP);
 }
 

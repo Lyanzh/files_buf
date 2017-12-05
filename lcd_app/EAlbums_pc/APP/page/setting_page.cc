@@ -46,6 +46,7 @@ static int Setting_Page_Data(PT_Page_Mem ptPageMem)
 		Lcd_Merge(t_SettingPageIcon[i].iTopLeftX, t_SettingPageIcon[i].iTopLeftY,
 				&tPicRegDst, ptPageMem->pcMem);
 		Do_Free(tPicRegSrc.pcData);
+		Do_Free(tPicRegDst.pcData);
 	}
 	
 	ptPageMem->State = PAGE_MEM_PACKED;

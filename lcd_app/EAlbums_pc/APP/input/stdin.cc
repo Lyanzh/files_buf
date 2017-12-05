@@ -4,7 +4,7 @@
 #include <unistd.h>
 #include <termios.h>
 
-#include "memwatch.h"
+//#include "memwatch.h"
 
 #define NB_ENABLE  1
 #define NB_DISABLE 0

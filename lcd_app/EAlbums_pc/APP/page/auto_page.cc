@@ -44,6 +44,8 @@ static int Auto_Page_Data(PT_Page_Mem ptPageMem)
 		Pic_Zoom_Factor_For_Lcd(&tPicRegSrc, &g_fZoomFactor);
 		Pic_Zoom(&tPicRegDst, &tPicRegSrc, g_fZoomFactor);
 		Lcd_Merge(0, g_iPicY, &tPicRegDst, ptPageMem->pcMem);
+		Do_Free(tPicRegSrc.pcData);
+		Do_Free(tPicRegDst.pcData);
 	}
 	ptPageMem->State = PAGE_MEM_PACKED;
 	return 0;
@@ -112,6 +114,7 @@ static void Pic_Prepare_Next(void)
 	Pic_Zoom(&tPicRegDst, &tPicRegSrc, g_fZoomFactor);
 	Lcd_Merge(0, g_iPicY, &tPicRegDst, g_ptPageMemNextPic->pcMem);
 	Do_Free(tPicRegSrc.pcData);
+	Do_Free(tPicRegDst.pcData);
 }
 
 static void Auto_Page_Thread(void *arg)
@@ -167,6 +170,7 @@ static void Auto_Page_Run(void)
 		Pic_Zoom(&tPicRegDst, &tPicRegSrc, g_fZoomFactor);
 		Lcd_Merge(0, g_iPicY, &tPicRegDst, g_ptPageMemNextPic->pcMem);
 		Do_Free(tPicRegSrc.pcData);
+		Do_Free(tPicRegDst.pcData);
 	}
 }
 

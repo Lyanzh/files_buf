@@ -7,7 +7,7 @@
 #include <sys/types.h>
 #include <unistd.h>
 
-#include "memwatch.h"
+//#include "memwatch.h"
 
 static PT_Input_Opr g_ptInputOprHead;
 T_Input_Event g_tInputEvent;

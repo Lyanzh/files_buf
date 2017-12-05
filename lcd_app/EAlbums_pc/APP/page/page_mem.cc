@@ -4,7 +4,7 @@
 #include <string.h>
 #include <pthread.h>
 
-#include "memwatch.h"
+//#include "memwatch.h"
 
 static pthread_mutex_t g_tPageMemListMutex = PTHREAD_MUTEX_INITIALIZER;
 static PT_Page_Mem_List g_ptPageMemListHead;/* 空表头，方便插入删除操作 */

@@ -4,9 +4,9 @@
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <fcntl.h>
- #include <unistd.h>
+#include <unistd.h>
  
-#include "memwatch.h"
+//#include "memwatch.h"
 
 static int g_iGbkFd;
 static char *g_pcGbkMem;

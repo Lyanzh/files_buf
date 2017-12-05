@@ -1,6 +1,8 @@
 #ifndef _FORMAT_MANAGER_H
 #define _FORMAT_MANAGER_H
 
+#include "config.h"
+
 typedef struct Picture_Region	//一块颜色数据区的描述，便于参数传递
 {
 	char           *pcData;		//颜色数据首地址

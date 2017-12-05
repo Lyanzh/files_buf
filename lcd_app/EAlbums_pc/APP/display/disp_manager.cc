@@ -2,7 +2,7 @@
 #include <stdio.h>
 #include <string.h>
 
-#include "memwatch.h"
+//#include "memwatch.h"
 
 static PT_Disp_Opr g_ptDispOprHead;
 static PT_Disp_Opr g_ptDispOprSelected;

@@ -29,16 +29,16 @@ static void Timer_Page_Run(void)
 	iIconNum = sizeof(t_TimerPageIcon) / sizeof(T_IconInfo);
 	for (i = 0; i < iIconNum; i++) {
 		Get_Format_Opr("bmp")->Get_Pic_Region(t_TimerPageIcon[i].pcName, &tPicRegSrc);
-
 		tPicRegDst.dwWidth = Selected_Display()->tDevAttr.dwXres / 10;
 		tPicRegDst.dwHeight = tPicRegDst.dwWidth;
 		t_TimerPageIcon[i].iTopLeftX = ICON_X(tPicRegDst.dwWidth, iIconNum, i);
 		t_TimerPageIcon[i].iTopLeftY = ICON_Y(tPicRegDst.dwHeight, iIconNum, i);
 		t_TimerPageIcon[i].iBottomRightX = t_TimerPageIcon[i].iTopLeftX + tPicRegDst.dwWidth;
 		t_TimerPageIcon[i].iBottomRightY = t_TimerPageIcon[i].iTopLeftY + tPicRegDst.dwHeight;
-		
 		Pic_Zoom(&tPicRegDst, &tPicRegSrc, 0.5);
 		Lcd_Show_Pic(t_TimerPageIcon[i].iTopLeftX, t_TimerPageIcon[i].iTopLeftY, &tPicRegDst);
+		Do_Free(tPicRegSrc.pcData);
+		Do_Free(tPicRegDst.pcData);
 	}
 }
 

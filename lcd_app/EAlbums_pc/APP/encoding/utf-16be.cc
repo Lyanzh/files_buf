@@ -1,7 +1,7 @@
 #include "encoding_manager.h"
 #include <string.h>
 
-#include "memwatch.h"
+//#include "memwatch.h"
 
 /* return: 1->yes, 0->no */
 static int isUtf16beCoding(unsigned char *pucBufHead)

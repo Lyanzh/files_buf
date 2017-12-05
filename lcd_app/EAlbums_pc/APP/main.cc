@@ -13,7 +13,7 @@
 #include "format_manager.h"
 #include "page_manager.h"
 
-#include "memwatch.h"
+//#include "memwatch.h"
 
 int main(int argc, char **argv)
 {

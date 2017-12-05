@@ -2,7 +2,7 @@
 #include <string.h>
 #include <stdio.h>
 
-#include "memwatch.h"
+//#include "memwatch.h"
 
 /* return: 1->yes, 0->no */
 static int isUtf16leCoding(unsigned char *pucBufHead)

@@ -5,7 +5,7 @@
 #include <unistd.h>
 #include <fcntl.h>
 #include <string.h>
-#include <malloc.h>
+#include <stdlib.h>
 #include <sys/mman.h>
 #include <sys/ioctl.h>
 
@@ -48,6 +48,7 @@ int JPEG_Get_Pic_Region(char *pcFilePath, PT_PicRegion ptPicReg)
 	/* More stuff */
 	FILE * infile;		/* source file */
 	JSAMPARRAY buffer;		/* Output row buffer */ /* ¶þ¼¶Ö¸Õë */
+	//char *buffer;
 	int row_stride;		/* physical row width in output buffer */
 
 	char *pcPicRegData;
@@ -129,7 +130,7 @@ int JPEG_Get_Pic_Region(char *pcFilePath, PT_PicRegion ptPicReg)
 	/* Make a one-row-high sample array that will go away when done with image */
 	buffer = (*cinfo.mem->alloc_sarray)
 		((j_common_ptr) &cinfo, JPOOL_IMAGE, row_stride, 1);
-	//buffer = malloc(row_stride);
+	//buffer = (char *)malloc(row_stride);
 
 	ptPicReg->pcData = (char *)malloc(row_stride * ptPicReg->dwHeight);
 	if (ptPicReg->pcData == NULL) {
@@ -170,6 +171,8 @@ int JPEG_Get_Pic_Region(char *pcFilePath, PT_PicRegion ptPicReg)
 
 	/* This is an important step since it will release a good deal of memory. */
 	jpeg_destroy_decompress(&cinfo);
+
+	//Do_Free(buffer);
 
 	/* After finish_decompress, we can close the input file.
 	* Here we postpone it until after no more JPEG errors are possible,
