@@ -40,6 +40,40 @@ void Lcd_Show_Pic(int iX, int iY, PT_PicRegion ptPicReg)
 	}
 }
 
+int Lcd_Curtain_Prepare(int iX, int iY, unsigned int dwWidth, unsigned int dwHeight,
+						PT_Page_Mem ptPageMem)
+{
+	//return Selected_Display()->Clean_Area(iX, iY, dwWidth, dwHeight);
+	unsigned int dwScreenSize;
+	char *pcFbMemStart;
+
+	if (!ptPageMem) {
+		printf("Error:ptPageMem invalided\n");
+		return -1;
+	}
+
+	if (iX >= Selected_Display()->tDevAttr.dwXres ||
+		iY >= Selected_Display()->tDevAttr.dwYres) {
+		printf("Error:the location is over the screen\n");
+		return -1;
+	}
+
+	if ((iX + dwWidth) > Selected_Display()->tDevAttr.dwXres) {
+		dwWidth = Selected_Display()->tDevAttr.dwXres - iX;
+	}
+
+	if ((iY + dwHeight) > Selected_Display()->tDevAttr.dwYres) {
+		dwHeight = Selected_Display()->tDevAttr.dwYres - iY;
+	}
+
+	dwScreenSize = Selected_Display()->tDevAttr.dwBitsPerPixel * dwWidth * dwHeight;
+	pcFbMemStart = ptPageMem->pcMem + Selected_Display()->tDevAttr// * iY
+					+ Selected_Display()->tDevAttr.dwBitsPerPixel * iX;
+
+	munmap(pcFbMemStart, dwScreenSize);
+	return 0;
+}
+
 /*
  * Input:
  * 	iX : start x,

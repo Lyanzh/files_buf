@@ -223,6 +223,7 @@ static int Browse_Page_Data(PT_Page_Mem ptPageMem)
 		Get_Format_Opr("jpeg")->Get_Pic_Region(g_ptFileListCurShow->pcName, &tPicRegSrc);
 		Pic_Zoom_Factor_For_Lcd(&tPicRegSrc, &g_fZoomFactorCur);
 		Pic_Zoom(&tPicRegDst, &tPicRegSrc, g_fZoomFactorCur);
+		Lcd_Curtain_Prepare(int iX, int iY, unsigned int dwWidth, unsigned int dwHeight);
 		Lcd_Merge(0, g_iPicY, &tPicRegDst, ptPageMem->pcMem);
 		Do_Free(tPicRegSrc.pcData);
 		Do_Free(tPicRegDst.pcData);

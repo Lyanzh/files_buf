@@ -177,6 +177,32 @@ static int Fb_Clean(void)
 	return 0;
 }
 
+static int Fb_Clean_Area(int iX, int iY, unsigned int dwWidth, unsigned int dwHeight)
+{
+	unsigned int dwScreenSize;
+	char *pcFbMemStart;
+
+	if (iX >= g_ptFbDev->tFbVarInfo.xres ||
+		iY >= g_ptFbDev->tFbVarInfo.yres) {
+		printf("Error:the location is over the screen\n");
+		return -1;
+	}
+
+	if ((iX + dwWidth) > g_ptFbDev->tFbVarInfo.xres) {
+		dwWidth = g_ptFbDev->tFbVarInfo.xres - iX;
+	}
+
+	if ((iY + dwHeight) > g_ptFbDev->tFbVarInfo.yres) {
+		dwHeight = g_ptFbDev->tFbVarInfo.yres - iY;
+	}
+
+	dwScreenSize = g_ptFbDev->dwPixelSize * dwWidth * dwHeight;
+	pcFbMemStart = g_ptFbDev->pcFbMem + g_ptFbDev->dwLineSize * iY + g_ptFbDev->dwPixelSize * iX;
+
+	munmap(pcFbMemStart, dwScreenSize);
+	return 0;
+}
+
 static int Fb_Remove(void)
 {
 	munmap(g_ptFbDev->pcFbMem, g_ptFbDev->dwScreenSize);
@@ -186,12 +212,13 @@ static int Fb_Remove(void)
 }
 
 static T_Disp_Opr g_tPcDispOpr = {
-	.pcName	  = "ubuntu",
-	.Init     = Fb_Init,
-	.Clean_Screen = Fb_Clean,
-	.Put_Pixel    = Fb_Lcd_Put_Pixel,
-	.Store_Pixel  = Fb_Lcd_Pixel_Store,
-	.Dev_Remove   = Fb_Remove,
+	.pcName	         = "ubuntu",
+	.Init            = Fb_Init,
+	.Clean_Screen    = Fb_Clean,
+	.Clean_Area      = Fb_Clean_Area,
+	.Put_Pixel       = Fb_Lcd_Put_Pixel,
+	.Store_Pixel     = Fb_Lcd_Pixel_Store,
+	.Dev_Remove      = Fb_Remove,
 };
 
 int PC_Disp_Dev_Init(void)

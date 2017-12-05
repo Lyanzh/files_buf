@@ -18,6 +18,7 @@ typedef struct Disp_Opr
 	char *pcMem;
 	int (*Init)(void);
 	int (*Clean_Screen)(void);
+	int (*Clean_Area)(int, int, unsigned int, unsigned int);
 	void (*Put_Pixel)(int, int, unsigned int);
 	void (*Store_Pixel)(int, int, unsigned int, char *);
 	int (*Dev_Remove)(void);
