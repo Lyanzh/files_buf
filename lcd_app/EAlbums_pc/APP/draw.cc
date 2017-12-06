@@ -40,6 +40,7 @@ void Lcd_Show_Pic(int iX, int iY, PT_PicRegion ptPicReg)
 	}
 }
 
+#if 0
 int Lcd_Curtain_Prepare(int iX, int iY, unsigned int dwWidth, unsigned int dwHeight,
 						PT_Page_Mem ptPageMem)
 {
@@ -72,6 +73,19 @@ int Lcd_Curtain_Prepare(int iX, int iY, unsigned int dwWidth, unsigned int dwHei
 
 	munmap(pcFbMemStart, dwScreenSize);
 	return 0;
+}
+#endif
+
+int Lcd_Pic_Pos(PT_PicCurtain ptPagePicCurtain,
+				int *iPicPosX, int *iPicPosY, PT_PicRegion ptPicReg)
+{
+	if (ptPicReg->dwWidth < ptPagePicCurtain->dwWidth) {
+		*iPicPosX = ptPagePicCurtain->iX + (ptPagePicCurtain->dwWidth - ptPicReg->dwWidth) / 2;
+	}
+
+	if (ptPicReg->dwHeight< ptPagePicCurtain->dwHeight) {
+		*iPicPosY = ptPagePicCurtain->iY + (ptPagePicCurtain->dwHeight - ptPicReg->dwHeight) / 2;
+	}
 }
 
 /*

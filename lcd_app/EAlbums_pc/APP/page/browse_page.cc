@@ -40,6 +40,8 @@ static PT_Page_Mem g_ptPageMemSmaller;
 static PT_Page_Mem g_ptPageMemNextPic;
 static PT_Page_Mem g_ptPageMemPrePic;
 
+static T_PicCurtain g_tPagePicCurtain;
+
 static void Pic_Prepare_Larger(void)
 {
 	T_PicRegion tPicRegSrc;
@@ -77,6 +79,9 @@ static void Pic_Prepare_Pre(void)
 	T_PicRegion tPicRegSrc;
 	T_PicRegion tPicRegDst;
 
+	int iPicPosX;
+	int iPicPosY;
+	
 	g_fZoomFactorCur = g_fZoomFactorPrePic;
 	g_fZoomFactorPre = g_fZoomFactorCur;
 	memcpy(g_ptPageMemNextPic->pcMem, g_ptPageMemCur->pcMem, g_ptPageMemCur->dwMemSize);
@@ -86,7 +91,8 @@ static void Pic_Prepare_Pre(void)
 	Get_Format_Opr("jpeg")->Get_Pic_Region(g_ptFileListCurShow->pcName, &tPicRegSrc);
 	Pic_Zoom_Factor_For_Lcd(&tPicRegSrc, &g_fZoomFactorPrePic);
 	Pic_Zoom(&tPicRegDst, &tPicRegSrc, g_fZoomFactorPrePic);
-	Lcd_Merge(0, g_iPicY, &tPicRegDst, g_ptPageMemPrePic->pcMem);
+	Lcd_Pic_Pos(&g_tPagePicCurtain, &iPicPosX, &iPicPosY, &tPicRegDst);
+	Lcd_Merge(iPicPosX, iPicPosY, &tPicRegDst, g_ptPageMemPrePic->pcMem);
 	Do_Free(tPicRegDst.pcData);
 
 	/* 更新缩小和放大的数据 */
@@ -106,6 +112,9 @@ static void Pic_Prepare_Next(void)
 	T_PicRegion tPicRegSrc;
 	T_PicRegion tPicRegDst;
 
+	int iPicPosX;
+	int iPicPosY;
+
 	g_fZoomFactorCur = g_fZoomFactorNextPic;
 	g_fZoomFactorPre = g_fZoomFactorCur;
 	memcpy(g_ptPageMemPrePic->pcMem, g_ptPageMemCur->pcMem, g_ptPageMemCur->dwMemSize);
@@ -115,7 +124,8 @@ static void Pic_Prepare_Next(void)
 	Get_Format_Opr("jpeg")->Get_Pic_Region(g_ptFileListCurShow->pcName, &tPicRegSrc);
 	Pic_Zoom_Factor_For_Lcd(&tPicRegSrc, &g_fZoomFactorNextPic);
 	Pic_Zoom(&tPicRegDst, &tPicRegSrc, g_fZoomFactorNextPic);
-	Lcd_Merge(0, g_iPicY, &tPicRegDst, g_ptPageMemNextPic->pcMem);
+	Lcd_Pic_Pos(&g_tPagePicCurtain, &iPicPosX, &iPicPosY, &tPicRegDst);
+	Lcd_Merge(iPicPosX, iPicPosY, &tPicRegDst, g_ptPageMemNextPic->pcMem);
 	Do_Free(tPicRegDst.pcData);
 
 	/* 更新缩小和放大的数据 */
@@ -189,6 +199,9 @@ static int Browse_Page_Data(PT_Page_Mem ptPageMem)
 	T_PicRegion tPicRegSrc;
 	T_PicRegion tPicRegDst;
 
+	int iPicPosX;
+	int iPicPosY;
+
 	g_ptFileListPreShow = g_ptFileListCurShow;
 	g_fZoomFactorPre = 1;
 	g_fZoomFactorCur = 1;
@@ -219,12 +232,17 @@ static int Browse_Page_Data(PT_Page_Mem ptPageMem)
 	}
 
 	g_iPicY = tPicRegDst.dwHeight;
+	g_tPagePicCurtain.iX = 0;
+	g_tPagePicCurtain.iY = g_iPicY;
+	g_tPagePicCurtain.dwWidth = Selected_Display()->tDevAttr.dwXres;
+	g_tPagePicCurtain.dwHeight = Selected_Display()->tDevAttr.dwYres - g_iPicY;
 	if (g_ptFileListCurShow) {
 		Get_Format_Opr("jpeg")->Get_Pic_Region(g_ptFileListCurShow->pcName, &tPicRegSrc);
 		Pic_Zoom_Factor_For_Lcd(&tPicRegSrc, &g_fZoomFactorCur);
 		Pic_Zoom(&tPicRegDst, &tPicRegSrc, g_fZoomFactorCur);
-		Lcd_Curtain_Prepare(int iX, int iY, unsigned int dwWidth, unsigned int dwHeight);
-		Lcd_Merge(0, g_iPicY, &tPicRegDst, ptPageMem->pcMem);
+		Lcd_Pic_Pos(&g_tPagePicCurtain, &iPicPosX, &iPicPosY, &tPicRegDst);
+		//Lcd_Curtain_Prepare(int iX, int iY, unsigned int dwWidth, unsigned int dwHeight);
+		Lcd_Merge(iPicPosX, iPicPosY, &tPicRegDst, ptPageMem->pcMem);
 		Do_Free(tPicRegSrc.pcData);
 		Do_Free(tPicRegDst.pcData);
 	}
