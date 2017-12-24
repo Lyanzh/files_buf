@@ -5,8 +5,8 @@
 #Date:   2004-08-28
 
 #begin
-    CC=arm-elf-gcc
-    LD=arm-elf-ld
+    CC=arm-linux-gcc
+    LD=arm-linux-ld
     CFLAGS= -c -Wall -Wstrict-prototypes -Wno-trigraphs -O2 -pipe -g -mapcs-32 -march=armv4 -mtune=arm7tdmi 
     LDFLAGS= -N -p -X -Thello.lds
     
@@ -16,9 +16,9 @@
 
     hello: start.o hello.o
 	$(LD) $(LDFLAGS)  start.o hello.o -o hello
-	arm-elf-objdump -xS hello > hello.s
-	arm-elf-readelf -a hello > hello.r
-	arm-elf-nm hello > hello.n
+	arm-linux-objdump -xS hello > hello.s
+	arm-linux-readelf -a hello > hello.r
+	arm-linux-nm hello > hello.n
 	 
     start.o:start.S
 	$(CC) $(CFLAGS) start.S	 
