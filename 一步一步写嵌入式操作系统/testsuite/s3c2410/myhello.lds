@@ -1,18 +1,18 @@
-OUTPUT_ARCH(arm) 
-ENTRY(_start) 
-SECTIONS 
-{ 
-  . = 0x00000000; 
-  .text :   
-  { 
-    start.o 
-    myhello.o 
-    *(.rodata) 
-  } 
+OUTPUT_ARCH(arm)
+ENTRY(_start)
+SECTIONS
+{
+	. = 0x00000000;
+	.text :
+	{
+		start.o
+		myhello.o
+		*(.rodata)
+	}
 
-  . = ALIGN(8192); 
+	. = ALIGN(8192);
 
-  .data : {*(.data)} 
+	.data : {*(.data)}
 
-  .bss : {*(.bss)} 
+	.bss : {*(.bss)}
 }

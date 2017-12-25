@@ -1,10 +1,10 @@
-.text 
-	.align 4 
-	.global _start 
+.text
+	.align 4
+	.global _start
 
-_start: 
-	ldr sp, =1024*4 
-	bl  myhello 
+_start:
+	ldr sp, =1024*4
+	bl  myhello
 
-halt: 
+halt:
 	b halt

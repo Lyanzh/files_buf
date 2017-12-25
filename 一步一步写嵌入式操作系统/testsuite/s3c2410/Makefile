@@ -7,7 +7,8 @@ myhello: start.o myhello.o
 	$(LD) $(LDFLAGS)  start.o myhello.o -o myhello
 	arm-linux-objdump -xS myhello > myhello.s
 	arm-linux-readelf -a myhello > myhello.r
-	arm-linux-nm myhello > myhello.n 
+	arm-linux-nm myhello > myhello.n
+	arm-linux-objcopy -O binary myhello myhello.bin
 
 start.o: start.S
 	$(CC) $(CFLAGS) start.S
