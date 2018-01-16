@@ -9,12 +9,21 @@
 #define MEM32(addr)		*(volatile unsigned long *)(addr)
 #define MEM8(addr)		*(volatile unsigned char *)(addr)
 
+// 当前任务：记录当前是哪个任务正在运行
 tTask *currentTask;
-tTask *nextTask;
-tTask *taskTable[TINYOS_PRIO_COUNT];
-tBitmap taskPrioBitmap;
-tTask *idleTask;
 
+// 下一个将即运行的任务：在进行任务切换前，先设置好该值，然后任务切换过程中会从中读取下一任务信息
+tTask *nextTask;
+
+tList taskTable[TINYOS_PRIO_COUNT];
+
+// 任务优先级的标记位置结构
+tBitmap taskPrioBitmap;
+
+// 延时队列
+tList tTaskDelayList;
+
+// 调度锁计数器
 static u32 schedLockCount;
 
 /*
@@ -72,8 +81,27 @@ void TaskSwitch(void)
 tTask *TaskHighestReady(void)
 {
 	u32 highestPrio;
+	tNode *node;
 	highestPrio = BitmapGetFirstSet(&taskPrioBitmap);
-	return taskTable[highestPrio];
+	node = ListFirst(&taskTable[highestPrio]);
+	return (tTask *)NodeParent(node, tTask, linkNode);
+}
+
+/* 将任务设置为就绪状态 */
+void TaskSchedRdy(tTask *task)
+{
+	ListAddLast(&taskTable[task->prio], &(task->linkNode));
+	BitmapSet(&taskPrioBitmap, task->prio);
+}
+
+/* 将任务从就绪列表中移除 */
+void TaskSchedUnRdy(tTask *task)
+{
+	ListRemove(&taskTable[task->prio], &(task->linkNode));
+
+	if (ListCount(&taskTable[task->prio]) == 0) {
+		BitmapClear(&taskPrioBitmap, task->prio);
+	}
 }
 
 void TaskSched(void)
@@ -94,73 +122,64 @@ void TaskSched(void)
 	TaskExitCritical(status);
 }
 
-void TaskInit(tTask *task, void (*entry)(void *), void *param, u32 prio, tTaskStack *stack)
+void TaskDelayInit(void)
 {
-	*(--stack) = (unsigned long)(1 << 24);
-	*(--stack) = (unsigned long)entry;//R15, PC
-	*(--stack) = (unsigned long)0x14;//R14
-	*(--stack) = (unsigned long)0x13;//R13
-	*(--stack) = (unsigned long)0x3;//R3
-	*(--stack) = (unsigned long)0x2;//R2
-	*(--stack) = (unsigned long)0x1;//R1
-	*(--stack) = (unsigned long)param;//R0
-
-	*(--stack) = (unsigned long)0x11;//R11
-	*(--stack) = (unsigned long)0x10;//R10
-	*(--stack) = (unsigned long)0x9;//R9
-	*(--stack) = (unsigned long)0x8;//R8
-	*(--stack) = (unsigned long)0x7;//R7
-	*(--stack) = (unsigned long)0x6;//R6
-	*(--stack) = (unsigned long)0x5;//R5
-	*(--stack) = (unsigned long)0x4;//R4
-
-	
-	task->stack = stack;
-	task->delayTicks = 0;
-	task->prio = prio;
-
-	taskTable[prio] = task;
-	BitmapSet(&taskPrioBitmap, prio);
+	ListInit(&tTaskDelayList);
 }
 
-void SetSysTickPeriod(u32 ms)
+/* 将任务加入延时队列中 */
+void TimeTaskWait(tTask *task, u32 ticks)
 {
-	SysTick->LOAD = ms * SystemCoreClock / 1000 - 1;
-	NVIC_SetPriority(SysTick_IRQn, (1 << __NVIC_PRIO_BITS) - 1);
-	SysTick->VAL = 0;
-	SysTick->CTRL = SysTick_CTRL_CLKSOURCE_Msk |
-					SysTick_CTRL_TICKINT_Msk |
-					SysTick_CTRL_ENABLE_Msk;
+	task->delayTicks = ticks;
+	ListAddLast(&tTaskDelayList, &(task->delayNode));
+	task->state |= TINYOS_TASK_STATE_DELAY;
+}
+
+/* 将延时的任务从延时队列中唤醒 */
+void TimeTaskWakeUp(tTask *task)
+{
+	ListRemove(&tTaskDelayList, &(task->delayNode));
+	task->state &= ~TINYOS_TASK_STATE_DELAY;
+}
+
+/* 将延时的任务从延时队列中移除 */
+void TimeTaskRemove(tTask *task)
+{
+	ListRemove(&tTaskDelayList, &(task->delayNode));
 }
 
 void TaskSysTickHandler(void)
 {
-	u32 i;
+	tNode *node;
+	tTask *task;
 	u32 status = TaskEnterCritical();
-	for (i = 0; i < TINYOS_PRIO_COUNT; i++) {
-		if (taskTable[i]->delayTicks > 0) {
-			taskTable[i]->delayTicks--;
-		} else {
-			BitmapSet(&taskPrioBitmap, i);
+
+	// 检查所有任务的delayTicks数，如果不0的话，减1
+	for (node = tTaskDelayList.headNode.nextNode; node != &(tTaskDelayList.headNode); node = node->nextNode) {
+		task = NodeParent(node, tTask, delayNode);
+		if (--task->delayTicks == 0) {
+			TimeTaskWakeUp(task);
+
+			TaskSchedRdy(task);
+		}
+	}
+
+	// 检查下当前任务的时间片是否已经到了
+	if (--currentTask->slice == 0) {
+        // 如果当前任务中还有其它任务的话，那么切换到下一个任务
+        // 方法是将当前任务从队列的头部移除，插入到尾部
+        // 这样后面执行tTaskSched()时就会从头部取出新的任务取出新的任务作为当前任务运行
+		if (ListCount(&taskTable[currentTask->prio]) > 0) {
+			ListRemoveFirst(&taskTable[currentTask->prio]);
+			ListAddLast(&taskTable[currentTask->prio], &currentTask->linkNode);
+
+			// 重置计数器
+			currentTask->slice = TINYOS_SLICE_MAX;
 		}
 	}
 
 	TaskExitCritical(status);
 
-	TaskSched();
-}
-
-void SysTick_Handler(void)
-{
-	TaskSysTickHandler();
-}
-
-void taskDelay(u32 cnt)
-{
-	u32 status = TaskEnterCritical();
-	currentTask->delayTicks = cnt;
-	BitmapClear(&taskPrioBitmap, currentTask->prio);
-	TaskExitCritical(status);
 	TaskSched();
 }
 
@@ -181,8 +200,14 @@ void TaskExitCritical(u32 status)
 /* 初始化 */
 void TaskSchedInit(void)
 {
+	u32 i = 0;
+	
 	schedLockCount = 0;
 	BitmapInit(&taskPrioBitmap);
+
+	for (i = 0; i < TINYOS_PRIO_COUNT; i++) {
+		ListInit(&taskTable[i]);
+	}
 }
 
 /* 调度锁上锁 */
