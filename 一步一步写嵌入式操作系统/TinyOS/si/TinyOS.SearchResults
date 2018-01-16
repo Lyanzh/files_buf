@@ -1,6 +1,4 @@
----- SysTickCnt Matches (5 in 1 files) ----
-Main.c (f:\学习\jz2440\files_buf_git\files_buf\一步一步写嵌入式操作系统\tinyos\src):u32 SysTickCnt = 0;
-Main.c (f:\学习\jz2440\files_buf_git\files_buf\一步一步写嵌入式操作系统\tinyos\src):	SysTickCnt++;
-Main.c (f:\学习\jz2440\files_buf_git\files_buf\一步一步写嵌入式操作系统\tinyos\src):	u32 Cnt = SysTickCnt;
-Main.c (f:\学习\jz2440\files_buf_git\files_buf\一步一步写嵌入式操作系统\tinyos\src):		Cnt = SysTickCnt;
-Main.c (f:\学习\jz2440\files_buf_git\files_buf\一步一步写嵌入式操作系统\tinyos\src):		SysTickCnt = Cnt + 1;
+---- suspendCount Matches (3 in 2 files) ----
+Task.c (f:\学习\jz2440\files_buf_git\files_buf\一步一步写嵌入式操作系统\tinyos\src):		if (++task->suspendCount <= 1) {
+Task.c (f:\学习\jz2440\files_buf_git\files_buf\一步一步写嵌入式操作系统\tinyos\src):		if (--task->suspendCount == 0) {
+tinyOS.h (f:\学习\jz2440\files_buf_git\files_buf\一步一步写嵌入式操作系统\tinyos\src):	u32 suspendCount;

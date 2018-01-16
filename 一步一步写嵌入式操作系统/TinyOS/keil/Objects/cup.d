@@ -1,0 +1,12 @@
+.\objects\cup.o: ..\src\cup.c
+.\objects\cup.o: ..\src\tinyOS.h
+.\objects\cup.o: ..\src\global.h
+.\objects\cup.o: D:\Keil_v5\ARM\ARMCC\Bin\..\include\stdint.h
+.\objects\cup.o: ..\src\tConfig.h
+.\objects\cup.o: ..\src\tLib.h
+.\objects\cup.o: D:\Keil_v5\ARM\PACK\ARM\CMSIS\4.5.0\Device\ARM\ARMCM3\Include\ARMCM3.h
+.\objects\cup.o: D:\Keil_v5\ARM\PACK\ARM\CMSIS\4.5.0\CMSIS\Include\core_cm3.h
+.\objects\cup.o: D:\Keil_v5\ARM\PACK\ARM\CMSIS\4.5.0\CMSIS\Include\core_cmInstr.h
+.\objects\cup.o: D:\Keil_v5\ARM\PACK\ARM\CMSIS\4.5.0\CMSIS\Include\cmsis_armcc.h
+.\objects\cup.o: D:\Keil_v5\ARM\PACK\ARM\CMSIS\4.5.0\CMSIS\Include\core_cmFunc.h
+.\objects\cup.o: D:\Keil_v5\ARM\PACK\ARM\CMSIS\4.5.0\Device\ARM\ARMCM3\Include\system_ARMCM3.h

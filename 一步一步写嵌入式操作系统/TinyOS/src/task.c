@@ -46,9 +46,8 @@ void TaskInit(tTask *task, void (*entry)(void *), void *param, u32 prio, tTaskSt
 
 	// 初始化链接结点
 	NodeInit(&(task->linkNode));
-	ListAddLast(&taskTable[prio], &(task->linkNode));
 
-	BitmapSet(&taskPrioBitmap, prio);
+	TaskSchedRdy(task);
 }
 
 /* 挂起指定的任务 */
