@@ -7,6 +7,7 @@
 ".\objects\time.o"
 ".\objects\task.o"
 ".\objects\app.o"
+".\objects\event.o"
 ".\objects\startup_armcm3.o"
 ".\objects\system_armcm3.o"
 --strict --scatter ".\Objects\TinyOS.sct"
