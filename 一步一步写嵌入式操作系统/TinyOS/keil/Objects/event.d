@@ -1,0 +1,9 @@
+.\objects\event.o: ..\src\event.c
+.\objects\event.o: ..\src\tinyOS.h
+.\objects\event.o: ..\src\global.h
+.\objects\event.o: C:\Keil_v5\ARM\ARMCC\Bin\..\include\stdint.h
+.\objects\event.o: ..\src\tConfig.h
+.\objects\event.o: ..\src\task.h
+.\objects\event.o: ..\src\tLib.h
+.\objects\event.o: ..\src\event.h
+.\objects\event.o: ..\src\task.h

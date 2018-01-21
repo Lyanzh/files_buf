@@ -1,0 +1,5 @@
+---- ucAutoPageRunning Matches (4 in 1 files) ----
+auto_page.cc (F:\参考资料\S3C24X0\file_buf_git\lcd_app\EAlbums_pc\APP\page):static unsigned char ucAutoPageRunning = 0;
+auto_page.cc (F:\参考资料\S3C24X0\file_buf_git\lcd_app\EAlbums_pc\APP\page):	while (ucAutoPageRunning) {
+auto_page.cc (F:\参考资料\S3C24X0\file_buf_git\lcd_app\EAlbums_pc\APP\page):	ucAutoPageRunning = 1;
+auto_page.cc (F:\参考资料\S3C24X0\file_buf_git\lcd_app\EAlbums_pc\APP\page):	ucAutoPageRunning = 0;
